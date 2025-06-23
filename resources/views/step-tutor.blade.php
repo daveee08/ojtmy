@@ -95,29 +95,50 @@
       <div class="ck-card">
         <h2 class="ck-title text-center">Step-by-Step Tutor</h2>
 
+        <!-- Conversation display -->
+        @if(Session::has('chat_history'))
+          <div style="max-height: 300px; overflow-y: auto; margin-bottom: 20px;">
+            @foreach (Session::get('chat_history') as $entry)
+              <div class="mb-2">
+                <strong style="color: {{ $entry['role'] === 'user' ? '#2c3e50' : '#EC298B' }}">
+                  {{ ucfirst($entry['role']) }}:
+                </strong>
+                <div style="white-space: pre-line;">{{ $entry['content'] }}</div>
+              </div>
+            @endforeach
+          </div>
+        @endif
+
+        <!-- Follow-up message input -->
         <form action="{{ url('/step-tutor') }}" method="POST">
           @csrf
 
-          <div class="mb-3">
-            <label class="form-label">Grade Level</label>
-            <input type="text" class="form-control" name="grade_level" required>
-          </div>
+          <!-- Grade Level only on first interaction -->
+          @if(!Session::has('chat_history'))
+            <div class="mb-3">
+              <label class="form-label">Grade Level</label>
+              <input type="text" class="form-control" name="grade_level" required>
+            </div>
+          @else
+            <!-- Hidden input so grade level persists -->
+            <input type="hidden" name="grade_level" value="{{ Session::get('grade_level') }}">
+          @endif
 
           <div class="mb-3">
-            <label class="form-label">Topic</label>
+            <label class="form-label">Your Message</label>
             <input type="text" class="form-control" name="topic" required>
           </div>
 
           <div class="text-center mt-4">
-            <button type="submit" class="ck-btn">Submit</button>
+            <button type="submit" class="ck-btn">Send</button>
           </div>
         </form>
 
-        @if(isset($response))
-          <hr class="my-4">
-          <h5 class="fw-bold" style="color:#EC298B;">AI Tutor Response:</h5>
-          <pre>{{ $response }}</pre>
-        @endif
+        <!-- Reset Button -->
+        <form action="{{ url('/step-tutor/clear') }}" method="POST" class="text-center mt-3">
+          @csrf
+          <button type="submit" class="btn btn-outline-danger btn-sm">Reset Conversation</button>
+        </form>
 
         @error('error')
           <div class="alert alert-danger mt-3">{{ $message }}</div>
@@ -127,6 +148,15 @@
   </div>
 </div>
 
+@if(isset($history))
+  <hr>
+  <h5 class="fw-bold" style="color:#EC298B;">Conversation History:</h5>
+  <div class="mb-3">
+    @foreach ($history as $entry)
+      <p><strong>{{ ucfirst($entry['role']) }}:</strong> {{ $entry['content'] }}</p>
+    @endforeach
+  </div>
+@endif
 <script>
   document.querySelector('form[action="{{ url('/step-tutor') }}"]').addEventListener('submit', function () {
     document.getElementById('loading-overlay').style.display = 'flex';

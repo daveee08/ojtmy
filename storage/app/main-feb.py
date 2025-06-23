@@ -2,6 +2,12 @@ from fastapi import FastAPI, UploadFile, Form, HTTPException
 from fastapi.responses import JSONResponse
 import traceback
 from tutor_agent import generate_output_with_file
+from fastapi import Body
+from pydantic import BaseModel
+
+class HistoryRequest(BaseModel):
+    history: str
+
 
 app = FastAPI()
 
@@ -44,3 +50,14 @@ async def step_tutor_endpoint(data: StepTutorInput):
         return {"response": output}
     except Exception as e:
         return {"error": str(e)}
+
+
+
+@app.post("/summarize-history")
+async def summarize_history_endpoint(data: HistoryRequest):
+    from summarizer_agent import summarize_conversation
+    print("Received history for summarization:", data.history[:100])
+    return {"summary": await summarize_conversation(data.history)}
+
+
+

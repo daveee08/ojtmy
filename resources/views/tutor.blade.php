@@ -2,7 +2,7 @@
 
 @section('content')
 <!-- loading spinner -->
-<div id="loading-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background-color:rgba(255,255,255,0.8); z-index:9999; display: flex; align-items:center; justify-content:center; flex-direction: column;">
+<div id="loading-overlay">
   <div class="spinner-border text-pink" role="status" style="width: 3rem; height: 3rem;">
     <span class="visually-hidden">Loading...</span>
   </div>
@@ -75,6 +75,19 @@
   .spinner-border.text-pink { 
   color: #EC298B;
 }
+#loading-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255,255,255,0.8);
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
 
 </style>
 
@@ -145,7 +158,10 @@
 <!-- loading spinner -->
 <script>
   document.querySelector('form[action="{{ url('/tutor') }}"]').addEventListener('submit', function () {
-    document.getElementById('loading-overlay').style.display = 'flex';
+  const overlay = document.getElementById('loading-overlay');
+  overlay.style.display = 'flex';
+});
+
   });
 </script>
 @endsection

@@ -23,7 +23,7 @@ Instructions:
 **Your Output (Step-by-Step):**
 """
 
-model = OllamaLLM(model="gemma3")
+model = OllamaLLM(model="gemma3:1b")
 step_prompt = ChatPromptTemplate.from_template(step_prompt_template)
 
 class StepTutorInput(BaseModel):

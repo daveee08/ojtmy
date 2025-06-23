@@ -16,3 +16,6 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::get('/tutor', 'App\Http\Controllers\TutorController@showForm');
+Route::post('/tutor', 'App\Http\Controllers\TutorController@processForm');

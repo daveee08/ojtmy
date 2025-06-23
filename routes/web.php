@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SummarizeController;
 use App\Http\Controllers\ProofreaderController; // ✅ Import your controller
+use App\Http\Controllers\StepTutorController;
+
 
 
 
@@ -18,9 +20,9 @@ Route::get('/tutor', 'App\Http\Controllers\TutorController@showForm');
 Route::post('/tutor', 'App\Http\Controllers\TutorController@processForm');
 Route::get('/leveler', 'App\Http\Controllers\LevelerController@showForm');
 Route::post('/leveler', 'App\Http\Controllers\LevelerController@processForm');
-Route::get('/', function () {
-    return redirect()->route('proofreader.form'); // Redirect '/' to the proofreader form
-});
+// Route::get('/', function () {
+//     return redirect()->route('proofreader.form'); // Redirect '/' to the proofreader form
+// });
 
 // ✅ Proofreader routes
 Route::get('/proofreader', [ProofreaderController::class, 'showForm'])->name('proofreader.form');
@@ -35,3 +37,7 @@ Route::post('/quizme/chat', 'App\Http\Controllers\QuizmeController@chat');
 
 Route::get('/rewriter', 'App\Http\Controllers\RewriterController@showForm');
 Route::post('/rewriter', 'App\Http\Controllers\RewriterController@processForm');
+
+
+Route::get('/step-tutor', [StepTutorController::class, 'showForm']);
+Route::post('/step-tutor', [StepTutorController::class, 'processForm']);

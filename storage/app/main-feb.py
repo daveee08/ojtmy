@@ -31,3 +31,16 @@ async def tutor_endpoint(
         traceback_str = traceback.format_exc()
         print(traceback_str)
         return JSONResponse(status_code=500, content={"detail": str(e), "trace": traceback_str})
+    
+from step_tutor_agent import StepTutorInput, explain_topic_step_by_step
+
+@app.post("/step-tutor")
+async def step_tutor_endpoint(data: StepTutorInput):
+    try:
+        output = await explain_topic_step_by_step(
+            grade_level=data.grade_level,
+            topic=data.topic
+        )
+        return {"response": output}
+    except Exception as e:
+        return {"error": str(e)}

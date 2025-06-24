@@ -8,11 +8,18 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 |
 | Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| contains the "web" middleware group. Now create something great!
+| routes are loaded by the RouteServiceProvider and all of them will
+| be assigned to the "web" middleware group. Make something great!
 |
 */
-
-Route::get('/', function () {
+Route::get('/', function(){
     return view('welcome');
 });
+
+
+Route::get('/quizme', 'App\Http\Controllers\QuizmeController@showForm');
+Route::post('/quizme', 'App\Http\Controllers\QuizmeController@processForm');
+Route::post('/quizme/download', 'App\Http\Controllers\QuizmeController@downloadContent')->name('quizme.download');
+Route::post('/quizme/evaluate-answer', 'App\Http\Controllers\QuizmeController@evaluateAnswer');
+Route::post('/quizme/chat', 'App\Http\Controllers\QuizmeController@chat');
+

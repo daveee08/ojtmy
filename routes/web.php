@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function(){
-    return view('leveler');
+    return view('welcome');
 });
 
 Route::get('/leveler', 'App\Http\Controllers\LevelerController@showForm');

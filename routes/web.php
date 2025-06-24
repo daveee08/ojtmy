@@ -16,3 +16,6 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::get('/rewriter', 'App\Http\Controllers\RewriterController@showForm');
+Route::post('/rewriter', 'App\Http\Controllers\RewriterController@processForm');

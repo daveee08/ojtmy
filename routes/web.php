@@ -22,3 +22,5 @@ Route::post('/quizme/download', 'App\Http\Controllers\QuizmeController@downloadC
 Route::post('/quizme/evaluate-answer', 'App\Http\Controllers\QuizmeController@evaluateAnswer');
 Route::post('/quizme/chat', 'App\Http\Controllers\QuizmeController@chat');
 
+Route::get('/rewriter', 'App\Http\Controllers\RewriterController@showForm');
+Route::post('/rewriter', 'App\Http\Controllers\RewriterController@processForm');

@@ -77,6 +77,23 @@ Important: Don't ask for a follow-up question.
 **Your Output (following the structure above):**
 """
 
+chat_history_template = """
+You are a skilled and supportive virtual tutor assisting a student in an ongoing conversation. Your task is to continue the tutoring session based on the summarized history of prior interactions and the latest student question.
+
+Structure your response clearly and helpfully, as if you're replying to the student's most recent input with awareness of the prior discussion.
+
+---  
+**Student Details:**  
+- Grade Level: {grade_level}  
+- Prior Conversation Summary: {conversation_summary}  
+- Current Message: {topic}  
+- Additional Notes: {add_cont}  
+
+**Your Output (explanation only):**
+"""
+
+chat_history_prompt = ChatPromptTemplate.from_template(chat_history_template)
+
 # Initialize your language model and prompt templates
 model = OllamaLLM(model="gemma3")
 manual_prompt = ChatPromptTemplate.from_template(manual_topic_template)
@@ -118,16 +135,27 @@ async def generate_output_with_file(grade_level, input_type, topic="", add_cont=
         os.unlink(tmp_path)  # Delete file after use
         prompt = pdf_prompt
     else:
-        prompt = manual_prompt
-
-    user_input = {
-        "grade_level": grade_level,
-        "input_type": input_type,
-        "topic": topic,
-        "pdf_path": "",
-        "add_cont": add_cont
-    }
-
+        # Heuristic: If topic contains line breaks or looks like a conversation summary, use chat history prompt
+        if topic.count("\n") > 3 and "Prior Conversation" in topic:
+            # Topic is likely context + latest message
+            prompt = chat_history_prompt
+            # Extract the two parts manually (if Laravel prepends them separately in the future, adapt this)
+            user_input = {
+                "grade_level": grade_level,
+                "conversation_summary": topic,  # already includes latest msg at end
+                "topic": "",  # optional if topic already includes everything
+                "add_cont": add_cont
+            }
+        else:
+            prompt = manual_prompt
+            user_input = {
+                "grade_level": grade_level,
+                "input_type": input_type,
+                "topic": topic,
+                "pdf_path": "",
+                "add_cont": add_cont
+            }
+            
     chain = prompt | model
     result = chain.invoke(user_input)
     return clean_output(result)

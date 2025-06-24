@@ -70,3 +70,9 @@ Route::post('/rewriter', 'App\Http\Controllers\RewriterController@processForm');
 
 Route::get('/step-tutor', [StepTutorController::class, 'showForm']);
 Route::post('/step-tutor', [StepTutorController::class, 'processForm']);
+
+Route::post('/tutor/clear', function () {
+    Session::forget('chat_history');
+    Session::forget('grade_level');
+    return redirect('/tutor');
+});

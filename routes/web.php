@@ -12,6 +12,12 @@ use App\Http\Controllers\ProofreaderController; // ✅ Import your controller
 | These routes handle the AI Proofreader UI and API integration.
 |
 */
+
+
+Route::get('/', [SummarizeController::class, 'index']);
+Route::post('/summarize', [SummarizeController::class, 'summarize']);
+Route::view('/tools-hub', 'hub');
+
 Route::get('/', function(){
     return view('welcome');
 });

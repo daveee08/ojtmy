@@ -12,9 +12,10 @@ use App\Http\Controllers\SummarizeController;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
-
+ Route::get('/summarize', function(){
+    return view('summarize');
+ });
 
 Route::get('/', [SummarizeController::class, 'index']);
 Route::post('/summarize', [SummarizeController::class, 'summarize']);
-Route::view('/tools-hub', 'hub');
 

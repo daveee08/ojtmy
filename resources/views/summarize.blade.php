@@ -9,9 +9,7 @@
 <div class="container py-5">
     <h2 class="mb-4">Text Summarizer</h2>
 
-    <form method="POST" action="/summarize" enctype="multipart/form-data">
-        @csrf
-
+    <form method="POST" action="http://127.0.0.1:8000/summarize" enctype="multipart/form-data">
         <div class="mb-3">
             <label class="form-label">Summary Instructions</label>
             <input type="text" class="form-control" name="conditions" placeholder="E.g. 1 paragraph" required>
@@ -31,11 +29,10 @@
     </form>
 
     @if(isset($summary))
-    <pre class="alert alert-secondary mt-4" style="white-space: pre-wrap">
-    <h5>Summary:</h5>
-    {{ preg_replace('/^\s*-\s*/m', '- ', $summary) }}
-    </pre>
-
+    <div class="alert alert-secondary mt-4">
+        <h5>Summary:</h5>
+        <pre style="white-space: pre-wrap;">{{ preg_replace('/^\s*-\s*/m', '- ', $summary) }}</pre>
+    </div>
     @endif
 </div>
 </body>

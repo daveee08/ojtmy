@@ -156,7 +156,7 @@
       </div>
       <div class="col-md-6">
         <div class="tool-item">
-          <h5>🧠 <a href="http://192.168.50.238:8000/" target="_blank">Text Summarizer</a></h5>
+          <h5>🧠 <a href="http://192.168.50.238:8000/summarize" target="_blank">Text Summarizer</a></h5>
           <p>Generate clear, concise summaries of longer texts to improve understanding and retention.</p>
         </div>
       </div>

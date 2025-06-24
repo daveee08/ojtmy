@@ -4,20 +4,6 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SummarizeController;
 use App\Http\Controllers\ProofreaderController; // ✅ Import your controller
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "web" middleware group. Make something great!
-|
-*/
-
-| These routes handle the AI Proofreader UI and API integration.
-|
-*/
 
 
 Route::get('/', [SummarizeController::class, 'index']);
@@ -28,6 +14,8 @@ Route::get('/', function(){
     return view('welcome');
 });
 
+Route::get('/tutor', 'App\Http\Controllers\TutorController@showForm');
+Route::post('/tutor', 'App\Http\Controllers\TutorController@processForm');
 Route::get('/leveler', 'App\Http\Controllers\LevelerController@showForm');
 Route::post('/leveler', 'App\Http\Controllers\LevelerController@processForm');
 Route::get('/', function () {

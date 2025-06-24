@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\SummarizeController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -12,6 +12,12 @@ use Illuminate\Support\Facades\Route;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
+
+
+Route::get('/', [SummarizeController::class, 'index']);
+Route::post('/summarize', [SummarizeController::class, 'summarize']);
+Route::view('/tools-hub', 'hub');
+
 Route::get('/', function(){
     return view('welcome');
 });

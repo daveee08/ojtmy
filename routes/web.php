@@ -16,7 +16,6 @@ Route::get('/', function(){
     return view('welcome');
 });
 
-
 Route::get('/quizme', 'App\Http\Controllers\QuizmeController@showForm');
 Route::post('/quizme', 'App\Http\Controllers\QuizmeController@processForm');
 Route::post('/quizme/download', 'App\Http\Controllers\QuizmeController@downloadContent')->name('quizme.download');

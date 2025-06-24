@@ -247,7 +247,7 @@
                     </div>
 
                     <div id="conversational-ai" class="mt-4" style="display:none;">
-                        <h5 class="section-title">Chat with AI Tutor</h5>
+                        <h5 class="section-title">CK Quiz Me Follow up AI</h5>
                         <div id="chat-history" class="border p-3 mb-3" style="max-height: 300px; overflow-y: auto; background-color: #f8f9fa; border-radius: 8px;"></div>
                         <div class="input-group mb-3">
                             <input type="text" class="form-control" id="chatInput" placeholder="Ask a follow-up question or for more details...">
@@ -336,6 +336,8 @@
                     // Check if data.quiz is an array and has content
                     if (Array.isArray(data.quiz) && data.quiz.length > 0) {
                         currentQuiz = data.quiz;
+
+                        // Clean ** from resources before setting for display and download
                         const cleanedResources = data.resources.replace(/\*\*/g, '');
                         resourcesTextContentInput.value = cleanedResources;
                         resourcesPdfContentInput.value = cleanedResources;
@@ -486,13 +488,13 @@
 
                 if (response.ok) {
                     const aiResponse = data.response.replace(/\*\*/g, ''); // Clean up any bold markdown
-                    chatHistoryDiv.innerHTML += `<p class="mb-1"><strong>AI Tutor:</strong> ${aiResponse}</p>`;
+                    chatHistoryDiv.innerHTML += `<p class="mb-1"><strong>CK Quiz Me Follow up AI:</strong> ${aiResponse}</p>`;
                 } else {
-                    chatHistoryDiv.innerHTML += `<p class="text-danger mb-1"><strong>AI Tutor Error:</strong> ${data.error || 'Failed to get response.'}</p>`;
+                    chatHistoryDiv.innerHTML += `<p class="text-danger mb-1"><strong>CK Quiz Me Follow up AI Error:</strong> ${data.error || 'Failed to get response.'}</p>`;
                 }
             } catch (error) {
                 console.error('Chat fetch error:', error);
-                chatHistoryDiv.innerHTML += `<p class="text-danger mb-1"><strong>AI Tutor Error:</strong> Network error or service unavailable.</p>`;
+                chatHistoryDiv.innerHTML += `<p class="text-danger mb-1"><strong>CK Quiz Me Follow up AI Error:</strong> Network error or service unavailable.</p>`;
             } finally {
                 sendChatBtn.disabled = false;
                 chatLoadingSpinner.style.display = 'none';
@@ -521,7 +523,7 @@
                 for (const optionKey in question.options) {
                     const optionValue = question.options[optionKey];
                     const p = document.createElement('p');
-                    p.textContent = `${optionKey}) ${optionValue}`;
+                    p.textContent = `${optionKey}) ${optionValue.replace(/\*\*/g, '')}`;
                     questionOptionsElem.appendChild(p);
                 }
 
@@ -547,19 +549,19 @@
 
                 let fullQuizText = '';
                 currentQuiz.forEach((q, index) => {
-                    fullQuizText += `Question ${index + 1}: ${q.question_text}\n`;
+                    fullQuizText += `Question ${index + 1}: ${q.question_text.replace(/\*\*/g, '')}\n`;
                     for (const optionKey in q.options) {
-                        fullQuizText += `${optionKey}) ${q.options[optionKey]}\n`;
+                        fullQuizText += `${optionKey}) ${q.options[optionKey].replace(/\*\*/g, '')}\n`;
                     }
-                    fullQuizText += `Correct Answer: ${q.correct_answer}\n\n`;
+                    fullQuizText += `Correct Answer: ${q.correct_answer.replace(/\*\*/g, '')}\n\n`;
                 });
                 document.getElementById('summaryText').textContent = "You have completed the quiz!";
 
                 // Populate download forms for the entire quiz
                 const quizTextContentInput = document.getElementById('quizTextContent');
                 const quizPdfContentInput = document.getElementById('quizPdfContent');
-                quizTextContentInput.value = fullQuizText;
-                quizPdfContentInput.value = fullQuizText;
+                quizTextContentInput.value = fullQuizText.replace(/\*\*/g, '');
+                quizPdfContentInput.value = fullQuizText.replace(/\*\*/g, '');
 
                 // Set the topic name for download forms for the entire quiz
                 const quizTopicNameInput = document.getElementById('quizTopicName');
@@ -572,18 +574,18 @@
                 downloadButtonsSummaryDiv.innerHTML = `
                     <form action="{{ route('quizme.download') }}" method="POST" style="display:inline;" class="download-form">
                         @csrf
-                        <input type="hidden" name="content" value="${encodeURIComponent(fullQuizText)}">
+                        <input type="hidden" name="content" value="${fullQuizText.replace(/\*\*/g, '')}">
                         <input type="hidden" name="filename" value="quiz">
                         <input type="hidden" name="format" value="txt">
-                        <input type="hidden" name="topic_name" value="${encodeURIComponent(currentTopic)}">
+                        <input type="hidden" name="topic_name" value="${currentTopic}">
                         <button type="submit" class="btn btn-sm btn-outline-secondary">Save Quiz as Text</button>
                     </form>
                     <form action="{{ route('quizme.download') }}" method="POST" style="display:inline;" class="download-form">
                         @csrf
-                        <input type="hidden" name="content" value="${encodeURIComponent(fullQuizText)}">
+                        <input type="hidden" name="content" value="${fullQuizText.replace(/\*\*/g, '')}">
                         <input type="hidden" name="filename" value="quiz">
                         <input type="hidden" name="format" value="pdf">
-                        <input type="hidden" name="topic_name" value="${encodeURIComponent(currentTopic)}">
+                        <input type="hidden" name="topic_name" value="${currentTopic}">
                         <button type="submit" class="btn btn-sm btn-outline-danger">Save Quiz as PDF</button>
                     </form>
                 `;

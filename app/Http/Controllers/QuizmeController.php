@@ -181,14 +181,11 @@ class QuizmeController extends Controller
         }
 
         try {
-            // The /chat endpoint in Python expects the user_query in the 'topic' field of QuizRequest
-            // and num_questions as a hacky way to pass the actual user query as it reuses QuizRequest model.
-            // We also send the actual topic and grade_level for context.
+            // The /chat endpoint in Python now expects a ChatRequest model with user_query, topic, and grade_level.
             $response = Http::timeout(180)->post('http://127.0.0.1:5001/chat', [
-                'topic' => $validatedData['user_query'], // User's actual query
+                'user_query' => $validatedData['user_query'],
+                'topic' => $validatedData['topic'], // Original quiz topic for context
                 'grade_level' => $validatedData['grade_level'],
-                'num_questions' => 1, // Dummy value since it's not a quiz generation request
-                'original_topic_context' => $validatedData['topic'], // Original quiz topic for context
             ]);
 
             if ($response->successful()) {

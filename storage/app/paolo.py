@@ -44,4 +44,4 @@ async def proofread_endpoint(payload: ProofreadInput):
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="127.0.0.1", port=5001, reload=True)
+    uvicorn.run("paolo:app", host="127.0.0.1", port=5001, reload=True)

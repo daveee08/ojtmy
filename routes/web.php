@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\SummarizeController;
 use App\Http\Controllers\ProofreaderController; // ✅ Import your controller
 
 /*

@@ -5,6 +5,7 @@ use App\Http\Controllers\SummarizeController;
 use App\Http\Controllers\ProofreaderController;
 use App\Http\Controllers\QuizmeController;
 use App\Http\Controllers\RewriterController;
+use App\Http\Controllers\FiveQuestionsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -40,3 +41,7 @@ Route::post('/quizme/chat', [QuizmeController::class, 'chat']);
 // ✅ Rewriter Tool
 Route::get('/rewriter', [RewriterController::class, 'showForm']);
 Route::post('/rewriter', [RewriterController::class, 'processForm']);
+
+// ✅ 5 Questions Agent
+Route::get('/5questions', [FiveQuestionsController::class, 'showForm'])->name('fivequestions.form');
+Route::post('/5questions', [FiveQuestionsController::class, 'processForm'])->name('fivequestions.process');

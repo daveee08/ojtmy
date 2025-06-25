@@ -5,6 +5,7 @@ use App\Http\Controllers\SummarizeController;
 use App\Http\Controllers\ProofreaderController;
 use App\Http\Controllers\QuizmeController;
 use App\Http\Controllers\RewriterController;
+use App\Http\Controllers\StepTutorController;
 use App\Http\Controllers\FiveQuestionsController;
 
 /*
@@ -28,12 +29,6 @@ Route::get('/summarize', [SummarizeController::class, 'index']);
 Route::post('/summarize', [SummarizeController::class, 'summarize']);
 
 // ✅ Proofreader Tool
-
-use App\Http\Controllers\ProofreaderController; // ✅ Import your controller
-use App\Http\Controllers\StepTutorController;
-
-
-
 
 Route::get('/', [SummarizeController::class, 'index']);
 Route::post('/summarize', [SummarizeController::class, 'summarize']);

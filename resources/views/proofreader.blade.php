@@ -123,7 +123,7 @@
     </div>
 
     {{-- Fullscreen loading overlay --}}
-    <div id="loadingOverlay" class="position-fixed top-0 start-0 w-100 h-100 d-none justify-content-center align-items-center bg-white bg-opacity-75" style="z-index: 9999;">
+    <div id="loadingOverlay" class="position-fixed top-0 start-0 w-100 h-100 justify-content-center align-items-center bg-white bg-opacity-75 d-none" style="z-index: 9999; display: flex;">
         <div class="text-center">
             <div class="spinner-border text-highlight mb-3" role="status" style="width: 3rem; height: 3rem;"></div>
             <div class="fw-semibold text-highlight">Please wait...</div>

@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+pydantic
+PyMuPDF
+mysql-connector-python
+requests
+python-dotenv
+streamlit
+requests
+fitz

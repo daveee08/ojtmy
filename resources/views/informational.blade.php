@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>AI Text Leveler</title>
+    <title>Informational Texts</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous" />
     <style>
@@ -105,7 +105,7 @@
 
 <body>
     <div class="container">
-        <h2>AI Text Leveler</h2>
+        <h2>Informational Texts</h2>
 
         @if ($errors->any())
             <div class="alert alert-danger">
@@ -113,7 +113,7 @@
             </div>
         @endif
 
-        <form id="levelerForm" method="POST" action="/leveler" enctype="multipart/form-data">
+        <form id="informationalForm" method="POST" action="/informational" enctype="multipart/form-data">
             @csrf
 
             <div class="mb-4">
@@ -149,12 +149,24 @@
             </div>
 
             <div class="mb-4">
-                <label for="learning_speed" class="form-label">Learning Type</label>
-                <select class="form-select" id="learning_speed" name="learning_speed" required>
-                    <option value="" disabled selected>Select learning speed</option>
-                    <option value="slow">Slow Learner</option>
-                    <option value="average">Average Learner</option>
-                    <option value="fast">Fast Learner</option>
+                <label for="text_length" class="form-label">Text Length</label>
+                <select class="form-select" id="text_length" name="text_length" required>
+                    <option value="" disabled selected>Select text length</option>
+                    <option value="one_paragraph">1 paragraph</option>
+                    <option value="one_page">1 page</option>
+                    <option value="two_page">2 pages</option>
+                    <option value="three_page">3 pages</option>
+                </select>
+            </div>
+
+            <div class="mb-4">
+                <label for="text_type" class="form-label">Informational Text Type</label>
+                <select class="form-select" id="text_type" name="text_type" required>
+                    <option value="" disabled selected>Select informational text type</option>
+                    <option value="literary">Literary Nonfiction</option>
+                    <option value="expository">Expository</option>
+                    <option value="argumentive">Argumentive or Persuasive</option>
+                    <option value="procedural">Procedural</option>
                 </select>
             </div>
 
@@ -198,7 +210,7 @@
         }
 
         // Show spinner on form submit
-        document.getElementById('levelerForm').addEventListener('submit', function() {
+        document.getElementById('informationalForm').addEventListener('submit', function() {
             document.getElementById('loading-overlay').style.display = 'flex';
             this.querySelector('button[type="submit"]').disabled = true;
         });

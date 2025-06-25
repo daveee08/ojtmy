@@ -160,8 +160,8 @@
             </div>
 
             <div class="mb-4">
-                <label for="informational_text_type" class="form-label">Informational Text Type</label>
-                <select class="form-select" id="informational_text_type" name="informational_text_type" required>
+                <label for="text_type" class="form-label">Informational Text Type</label>
+                <select class="form-select" id="text_type" name="text_type" required>
                     <option value="" disabled selected>Select informational text type</option>
                     <option value="literary">Literary Nonfiction</option>
                     <option value="expository">Expository</option>

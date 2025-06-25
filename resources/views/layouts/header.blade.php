@@ -2,7 +2,7 @@
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
 
     .navbar-nav .nav-link {
-        color: #EC298B !important;
+        color: black !important;
         font-family: "Poppins", Sans-serif;
         font-size: 15px;
         font-weight: 500;
@@ -11,7 +11,7 @@
     }
 
     .navbar-nav .nav-link:hover {
-        color: #000000 !important;
+        color: #EC298B !important;
     }
 
     .navbar-brand img {

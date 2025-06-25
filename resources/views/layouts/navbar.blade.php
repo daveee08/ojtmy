@@ -10,7 +10,7 @@
     <style>
         :root {
             --pink: #EC298B;
-            --white: #ffffff;
+            --white: #black;
             --dark: #191919;
             --light-grey: #f5f5f5;
             --light-dark: #2a2a2a;
@@ -29,10 +29,11 @@
             left: 0;
             height: 100vh;
             width: 240px;
-            background-color: var(--dark);
+            background-color: white;
             padding: 40px 20px;
             box-shadow: 2px 0 10px rgba(0, 0, 0, 0.08);
             z-index: 1000;
+            margin-top: 100px;
         }
 
         .sidebar h2 {
@@ -55,8 +56,8 @@
         }
 
         .sidebar a:hover {
-            background-color: var(--light-dark);
-            color: var(--pink);
+            background-color: #F5F5F5;
+            color: #EC298B;
         }
 
         .content {
@@ -66,13 +67,14 @@
             min-height: 100vh;
         }
 
+        /*
         .footer {
             text-align: center;
             margin-top: 60px;
             padding-top: 30px;
             font-size: 0.9rem;
             color: #666;
-            border-top: 1px solid #ddd;
+            border-top: 1px solid #ddd; */
         }
 
         @media (max-width: 768px) {
@@ -103,7 +105,6 @@
 <body>
 
     <div class="sidebar">
-        <h2>CK AI Tools</h2>
         <a href="#tool-leveler">Text Leveler</a>
         <a href="#tool-summary">Summarizer</a>
         <a href="#tool-understanding">Understanding</a>
@@ -115,9 +116,9 @@
     <div class="content">
         @yield('content')
 
-        <div class="footer">
+        {{-- <div class="footer">
             &copy; <span id="year"></span> CK Children’s Publishing. All rights reserved.
-        </div>
+        </div> --}}
     </div>
 
     <script>

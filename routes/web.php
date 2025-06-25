@@ -11,7 +11,7 @@ Route::post('/summarize', [SummarizeController::class, 'summarize']);
 Route::view('/tools-hub', 'hub');
 
 Route::get('/', function(){
-    return view('informational');
+    return view('home');
 });
 
 Route::get('/tutor', 'App\Http\Controllers\TutorController@showForm');
@@ -19,6 +19,9 @@ Route::post('/tutor', 'App\Http\Controllers\TutorController@processForm');
 
 Route::get('/leveler', 'App\Http\Controllers\LevelerController@showForm');
 Route::post('/leveler', 'App\Http\Controllers\LevelerController@processForm');
+
+Route::get('/informational', 'App\Http\Controllers\InformationalController@showForm');
+Route::post('/informational', 'App\Http\Controllers\InformationalController@processForm');
 
 Route::get('/proofreader', [ProofreaderController::class, 'showForm'])->name('proofreader.form');
 Route::post('/proofreader', [ProofreaderController::class, 'processForm'])->name('proofreader.process');

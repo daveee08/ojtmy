@@ -1,9 +1,71 @@
+@extends('layouts.header')
 @extends('layouts.navbar')
 
 @section('title', 'Home - CK AI Tools')
 
-@section('content')
+@section('styles')
+    <style>
+        .hero {
+            background-color: #fef5f8;
+            border: 1px solid #f2f2f2;
+            padding: 50px;
+            border-radius: 12px;
+            margin-bottom: 40px;
+            text-align: center;
+        }
 
+        .hero h1 {
+            font-size: 2rem;
+            color: #e91e63;
+            font-weight: 700;
+        }
+
+        .hero p {
+            font-size: 1rem;
+            color: #555;
+            max-width: 600px;
+            margin: 15px auto 0;
+        }
+
+        .tool-card {
+            background-color: #ffffff;
+            border: 1px solid #eee;
+            border-left: 5px solid #e91e63;
+            border-radius: 8px;
+            padding: 20px 24px;
+            margin-bottom: 20px;
+            transition: box-shadow 0.3s ease;
+        }
+
+        .tool-card:hover {
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .tool-card h5 {
+            font-size: 1.15rem;
+            color: #e91e63;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .tool-card p {
+            font-size: 0.95rem;
+            color: #555;
+            margin: 0;
+        }
+
+        .tool-card a {
+            text-decoration: none;
+            color: #e91e63;
+        }
+
+        .tool-card a:hover {
+            text-decoration: underline;
+        }
+    </style>
+@endsection
+
+@section('content')
     <div class="hero">
         <h1>Welcome to CK AI Tools</h1>
         <p>A supportive suite of tools to help young learners grow their reading and writing skills with clarity and

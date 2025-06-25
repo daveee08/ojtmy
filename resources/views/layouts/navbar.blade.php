@@ -5,17 +5,19 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>@yield('title', 'CK AI Tools')</title>
+    @yield('styles')
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" />
     <style>
         :root {
-            --pink: #e91e63;
+            --pink: #EC298B;
             --white: #ffffff;
             --dark: #191919;
             --light-grey: #f5f5f5;
+            --light-dark: #2a2a2a;
         }
 
         body {
-            font-family: system-ui, sans-serif;
+            font-family: 'Poppins', system-ui, sans-serif;
             background-color: var(--white);
             color: var(--dark);
             margin: 0;
@@ -27,39 +29,41 @@
             left: 0;
             height: 100vh;
             width: 240px;
-            background-color: #191919;
-            border-right: 1px solid #2a2a2a;
+            background-color: var(--dark);
             padding: 40px 20px;
-            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.03);
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.08);
+            z-index: 1000;
         }
 
         .sidebar h2 {
-            font-size: 1.6rem;
+            font-size: 1.8rem;
             font-weight: 700;
             color: var(--pink);
-            margin-bottom: 40px;
+            margin-bottom: 50px;
             text-align: center;
         }
 
         .sidebar a {
             display: block;
-            color: #ffffff;
+            color: var(--white);
             text-decoration: none;
-            margin: 14px 0;
+            margin: 12px 0;
             font-size: 1rem;
-            padding: 10px 16px;
-            border-radius: 6px;
-            transition: background 0.2s, color 0.2s;
+            padding: 12px 18px;
+            border-radius: 10px;
+            transition: background 0.3s ease, color 0.3s ease;
         }
 
         .sidebar a:hover {
-            background-color: #333333;
+            background-color: var(--light-dark);
             color: var(--pink);
         }
 
         .content {
             margin-left: 240px;
-            padding: 40px;
+            padding: 50px 30px;
+            background-color: var(--light-grey);
+            min-height: 100vh;
         }
 
         .footer {
@@ -67,8 +71,8 @@
             margin-top: 60px;
             padding-top: 30px;
             font-size: 0.9rem;
-            color: #888;
-            border-top: 1px solid #eee;
+            color: #666;
+            border-top: 1px solid #ddd;
         }
 
         @media (max-width: 768px) {
@@ -76,17 +80,24 @@
                 position: relative;
                 width: 100%;
                 height: auto;
-                border-right: none;
-                border-bottom: 1px solid #e5e5e5;
+                padding: 20px;
                 text-align: center;
+                box-shadow: none;
             }
 
             .content {
                 margin-left: 0;
-                padding: 20px;
+                padding: 30px 15px;
+            }
+
+            .sidebar a {
+                display: inline-block;
+                margin: 8px 10px;
+                padding: 10px 14px;
             }
         }
     </style>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 
 <body>
@@ -98,10 +109,12 @@
         <a href="#tool-understanding">Understanding</a>
         <a href="#tool-rewriter">Rewriter</a>
         <a href="#tool-proofreader">Proofreader</a>
+        <a href="#tool-quizme">Quiz Me</a>
     </div>
 
     <div class="content">
         @yield('content')
+
         <div class="footer">
             &copy; <span id="year"></span> CK Children’s Publishing. All rights reserved.
         </div>

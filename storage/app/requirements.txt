@@ -1,0 +1,13 @@
+fastapi==0.111.0
+uvicorn
+langchain-ollama
+pydantic==2.7.4
+PyMuPDF
+mysql-connector-python
+requests
+python-dotenv==1.0.1
+streamlit
+requests
+fitz
+fpdf2
+duckduckgo-search==5.1.0

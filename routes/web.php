@@ -6,6 +6,7 @@ use App\Http\Controllers\ProofreaderController;
 use App\Http\Controllers\QuizmeController;
 use App\Http\Controllers\RewriterController;
 use App\Http\Controllers\FiveQuestionsController;
+use App\Http\Controllers\StepTutorController;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,44 +18,35 @@ use App\Http\Controllers\FiveQuestionsController;
 
 // ✅ Landing Page
 Route::get('/', function () {
-    return view('welcome');
+    return view('levelerchat');
 });
 
-// ✅ Tools Hub
-Route::view('/tools-hub', 'hub');
+// // ✅ Tools Hub
+// Route::view('/tools-hub', 'hub');
 
 // ✅ Summarizer Tool
 Route::get('/summarize', [SummarizeController::class, 'index']);
 Route::post('/summarize', [SummarizeController::class, 'summarize']);
 
-// ✅ Proofreader Tool
-
-use App\Http\Controllers\ProofreaderController; // ✅ Import your controller
-use App\Http\Controllers\StepTutorController;
-
-
-
-
-Route::get('/', [SummarizeController::class, 'index']);
-Route::post('/summarize', [SummarizeController::class, 'summarize']);
-Route::view('/tools-hub', 'hub');
-
-Route::get('/', function(){
-    return view('home');
-});
-
+// ✅ Tutor Tool
 Route::get('/tutor', 'App\Http\Controllers\TutorController@showForm');
 Route::post('/tutor', 'App\Http\Controllers\TutorController@processForm');
 
+// ✅ Leveler Tool
 Route::get('/leveler', 'App\Http\Controllers\LevelerController@showForm');
 Route::post('/leveler', 'App\Http\Controllers\LevelerController@processForm');
 
+// ✅ Informational Tool
 Route::get('/informational', 'App\Http\Controllers\InformationalController@showForm');
 Route::post('/informational', 'App\Http\Controllers\InformationalController@processForm');
 
-
+// ✅ Proofreader Tool
 Route::get('/proofreader', [ProofreaderController::class, 'showForm'])->name('proofreader.form');
 Route::post('/proofreader', [ProofreaderController::class, 'processForm'])->name('proofreader.process');
+
+// ✅ Rewriter Tool
+Route::get('/rewriter', [RewriterController::class, 'showForm']);
+Route::post('/rewriter', [RewriterController::class, 'processForm']);
 
 // ✅ QuizMe Tool
 Route::get('/quizme', [QuizmeController::class, 'showForm']);
@@ -63,15 +55,10 @@ Route::post('/quizme/download', [QuizmeController::class, 'downloadContent'])->n
 Route::post('/quizme/evaluate-answer', [QuizmeController::class, 'evaluateAnswer']);
 Route::post('/quizme/chat', [QuizmeController::class, 'chat']);
 
-// ✅ Rewriter Tool
-Route::get('/rewriter', [RewriterController::class, 'showForm']);
-Route::post('/rewriter', [RewriterController::class, 'processForm']);
-// ✅ 5 Questions Agent
+// ✅ 5 Questions Tool
 Route::get('/5questions', [FiveQuestionsController::class, 'showForm'])->name('fivequestions.form');
 Route::post('/5questions', [FiveQuestionsController::class, 'processForm'])->name('fivequestions.process');
-Route::get('/rewriter', 'App\Http\Controllers\RewriterController@showForm');
-Route::post('/rewriter', 'App\Http\Controllers\RewriterController@processForm');
 
-
+// ✅ Step Tutor Tool
 Route::get('/step-tutor', [StepTutorController::class, 'showForm']);
 Route::post('/step-tutor', [StepTutorController::class, 'processForm']);

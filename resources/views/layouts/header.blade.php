@@ -41,10 +41,6 @@
                     <a class="nav-link {{ request()->is('about') ? 'active' : '' }}"
                         href="{{ url('/about') }}">About</a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->is('products') ? 'active' : '' }}"
-                        href="{{ url('/products') }}">Products</a>
-                </li>
             </ul>
         </div>
     </div>

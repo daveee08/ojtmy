@@ -52,8 +52,8 @@
 
         .form-control:focus,
         .form-select:focus {
-            border-color: #EC298B;
-            box-shadow: 0 0 0 0.2rem rgba(233, 30, 99, 0.25);
+            border-color: #555;
+            box-shadow: 0 0 0 0.1rem rgba(48, 48, 48, 0.25);
         }
 
         .btn-pink {

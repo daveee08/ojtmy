@@ -18,17 +18,12 @@ use App\Http\Controllers\FiveQuestionsController;
 
 // ✅ Landing Page
 Route::get('/', function () {
-    return view('home');
+    return view('tool');
 });
 
 // ✅ Summarizer Tool
 Route::get('/summarize', [SummarizeController::class, 'index']);
 Route::post('/summarize', [SummarizeController::class, 'summarize']);
-
-// ✅ Proofreader Tool
-Route::get('/', [SummarizeController::class, 'index']);
-Route::post('/summarize', [SummarizeController::class, 'summarize']);
-Route::view('/tools-hub', 'hub');
 
 // ✅ Scaffolder Tool
 Route::get('/scaffolder', 'App\Http\Controllers\ScaffolderController@showForm');

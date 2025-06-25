@@ -5,10 +5,10 @@ from langchain.prompts import PromptTemplate
 
 app = FastAPI()
 
-# CORS for Laravel frontend
+# Enable CORS for frontend (like Laravel)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], 
+    allow_origins=["*"],  # OK for local dev
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -31,10 +31,8 @@ Write an email that:
 
 Return only the email text. No notes or explanations.
 """
-
     prompt = PromptTemplate.from_template(prompt_template)
-    llm = Ollama(model="gemma3:4b")  # match your summarizer
+    llm = Ollama(model="gemma3:4b")  # Match your model
     chain = prompt | llm
-
     result = chain.invoke({"content": content.strip()})
     return {"email": result.strip()}

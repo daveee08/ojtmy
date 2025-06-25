@@ -7,6 +7,7 @@ use App\Http\Controllers\QuizmeController;
 use App\Http\Controllers\RewriterController;
 use App\Http\Controllers\StepTutorController;
 use App\Http\Controllers\FiveQuestionsController;
+use App\Http\Controllers\EmailWriterController;
 
 /*
 |--------------------------------------------------------------------------
@@ -69,3 +70,7 @@ Route::post('/rewriter', 'App\Http\Controllers\RewriterController@processForm');
 
 Route::get('/step-tutor', [StepTutorController::class, 'showForm']);
 Route::post('/step-tutor', [StepTutorController::class, 'processForm']);
+
+Route::get('/email-writer', [EmailWriterController::class, 'showForm'])->name('email.writer.form');
+Route::post('/email-writer', [EmailWriterController::class, 'generateEmail'])->name('email.writer.generate');
+

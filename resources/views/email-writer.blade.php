@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <title>Email Writer</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
     <style>
         body {
             background-color: #f4f7fb;
@@ -20,7 +19,7 @@
         }
 
         .ck-btn {
-            background-color: #4a42f4;
+            background-color: #EC298B;
             color: #fff;
             border: none;
             padding: 12px 28px;
@@ -31,14 +30,19 @@
         }
 
         .ck-btn:hover {
-            background-color: #3c35cc;
+            background-color: #d32078;
         }
 
         .ck-title {
             font-size: 2rem;
             font-weight: 600;
-            color: #4a42f4;
+            color: #EC298B;
             margin-bottom: 30px;
+        }
+
+        label {
+            font-weight: 500;
+            color: #2c3e50;
         }
 
         pre {
@@ -53,38 +57,42 @@
         .form-control {
             border-radius: 6px;
             border: 1px solid #ccd6e0;
+            box-shadow: none;
         }
 
         .form-control:focus {
-            border-color: #4a42f4;
-            box-shadow: 0 0 0 0.2rem rgba(74, 66, 244, 0.2);
+            border-color: #EC298B;
+            box-shadow: 0 0 0 0.2rem rgba(236, 41, 139, 0.2);
+        }
+
+        /* loading spinner */
+        .spinner-border.text-pink {
+            color: #EC298B;
         }
 
         #loading-overlay {
             display: none;
             position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             background-color: rgba(255, 255, 255, 0.8);
             z-index: 9999;
             align-items: center;
             justify-content: center;
             flex-direction: column;
         }
-
-        .spinner-border.text-purple {
-            color: #4a42f4;
-        }
     </style>
 </head>
 <body>
 
-<!-- Loading Spinner -->
+<!-- loading spinner -->
 <div id="loading-overlay">
-    <div class="spinner-border text-purple" role="status" style="width: 3rem; height: 3rem;">
-        <span class="visually-hidden">Loading...</span>
-    </div>
-    <p class="mt-3 text-center fw-bold" style="color:#4a42f4;">Generating your email...</p>
+  <div class="spinner-border text-pink" role="status" style="width: 3rem; height: 3rem;">
+    <span class="visually-hidden">Loading...</span>
+  </div>
+  <p class="mt-3 text-center fw-bold" style="color:#EC298B;">Generating your email...</p>
 </div>
 
 <div class="container py-5">
@@ -107,9 +115,9 @@
                 </form>
 
                 @if(session('generated_email'))
-                    <hr class="my-4">
-                    <h5 class="fw-bold" style="color:#4a42f4;">Generated Email:</h5>
-                    <pre>{{ session('generated_email') }}</pre>
+                <hr class="my-4">
+                <h5 class="fw-bold" style="color:#EC298B;">Generated Email:</h5>
+                <pre>{{ session('generated_email') }}</pre>
                 @endif
 
                 @error('error')
@@ -121,9 +129,9 @@
 </div>
 
 <script>
-    document.getElementById('email-writer-form').addEventListener('submit', function () {
-        document.getElementById('loading-overlay').style.display = 'flex';
-    });
+document.getElementById('email-writer-form').addEventListener('submit', function () {
+    document.getElementById('loading-overlay').style.display = 'flex';
+});
 </script>
 
 </body>

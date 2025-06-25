@@ -2,40 +2,41 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SummarizeController;
-use App\Http\Controllers\ProofreaderController; // ✅ Import your controller
+use App\Http\Controllers\ProofreaderController;
+use App\Http\Controllers\QuizmeController;
+use App\Http\Controllers\RewriterController;
 
 /*
 |--------------------------------------------------------------------------
 | Web Routes
 |--------------------------------------------------------------------------
-|
-| These routes handle the AI Proofreader UI and API integration.
-|
+| Define routes for your AI tools here.
+|--------------------------------------------------------------------------
 */
 
-
-Route::get('/', [SummarizeController::class, 'index']);
-Route::post('/summarize', [SummarizeController::class, 'summarize']);
-Route::view('/tools-hub', 'hub');
-
-Route::get('/', function(){
+// ✅ Landing Page
+Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/', function () {
-    return redirect()->route('proofreader.form'); // Redirect '/' to the proofreader form
-});
+// ✅ Tools Hub
+Route::view('/tools-hub', 'hub');
 
-// ✅ Proofreader routes
+// ✅ Summarizer Tool
+Route::get('/summarize', [SummarizeController::class, 'index']);
+Route::post('/summarize', [SummarizeController::class, 'summarize']);
+
+// ✅ Proofreader Tool
 Route::get('/proofreader', [ProofreaderController::class, 'showForm'])->name('proofreader.form');
 Route::post('/proofreader', [ProofreaderController::class, 'processForm'])->name('proofreader.process');
 
+// ✅ QuizMe Tool
+Route::get('/quizme', [QuizmeController::class, 'showForm']);
+Route::post('/quizme', [QuizmeController::class, 'processForm']);
+Route::post('/quizme/download', [QuizmeController::class, 'downloadContent'])->name('quizme.download');
+Route::post('/quizme/evaluate-answer', [QuizmeController::class, 'evaluateAnswer']);
+Route::post('/quizme/chat', [QuizmeController::class, 'chat']);
 
-Route::get('/quizme', 'App\Http\Controllers\QuizmeController@showForm');
-Route::post('/quizme', 'App\Http\Controllers\QuizmeController@processForm');
-Route::post('/quizme/download', 'App\Http\Controllers\QuizmeController@downloadContent')->name('quizme.download');
-Route::post('/quizme/evaluate-answer', 'App\Http\Controllers\QuizmeController@evaluateAnswer');
-Route::post('/quizme/chat', 'App\Http\Controllers\QuizmeController@chat');
-
-Route::get('/rewriter', 'App\Http\Controllers\RewriterController@showForm');
-Route::post('/rewriter', 'App\Http\Controllers\RewriterController@processForm');
+// ✅ Rewriter Tool
+Route::get('/rewriter', [RewriterController::class, 'showForm']);
+Route::post('/rewriter', [RewriterController::class, 'processForm']);

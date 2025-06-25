@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SummarizeController;
 use App\Http\Controllers\ProofreaderController; // ✅ Import your controller
+use App\Http\Controllers\StepTutorController;
+
 
 
 
@@ -35,3 +37,7 @@ Route::post('/quizme/chat', 'App\Http\Controllers\QuizmeController@chat');
 
 Route::get('/rewriter', 'App\Http\Controllers\RewriterController@showForm');
 Route::post('/rewriter', 'App\Http\Controllers\RewriterController@processForm');
+
+
+Route::get('/step-tutor', [StepTutorController::class, 'showForm']);
+Route::post('/step-tutor', [StepTutorController::class, 'processForm']);

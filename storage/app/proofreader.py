@@ -3,8 +3,14 @@ import os
 import PyPDF2
 from langchain_ollama import OllamaLLM
 from langchain_core.prompts import ChatPromptTemplate
+from pydantic import BaseModel
 
-# Hard-coded profiles and instructions
+class ProofreaderInput(BaseModel):
+    profile: str
+    text: str = ""
+    pdf_path: str = ""
+
+# Hard-coded style profiles
 PROFILES = {
     "academic": {
         "description": "Formal tone, avoid contractions, focus on technical accuracy.",
@@ -22,37 +28,39 @@ PROFILES = {
 
 DEFAULT_MODEL = "gemma3"
 
-def run_proofread(profile: str, text: str = "", pdf_path: str = None) -> dict:
+def run_proofread(profile: str, text: str = "", pdf_path: str = "") -> dict:
     """
-    Select the profile, optionally extract text from a PDF,
-    and return a dict with 'corrected' and 'changes'.
+    Select the style profile, optionally extract text from a PDF,
+    run the LLM, and return the corrected version and list of changes.
     """
-    # If PDF is provided, extract text
+
+    # If a PDF is provided, extract its text
     if pdf_path:
         if not os.path.exists(pdf_path):
-            raise ValueError(f"PDF not found at: {pdf_path}")
-        with open(pdf_path, "rb") as f:
-            reader = PyPDF2.PdfReader(f)
-            text = "\n".join([page.extract_text() or "" for page in reader.pages])
+            raise ValueError(f"PDF file not found at: {pdf_path}")
+        try:
+            with open(pdf_path, "rb") as f:
+                reader = PyPDF2.PdfReader(f)
+                text = "\n".join([page.extract_text() or "" for page in reader.pages])
+        except Exception as e:
+            raise ValueError(f"Failed to read PDF: {e}")
 
     if not text.strip():
         raise ValueError("No text provided to proofread.")
 
-    # Validate profile
     profile_cfg = PROFILES.get(profile)
     if not profile_cfg:
         raise ValueError(f"Unknown profile: {profile}")
 
     instructions = profile_cfg["instructions"]
 
-    # Adjust prompt for long input (optional heuristic)
+    # Add note for long text
     if len(text) > 2000:
         instructions += (
-            "\nThe input may come from a PDF and could contain formatting issues. "
-            "Ignore formatting artifacts and focus on correcting the content."
+            "\nNote: This text may come from a PDF, so ignore formatting issues and focus on clarity."
         )
 
-    # Prompt template
+    # Final prompt
     prompt_template = f"""
 {instructions}
 
@@ -77,19 +85,19 @@ Changes made:
 
 ===END_CHANGES===
 """
+
     prompt = ChatPromptTemplate.from_template(prompt_template)
     model  = OllamaLLM(model=DEFAULT_MODEL)
     chain  = prompt | model
 
     raw_output = chain.invoke({"input_text": text})
 
-    # Parse output
     try:
         corrected_section = raw_output.split("Corrected text:")[1].split("===END_CORRECTED===")[0].strip()
         changes_section = raw_output.split("Changes made:")[1].split("===END_CHANGES===")[0].strip()
         corrected = corrected_section
         changes = [
-            line.lstrip("*-• ").strip()
+            line.lstrip("*-•1234. ").strip()
             for line in changes_section.splitlines()
             if line.strip()
         ]

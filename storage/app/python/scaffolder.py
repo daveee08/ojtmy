@@ -39,24 +39,35 @@ Questions:
 """
 
 pdf_topic_template = """
-You are a knowledgeable and supportive virtual tutor.
+You are an educational assistant.
 
-You will receive content extracted from a textbook or document (such as a PDF). Your task is to explain this content in a way that is understandable to a student at the given grade level.
+ONLY return literal comprehension questions and vocabulary definitions. Do NOT explain, summarize, or introduce the topic.
 
 Parameters:
 - Grade Level: {grade_level}
-- Extracted Content: {topic}
-- Number of Literal Questions: {literal_questions}
-- Vocabulary Words to Define: {vocab_limit}
+- Vocabulary Words: {vocab_limit}
+- Literal Questions: {literal_questions}
+- Topic: {topic}
 
 Instructions:
-- No introductions, answers, or examples.t
-- Include {literal_questions} literal comprehension questions.
-- Define up to {vocab_limit} important vocabulary words.
-- Use a style appropriate for the grade level: short sentences, simple language, and logical structure.
-- Use bullet points or numbered lists when appropriate.
+- Generate exactly {literal_questions} literal comprehension questions. Use clear and simple language appropriate for {grade_level}.
+- Then define up to {vocab_limit} vocabulary words appropriate for {grade_level}.
+- Do NOT include paragraph explanations, summaries, or any extra commentary.
+- Do NOT include "Answer:" lines or blank answer spaces.
+- Do NOT use labels like "Word1:", "Definition:", etc.
+- Start with the heading "Vocabulary:", followed by the word and its definition on a new line for each.
+- Then use the heading "Questions:", and number and list the questions.
+- Keep spacing clean and readable.
+- Do NOT include any other text besides the literal questions and vocabulary definitions.
+- List them in number order, e.g. "1. Question1? 2. Question2?" and e.g. "1. Word1: Definition of word1."
 
-Respond ONLY with the scaffolded explanation.
+Example Output Format:
+Vocabulary:
+1. Word1: Definition of word1.
+2. Word2: Definition of word2.
+Questions:
+1. First question?
+2. Second question?
 """
 
 model = Ollama(model="llama3")

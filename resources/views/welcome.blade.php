@@ -152,9 +152,9 @@
     <div class="sidebar">
         <h2>CK AI Tools</h2>
         <a href="#tool-leveler">Text Leveler</a>
-        <a href="#tool-summary">Summarizer</a>
-        <a href="#tool-understanding">Understanding</a>
-        <a href="#tool-rewriter">Rewriter</a>
+        <a href="#tool-summary">Text Summarizer</a>
+        <a href="#tool-understanding">Conceptual Understanding</a>
+        <a href="#tool-rewriter">Text Rewriter</a>
         <a href="#tool-proofreader">Proofreader</a>
     </div>
 
@@ -171,7 +171,7 @@
         </div>
 
         <div class="tool-card" id="tool-summary">
-            <h5><a href="http://192.168.50.238:8000/" target="_blank">Summarizer</a></h5>
+            <h5><a href="http://192.168.50.238:8000/" target="_blank">Text Summarizer</a></h5>
             <p>Simplify long text into concise, easy-to-understand summaries.</p>
         </div>
 

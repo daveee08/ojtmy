@@ -16,14 +16,11 @@ Parameters:
 - Topic: {topic}
 
 Instructions:
-- Rewrite the content to build real understanding — avoid surface-level definitions.
-- Adapt your response based on any provided context or specific learning needs.
-- Tailor your explanation to the learner's pace (slow, average, or fast).
-- For slow learners: use simple words, shorter sentences.
-- For average learners: use clear logic and moderate depth.
-- For fast learners: use concise but rich explanations with technical vocabulary, deeper insights, and meaningful connections.
-- Structure the explanation for clarity and flow; use bullet points or lists only when they improve comprehension.
-- Maintain a tone and vocabulary that matches the learner's pace — always favor clear, accessible language over jargon.
+- Rewrite the content to build real understanding.
+- Follow any custom preferences provided by the user (e.g., tone, vocabulary, examples, bullet forms, numbered lists).
+- Use alternative words, simpler phrasing, or clearer sentence structure if requested.
+- Ensure logical flow — each idea should connect naturally to the next.
+- Avoid unnecessary repetition, fluff, or jargon unless its part of the instruction.
 
 Respond ONLY with the explanation text (no extra commentary).
 """
@@ -38,14 +35,11 @@ Parameters:
 - Extracted Content: {topic}
 
 Instructions:
-- Rewrite the content to build real understanding — avoid surface-level definitions.
-- Adapt your response based on any provided context or specific learning needs.
-- Tailor your explanation to the learner's pace (slow, average, or fast).
-- For slow learners: use simple words, shorter sentences.
-- For average learners: use clear logic and moderate depth.
-- For fast learners: use concise with technical vocabulary and meaningful connections.
-- Structure the explanation for clarity and flow; use bullet points or lists only when they improve comprehension.
-- Maintain a tone and vocabulary that matches the learner's pace — always favor clear, accessible language over jargon.
+- Rewrite the content to build real understanding.
+- Follow any custom preferences provided by the user (e.g., tone, vocabulary, examples, bullet forms, numbered lists).
+- Use alternative words, simpler phrasing, or clearer sentence structure if requested.
+- Ensure logical flow — each idea should connect naturally to the next.
+- Avoid unnecessary repetition, fluff, or jargon unless its part of the instruction.
 
 Respond ONLY with the explanation text (no extra commentary).
 """
@@ -90,7 +84,7 @@ async def generate_output(
         topic = load_pdf_content(tmp_path)
         os.unlink(tmp_path)  # Delete file after use
         prompt = pdf_prompt
-    else:
+    else: # This 'else' block will catch anything not 'pdf'
         if not topic.strip():
             raise ValueError("Text input is required")
         prompt = manual_prompt

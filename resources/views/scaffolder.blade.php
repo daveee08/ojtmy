@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>AI Text Rewriter</title>
+    <title>AI Text Scaffolder</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous" />
     <style>
@@ -98,8 +98,8 @@
 
 <body>
     <div class="container">
-        <h2>AI Text Rewriter</h2>
-        <p class="subtitle">Rewrite any content to match your learning pace</p>
+        <h2>AI Text Scaffolder</h2>
+        <p class="subtitle">Scaffold any text for better comprehension</p>
 
         @if ($errors->any())
             <div class="alert alert-danger">
@@ -107,7 +107,7 @@
             </div>
         @endif
 
-        <form method="POST" action="/rewriter" enctype="multipart/form-data" onsubmit="handleRewriteSubmit()">
+        <form method="POST" action="/scaffolder" enctype="multipart/form-data" onsubmit="handleRewriteSubmit()">
             @csrf
 
             <!-- Input Type Selection -->
@@ -132,17 +132,45 @@
                 <input type="file" class="form-control" id="pdf_file" name="pdf_file" accept="application/pdf" />
             </div>
 
-            <!-- Custom Instruction Field (Hidden at first) -->
-            <div class="mb-4" id="custom_instruction_group" style="display: none;">
-                <label for="custom_instruction" class="form-label">Rewrite so that: </label>
-                <textarea class="form-control" id="custom_instruction" name="custom_instruction" rows="2"
-                    placeholder="Customize how the text should be rewritten e.g., different words, half as long, etc."></textarea>
+            <!-- Grade Level -->
+            <div class="mb-4" id="grade_level_group" style="display: none;">
+                <label for="grade_level" class="form-label">Grade Level</label>
+                <select class="form-select" id="grade_level" name="grade_level">
+                    <option value="" disabled selected>Select grade level</option>
+                    <option value="Kindergarten">Kindergarten</option>
+                    <option value="Grade 1">Grade 1</option>
+                    <option value="Grade 2">Grade 2</option>
+                    <option value="Grade 3">Grade 3</option>
+                    <option value="Grade 4">Grade 4</option>
+                    <option value="Grade 5">Grade 5</option>
+                    <option value="Grade 6">Grade 6</option>
+                    <option value="Grade 7">Grade 7</option>
+                    <option value="Grade 8">Grade 8</option>
+                    <option value="Grade 9">Grade 9</option>
+                    <option value="Grade 10">Grade 10</option>
+                    <option value="Grade 11">Grade 11</option>
+                    <option value="Grade 12">Grade 12</option>
+                    <option value="College">College</option>
+                </select>
+            </div>
+
+            <!-- Literal Questions -->
+            <div class="mb-4" id="literal_questions_group" style="display: none;">
+                <label for="literal_questions" class="form-label">Number of Literal Questions to Ask</label>
+                <input type="number" class="form-control" id="literal_questions" name="literal_questions"
+                    min="0" />
+            </div>
+
+            <!-- Vocabulary Words -->
+            <div class="mb-4" id="vocab_words_group" style="display: none;">
+                <label for="vocab_words" class="form-label">Maximum Vocabulary Words to Define</label>
+                <input type="number" class="form-control" id="vocab_words" name="vocab_words" min="0" />
             </div>
 
             <!-- Submit Button -->
             <div class="mb-4 text-center">
                 <button type="submit" class="btn btn-pink" id="submitButton">
-                    <span id="btnText">Rewrite</span>
+                    <span id="btnText">Scaffold</span>
                     <span id="btnSpinner" class="spinner-border spinner-border-sm btn-spinner hidden" role="status"
                         aria-hidden="true"></span>
                 </button>
@@ -150,13 +178,13 @@
 
             <!-- Loading Message -->
             <div id="loadingMessage" class="text-center hidden">
-                <p class="mt-2">Rewriting in progress, please wait...</p>
+                <p class="mt-2">Scaffolding in progress, please wait...</p>
             </div>
         </form>
 
         <!-- Adaptive Content Output -->
         <div class="mb-4">
-            <label for="generate_output" class="form-label">Rewritten Output</label>
+            <label for="generate_output" class="form-label">Scaffolded Output</label>
             <textarea id="generate_output" class="form-control" name="generate_output" rows="10" readonly>{{ $response ?? '' }}</textarea>
         </div>
     </div>
@@ -164,13 +192,14 @@
     <script>
         function toggleInputFields() {
             const mode = document.getElementById('input_type').value;
-            const textGroup = document.getElementById('text_input_group');
-            const pdfGroup = document.getElementById('pdf_input_group');
-            const instructionGroup = document.getElementById('custom_instruction_group');
+            document.getElementById('text_input_group').style.display = mode === 'topic' ? 'block' : 'none';
+            document.getElementById('pdf_input_group').style.display = mode === 'pdf' ? 'block' : 'none';
 
-            textGroup.style.display = mode === 'topic' ? 'block' : 'none';
-            pdfGroup.style.display = mode === 'pdf' ? 'block' : 'none';
-            instructionGroup.style.display = mode ? 'block' : 'none';
+            // Always show these when an input type is selected
+            const showExtras = mode !== '';
+            document.getElementById('grade_level_group').style.display = showExtras ? 'block' : 'none';
+            document.getElementById('literal_questions_group').style.display = showExtras ? 'block' : 'none';
+            document.getElementById('vocab_words_group').style.display = showExtras ? 'block' : 'none';
         }
 
         function handleRewriteSubmit() {

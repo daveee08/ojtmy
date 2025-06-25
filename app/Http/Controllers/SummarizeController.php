@@ -19,6 +19,7 @@ class SummarizeController extends Controller
         'input_text' => 'nullable|string',
         'pdf' => 'nullable|mimes:pdf|max:10240',
     ]);
+    
 
     $multipart = [
         [
@@ -41,7 +42,7 @@ class SummarizeController extends Controller
 
     $response = Http::timeout(60)
         ->asMultipart()
-        ->post('http://127.0.0.1:8001/summarize', $multipart); // ⬅ make sure it's the FastAPI port
+        ->post('http://192.168.50.238:8001/summarize', $multipart); // ⬅ make sure it's the FastAPI port
 
     $summary = $response->json()['summary'] ?? 'No summary returned.';
 

@@ -78,6 +78,8 @@
 
         .spinner-border.text-pink {
             color: #fff;
+            display: center;
+            align-items: center;
         }
 
         .btn-spinner {
@@ -158,14 +160,16 @@
             <div class="mb-4" id="literal_questions_group" style="display: none;">
                 <label for="literal_questions" class="form-label">Number of Literal Questions to Ask</label>
                 <input type="number" class="form-control" id="literal_questions" name="literal_questions"
-                    min="0" />
+                    min="0" max="10" />
             </div>
 
             <!-- Vocabulary Words -->
             <div class="mb-4" id="vocab_words_group" style="display: none;">
-                <label for="vocab_words" class="form-label">Maximum Vocabulary Words to Define</label>
-                <input type="number" class="form-control" id="vocab_words" name="vocab_words" min="0" />
+                <label for="vocab_limit" class="form-label">Maximum Vocabulary Words to Define</label>
+                <input type="number" class="form-control" id="vocab_limit" name="vocab_limit" min="0"
+                    max="10" />
             </div>
+
 
             <!-- Submit Button -->
             <div class="mb-4 text-center">

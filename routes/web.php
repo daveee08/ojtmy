@@ -7,6 +7,8 @@ use App\Http\Controllers\QuizmeController;
 use App\Http\Controllers\RewriterController;
 use App\Http\Controllers\StepTutorController;
 use App\Http\Controllers\FiveQuestionsController;
+use App\Http\Controllers\EmailWriterController;
+use App\Http\Controllers\ThankYouNoteController;
 
 /*
 |--------------------------------------------------------------------------
@@ -16,7 +18,7 @@ use App\Http\Controllers\FiveQuestionsController;
 |--------------------------------------------------------------------------
 */
 
-// ✅ Landing Page
+// Landing Page
 Route::get('/', function () {
     return view('home');
 });
@@ -41,15 +43,11 @@ Route::post('/leveler', 'App\Http\Controllers\LevelerController@processForm');
 Route::get('/informational', 'App\Http\Controllers\InformationalController@showForm');
 Route::post('/informational', 'App\Http\Controllers\InformationalController@processForm');
 
-// ✅ Rewriter Tool
-Route::get('/rewriter', 'App\Http\Controllers\RewriterController@showForm');
-Route::post('/rewriter', 'App\Http\Controllers\RewriterController@processForm');
-
 // ✅ Proofreader Tool
 Route::get('/proofreader', [ProofreaderController::class, 'showForm'])->name('proofreader.form');
 Route::post('/proofreader', [ProofreaderController::class, 'processForm'])->name('proofreader.process');
 
-// ✅ QuizMe Tool
+// QuizMe Tool
 Route::get('/quizme', [QuizmeController::class, 'showForm']);
 Route::post('/quizme', [QuizmeController::class, 'processForm']);
 Route::post('/quizme/download', [QuizmeController::class, 'downloadContent'])->name('quizme.download');
@@ -67,3 +65,13 @@ Route::post('/step-tutor', [StepTutorController::class, 'processForm']);
 // ✅ Explanations Tool
 Route::get('/explanations', 'App\Http\Controllers\ExplanationsController@showForm');
 Route::post('/explanations', 'App\Http\Controllers\ExplanationsController@processForm');
+
+// Rewriter Tool
+Route::get('/rewriter', [RewriterController::class, 'showForm']);
+Route::post('/rewriter', [RewriterController::class, 'processForm']);
+Route::get('/rewriter', 'App\Http\Controllers\RewriterController@showForm');
+Route::post('/rewriter', 'App\Http\Controllers\RewriterController@processForm');
+
+//email writer
+Route::get('/email-writer', [EmailWriterController::class, 'show'])->name('email.writer.show');
+Route::post('/email-writer', [EmailWriterController::class, 'generate'])->name('email.writer.generate');

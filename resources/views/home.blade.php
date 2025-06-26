@@ -44,10 +44,10 @@
         }
 
         .btn-start {
-            background-color: #e91e63;
+            background-color: #555;
             color: white;
-            padding: 14px 36px;
-            font-size: 1rem;
+            padding: 10px 26px;
+            font-size: 0.9rem;
             border: none;
             border-radius: 6px;
             text-decoration: none;
@@ -55,7 +55,7 @@
         }
 
         .btn-start:hover {
-            background-color: #555;
+            background-color: #e91e63;
             color: #ffffff;
         }
     </style>
@@ -70,3 +70,5 @@
         </div>
     </div>
 @endsection
+
+{{-- original --}}

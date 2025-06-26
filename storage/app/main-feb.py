@@ -60,3 +60,4 @@ async def summarize_history_endpoint(data: HistoryRequest):
     return {"summary": await summarize_conversation(data.history)}
 
 
+

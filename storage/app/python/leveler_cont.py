@@ -115,7 +115,7 @@ pdf_prompt = PromptTemplate.from_template(pdf_topic_template)
 chat_prompt = ChatPromptTemplate.from_messages([
     ("system", "You are a helpful assistant. Keep your responses concise and focused on the current conversation."),
     MessagesPlaceholder(variable_name="history"),
-    ("human", "{topic}")
+    ("human", "{topic}") # This now consistently refers to the user's message in the chat
 ])
 
 # Initialize Ollama LLM
@@ -138,7 +138,7 @@ def clean_output(text: str) -> str:
 def load_pdf_content(pdf_path: str) -> str:
     if not os.path.exists(pdf_path):
         raise FileNotFoundError("PDF file not found.")
-    loader = PyPDFLoader(pdf_path) 
+    loader = PyPDFLoader(pdf_path)
     documents = loader.load()
     return "\n".join(doc.page_content for doc in documents)
 
@@ -157,7 +157,7 @@ async def generate_output(
     if input_type == "pdf":
         if not pdf_file:
             raise ValueError("PDF file is required for PDF input type.")
-        
+
         human_history_message = topic if topic.strip() else f"Uploaded PDF: {pdf_file.filename}"
 
         # Create a temporary file to save the uploaded PDF
@@ -165,7 +165,7 @@ async def generate_output(
             content = await pdf_file.read()
             tmp.write(content)
             tmp_path = tmp.name
-        
+
         llm_topic_content = load_pdf_content(tmp_path)
         os.unlink(tmp_path) # Clean up the temporary PDF file
         prompt = pdf_prompt
@@ -183,11 +183,11 @@ async def generate_output(
         "grade_level": grade_level,
         "learning_speed": learning_speed
     }
-    
+
     # Invoke the chain to get the explanation
     result = prompt | model
     explanation = result.invoke(prompt_input)
-    
+
     return clean_output(explanation), human_history_message # Return both explanation and human message
 
 
@@ -211,14 +211,14 @@ async def leveler_api(
             grade_level=grade_level,
             learning_speed=learning_speed
         )
-        
+
         # Save the initial user query and the generated explanation to the history
         history = get_history_by_session_id(session_id)
         history.add_messages([
             HumanMessage(content=initial_human_message), # Use the more descriptive human message
             AIMessage(content=explanation)
         ])
-        
+
         return {"output": explanation}
     except ValueError as ve:
         raise HTTPException(status_code=400, detail=f"Input validation error: {ve}")
@@ -229,22 +229,19 @@ async def leveler_api(
 
 @app.post("/chat")
 async def chat_api(
-    user_message: str = Form(...),
+    topic: str = Form(...), # Changed from user_message to topic
     session_id: str = Form(...),
 ):
     """
     Continues a conversation based on the persistent chat history for a given session ID.
     """
     try:
-        # We need to map the incoming user_message to the 'user_message_for_history' placeholder
-        # and also provide a 'topic' if the chat_prompt directly uses it for the LLM.
-        # Since 'chat_prompt' uses 'MessagesPlaceholder', the 'topic' key for the LLM itself
-        # doesn't matter for the new input, as it's just added to history.
+        # The 'topic' variable now directly holds the user's message for the chat chain
         result = chat_chain.invoke(
-            {"user_message_for_history": user_message, "topic": user_message}, # Add 'topic' for consistency, though 'user_message_for_history' is primary for history
+            {"topic": topic}, # Pass the 'topic' directly
             config={"configurable": {"session_id": session_id}}
         )
-        
+
         return JSONResponse(status_code=200, content={"response": result})
     except Exception as e:
         traceback_str = traceback.format_exc()

@@ -9,7 +9,7 @@ class SummarizeController extends Controller
 {
     public function index()
 {
-    return view('summarize');
+    return view('home');
 }
 
     public function summarize(Request $request)
@@ -19,7 +19,6 @@ class SummarizeController extends Controller
         'input_text' => 'nullable|string',
         'pdf' => 'nullable|mimes:pdf|max:10240',
     ]);
-    
 
     $multipart = [
         [

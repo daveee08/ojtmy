@@ -37,30 +37,30 @@ Important:
 
 Now generate the summary below:
 """
+
+
     prompt = PromptTemplate.from_template(prompt_template)
     llm = Ollama(model="gemma3:4b")
     chain = prompt | llm
     result = chain.invoke({"text": clean_text, "conditions": conditions})
     return result.strip()
 
-
+# Accept form + file input
 @app.post("/summarize")
 async def summarize(
     conditions: str = Form(...),
     text: str = Form(""),
     pdf: UploadFile = File(None)
 ):
-    if pdf and pdf.filename and pdf.content_type == "application/pdf":
-        contents = await pdf.read()
-        if contents:
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
-                tmp.write(contents)
-                tmp_path = tmp.name
+    if pdf is not None:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+            tmp.write(await pdf.read())
+            tmp_path = tmp.name
 
-            loader = PyPDFLoader(tmp_path)
-            pages = loader.load()
-            os.remove(tmp_path)
-            text = "\n".join([page.page_content for page in pages])
+        loader = PyPDFLoader(tmp_path)
+        pages = loader.load()
+        os.remove(tmp_path)
+        text = "\n".join([page.page_content for page in pages])
 
     if not text.strip():
         return {"summary": "No valid text provided."}

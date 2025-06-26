@@ -18,7 +18,7 @@ use App\Http\Controllers\FiveQuestionsController;
 
 // ✅ Landing Page
 Route::get('/', function () {
-    return view('tool');
+    return view('home');
 });
 
 // ✅ Summarizer Tool
@@ -63,3 +63,7 @@ Route::post('/5questions', [FiveQuestionsController::class, 'processForm'])->nam
 // ✅ Step Tutor
 Route::get('/step-tutor', [StepTutorController::class, 'showForm']);
 Route::post('/step-tutor', [StepTutorController::class, 'processForm']);
+
+// ✅ Explanations Tool
+Route::get('/explanations', 'App\Http\Controllers\ExplanationsController@showForm');
+Route::post('/explanations', 'App\Http\Controllers\ExplanationsController@processForm');

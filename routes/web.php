@@ -31,8 +31,8 @@ Route::get('/summarize', [SummarizeController::class, 'index']);
 Route::post('/summarize', [SummarizeController::class, 'summarize']);
 
 //Thank you note
-Route::get('/thankyou-note', [ThankYouNoteController::class, 'showForm'])->name('thankyou.form');
-Route::post('/thankyou-note', [ThankYouNoteController::class, 'generate'])->name('thankyou.generate');
+Route::get('/thankyounote', 'App\Http\Controllers\ThankYouNoteController@showForm')->name('thankyou.show');
+Route::post('/thankyounote', 'App\Http\Controllers\ThankYouNoteController@processForm')->name('thankyou.generate');
 
 Route::get('/', function(){
     return view('home');

@@ -7,18 +7,12 @@ use Illuminate\Support\Facades\Http;
 
 class ThankYouNoteController extends Controller
 {
-    /**
-     * Show the thank you note form.
-     */
     public function showForm()
     {
-        return view('thankyou-note');
+        return view('thankyounote'); // Make sure this Blade file exists in resources/views
     }
 
-    /**
-     * Handle generation of the thank you note via FastAPI.
-     */
-    public function generate(Request $request)
+    public function processForm(Request $request)
     {
         $request->validate([
             'reason' => 'required|string',
@@ -29,9 +23,9 @@ class ThankYouNoteController extends Controller
         ]);
 
         if ($response->successful()) {
-            return back()->with('thank_you_note', $response->json()['note']);
+            return back()->with('thankyou_note', $response->json()['thank_you_note']);
         } else {
-            return back()->with('thank_you_note', '⚠️ Failed to generate note. Please try again.');
+            return back()->with('error', 'Failed to generate thank-you note.');
         }
     }
 }

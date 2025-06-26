@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Text Summarizer</title>
+    <title>Email Writer</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
@@ -54,87 +54,69 @@
             font-family: 'Courier New', monospace;
         }
 
-        .form-control,
-        .form-select {
+        .form-control {
             border-radius: 6px;
             border: 1px solid #ccd6e0;
             box-shadow: none;
         }
 
-        .form-control:focus,
-        .form-select:focus {
+        .form-control:focus {
             border-color: #EC298B;
             box-shadow: 0 0 0 0.2rem rgba(236, 41, 139, 0.2);
         }
 
-        /* loading spinner */
-  .spinner-border.text-pink { 
-  color: #EC298B;
-}
-#loading-overlay {
-  display: none; /* ✅ hide by default */
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(255,255,255,0.8);
-  z-index: 9999;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-}
+        .spinner-border.text-pink {
+            color: #EC298B;
+        }
 
-
-
-
-        
+        #loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
     </style>
 </head>
 <body>
 
-@section('content')
 <!-- loading spinner -->
 <div id="loading-overlay">
   <div class="spinner-border text-pink" role="status" style="width: 3rem; height: 3rem;">
     <span class="visually-hidden">Loading...</span>
   </div>
-  <p class="mt-3 text-center fw-bold" style="color:#EC298B;">Generating your response...</p>
+  <p class="mt-3 text-center fw-bold" style="color:#EC298B;">Generating your email...</p>
 </div>
 
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-lg-8">
             <div class="ck-card">
-                <h2 class="ck-title text-center">Text Summarizer</h2>
+                <h2 class="ck-title text-center">Email Writer</h2>
 
-                <form method="POST" action="/summarize" enctype="multipart/form-data" id="summarizer-form">
+                <form method="POST" action="{{ route('email.writer.generate') }}" id="email-writer-form">
                     @csrf
 
                     <div class="mb-3">
-                        <label class="form-label">Summary Instructions</label>
-                        <input type="text" class="form-control" name="conditions" placeholder="E.g. 1 paragraph" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Text to Summarize</label>
-                        <textarea class="form-control" name="input_text" rows="6"></textarea>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Or Upload a PDF</label>
-                        <input type="file" class="form-control" name="pdf" accept=".pdf">
+                        <label class="form-label">What should the email say?</label>
+                        <textarea class="form-control" name="email_input" rows="6" placeholder="Include context or purpose of your email" required>{{ old('email_input') }}</textarea>
                     </div>
 
                     <div class="text-center mt-4">
-                        <button type= "submit" class="ck-btn">Generate Summary</button>
+                        <button type="submit" class="ck-btn">Generate Email</button>
                     </div>
                 </form>
 
-                @if(isset($summary))
+                @if(session('generated_email'))
                 <hr class="my-4">
-                <h5 class="fw-bold" style="color:#EC298B;">Summary:</h5>
-                <pre>{{ preg_replace('/^\s*-\s*/m', '- ', $summary) }}</pre>
+                <h5 class="fw-bold" style="color:#EC298B;">Generated Email:</h5>
+                <pre>{{ session('generated_email') }}</pre>
                 @endif
 
                 @error('error')
@@ -145,14 +127,11 @@
     </div>
 </div>
 
-<!-- loading spinner -->
 <script>
-document.getElementById('summarizer-form').addEventListener('submit', function () {
-  document.getElementById('loading-overlay').style.display = 'flex';
+document.getElementById('email-writer-form').addEventListener('submit', function () {
+    document.getElementById('loading-overlay').style.display = 'flex';
 });
-
 </script>
-
 
 </body>
 </html>

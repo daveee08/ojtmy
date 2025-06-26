@@ -88,7 +88,12 @@
         </div>
 
         <div class="tool-card" id="tool-understanding">
-            <h5><a href="http://192.168.50.127:8000/tutor" target="_blank">Understanding Tutor</a></h5>
+            <h5><a href="http://127.0.0.1:8000/tutor" target="_blank">Understanding Tutor</a></h5>
+            <p>Get writing feedback on grammar, structure, and clarity to build stronger writing skills.</p>
+        </div>
+
+        <div class="tool-card" id="tool-step by step">
+            <h5><a href="http://127.0.0.1:8000/step-tutor" target="_blank">Step by Step Tutor</a></h5>
             <p>Get writing feedback on grammar, structure, and clarity to build stronger writing skills.</p>
         </div>
 

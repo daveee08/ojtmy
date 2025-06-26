@@ -33,7 +33,7 @@ Please structure your explanation as follows:
 - Provide clear explanations to correct these misconceptions.
 
 
-Important: Don't ask for a follow-up question.
+Important: From now on, please respond speaking in the first person.
 ---
 Student Details:
 - Grade Level: {grade_level}
@@ -66,7 +66,7 @@ Please structure your explanation as follows:
 - Provide clear explanations to correct these misconceptions.
 
 
-Important: Don't ask for a follow-up question.
+Important: From now on, please respond speaking in the first person.
 
 ---
 **Student Details:**
@@ -89,13 +89,15 @@ Structure your response clearly and helpfully, as if you're replying to the stud
 - Current Message: {topic}  
 - Additional Notes: {add_cont}  
 
+From now on, please respond speaking in the first person.
+
 **Your Output (explanation only):**
 """
 
 chat_history_prompt = ChatPromptTemplate.from_template(chat_history_template)
 
 # Initialize your language model and prompt templates
-model = OllamaLLM(model="gemma3")
+model = OllamaLLM(model="llama3")
 manual_prompt = ChatPromptTemplate.from_template(manual_topic_template)
 pdf_prompt = ChatPromptTemplate.from_template(pdf_topic_template)
 
@@ -106,6 +108,7 @@ class TutorInput(BaseModel):
     topic: str = ""
     pdf_path: str = ""
     add_cont: str = ""
+    mode: str = "manual"  # manual, chat, or pdf
 
 # Function to extract text from PDF (using only the first 2 pages)
 def extract_text_from_pdf(path: str) -> str:
@@ -123,38 +126,28 @@ def clean_output(text: str) -> str:
     return text.strip()
 
 # Main function containing the tutor logic
-async def generate_output_with_file(grade_level, input_type, topic="", add_cont="", pdf_file: UploadFile = None):
+async def generate_output_with_file(grade_level, input_type, topic="", add_cont="", pdf_file: UploadFile = None, mode="manual"):
     if input_type == "pdf":
-        # Save PDF temporarily
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
-            content = await pdf_file.read()
-            tmp.write(content)
-            tmp_path = tmp.name
-
-        topic = extract_text_from_pdf(tmp_path)
-        os.unlink(tmp_path)  # Delete file after use
+        ...
         prompt = pdf_prompt
-    else:
-        # Heuristic: If topic contains line breaks or looks like a conversation summary, use chat history prompt
-        if topic.count("\n") > 3 and "Prior Conversation" in topic:
-            # Topic is likely context + latest message
-            prompt = chat_history_prompt
-            # Extract the two parts manually (if Laravel prepends them separately in the future, adapt this)
-            user_input = {
-                "grade_level": grade_level,
-                "conversation_summary": topic,  # already includes latest msg at end
-                "topic": "",  # optional if topic already includes everything
-                "add_cont": add_cont
-            }
-        else:
-            prompt = manual_prompt
-            user_input = {
-                "grade_level": grade_level,
-                "input_type": input_type,
-                "topic": topic,
-                "pdf_path": "",
-                "add_cont": add_cont
-            }
+    elif mode == "chat":
+        prompt = chat_history_prompt
+        user_input = {
+            "grade_level": grade_level,
+            "conversation_summary": topic,  # initial or ongoing message
+            "topic": "",
+            "add_cont": add_cont
+        }
+    else:  # manual
+        prompt = manual_prompt
+        user_input = {
+            "grade_level": grade_level,
+            "input_type": input_type,
+            "topic": topic,
+            "pdf_path": "",
+            "add_cont": add_cont
+        }
+
             
     chain = prompt | model
     result = chain.invoke(user_input)

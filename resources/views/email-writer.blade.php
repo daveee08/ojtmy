@@ -65,7 +65,6 @@
             box-shadow: 0 0 0 0.2rem rgba(236, 41, 139, 0.2);
         }
 
-        /* loading spinner */
         .spinner-border.text-pink {
             color: #EC298B;
         }

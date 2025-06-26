@@ -7,41 +7,25 @@ use Illuminate\Support\Facades\Http;
 
 class EmailWriterController extends Controller
 {
-    /**
-     * Show the email writer form.
-     */
-    public function showForm()
+    public function show()
     {
         return view('email-writer');
     }
 
-    /**
-     * Handle form submission and send request to FastAPI.
-     */
-    public function generateEmail(Request $request)
+    public function generate(Request $request)
     {
-        // Validate user input
         $request->validate([
             'email_input' => 'required|string',
         ]);
 
-        try {
-            // Send POST request to FastAPI
-            $response = Http::timeout(30)->asForm()->post('http://192.168.50.238:8001/generate-email', [
-                'content' => $request->email_input,
-]);
+        $response = Http::asForm()->post('http://127.0.0.1:8001/generate-email', [
+            'content' => $request->email_input,
+        ]);
 
-
-            // Check if request was successful
-            if ($response->successful() && isset($response['email'])) {
-                return back()->with('generated_email', $response['email']);
-            }
-
-            // If FastAPI didn't return success
+        if ($response->successful()) {
+            return back()->with('generated_email', $response->json()['email']);
+        } else {
             return back()->with('generated_email', '⚠️ Failed to generate email. Please try again.');
-        } catch (\Exception $e) {
-            // Catch errors like timeout or connection failure
-            return back()->with('generated_email', '⚠️ Backend error: ' . $e->getMessage());
         }
     }
 }

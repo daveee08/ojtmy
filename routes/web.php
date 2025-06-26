@@ -31,8 +31,8 @@ Route::post('/summarize', [SummarizeController::class, 'summarize']);
 
 // ✅ Proofreader Tool
 
-Route::get('/', [SummarizeController::class, 'index']);
-Route::post('/summarize', [SummarizeController::class, 'summarize']);
+// Route::get('/', [SummarizeController::class, 'index']);
+// Route::post('/summarize', [SummarizeController::class, 'summarize']);
 
 Route::get('/', function(){
     return view('home');
@@ -71,6 +71,5 @@ Route::post('/rewriter', 'App\Http\Controllers\RewriterController@processForm');
 Route::get('/step-tutor', [StepTutorController::class, 'showForm']);
 Route::post('/step-tutor', [StepTutorController::class, 'processForm']);
 
-Route::get('/email-writer', [EmailWriterController::class, 'showForm'])->name('email.writer.form');
-Route::post('/email-writer', [EmailWriterController::class, 'generateEmail'])->name('email.writer.generate');
-
+Route::get('/email-writer', [EmailWriterController::class, 'show'])->name('email.writer.show');
+Route::post('/email-writer', [EmailWriterController::class, 'generate'])->name('email.writer.generate');

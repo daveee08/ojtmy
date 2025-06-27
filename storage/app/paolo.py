@@ -6,7 +6,7 @@ import uvicorn
 
 from five_question_agent import FiveQuestionInput, generate_questions
 from proofreader import ProofreaderInput as ProofreadInput, run_proofread
-
+from real_world_agent import RealWorldInput, generate_real_world_examples
 app = FastAPI()
 
 # === CORS setup ===
@@ -35,6 +35,16 @@ async def proofread_endpoint(data: ProofreadInput):
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+    # === Real World Examples Endpoint ===
+@app.post("/realworld")
+async def real_world_endpoint(data: RealWorldInput):
+    try:
+        examples = generate_real_world_examples(data.grade_level, data.topic)
+        return {"examples": examples}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
 
 # === Uvicorn launch ===
 if __name__ == "__main__":

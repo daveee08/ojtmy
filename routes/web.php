@@ -10,8 +10,10 @@ use App\Http\Controllers\FiveQuestionsController;
 use App\Http\Controllers\EmailWriterController;
 use App\Http\Controllers\ThankYouNoteController;
 use App\Http\Controllers\RealWorldController;
-====
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\SentenceStarterController;
+use App\Http\Controllers\TranslatorController;
+use App\Http\Controllers\StudyHabitsController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -22,7 +24,7 @@ use App\Http\Controllers\AuthController;
 
 // Landing Page
 Route::get('/', function () {
-    return view('home');
+    return view('login');
 });
 
 // Authentication Routes
@@ -107,3 +109,15 @@ Route::post('/email-writer', [EmailWriterController::class, 'generate'])->name('
 // Real World Agent
 Route::get('/realworld', [RealWorldController::class, 'showForm'])->name('realworld.form');
 Route::post('/realworld', [RealWorldController::class, 'processForm'])->name('realworld.process');
+
+// Sentence Starter Agent
+Route::get('/sentencestarter', [SentenceStarterController::class, 'showForm'])->name('sentencestarter.form');
+Route::post('/sentencestarter', [SentenceStarterController::class, 'processForm'])->name('sentencestarter.process');
+
+// Translator Agent
+Route::get('/translator', [TranslatorController::class, 'showForm'])->name('translator.form');
+Route::post('/translator', [TranslatorController::class, 'processForm'])->name('translator.process');
+
+// Study Habits Agent
+Route::get('/studyhabits', [StudyHabitsController::class, 'showForm'])->name('studyhabits.form');
+Route::post('/studyhabits', [StudyHabitsController::class, 'processForm'])->name('studyhabits.process');

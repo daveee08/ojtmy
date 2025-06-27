@@ -22,41 +22,47 @@ class ProofreaderController extends Controller
             'pdf'     => 'nullable|file|mimes:pdf|max:5120',
         ]);
 
-        $inputText = $validated['text'] ?? '';
-        $pdfPath = null;
+        $multipartData = [
+            [
+                'name'     => 'profile',
+                'contents' => $validated['profile']
+            ],
+            [
+                'name'     => 'text',
+                'contents' => $validated['text'] ?? ''
+            ],
+        ];
 
         if ($request->hasFile('pdf')) {
-            $path = $request->file('pdf')->store('uploads');
-            $pdfPath = storage_path('app/' . $path);
+            $pdf = $request->file('pdf');
+            $multipartData[] = [
+                'name'     => 'pdf_file', // 🛠️ match FastAPI param
+                'contents' => fopen($pdf->getPathname(), 'r'),
+                'filename' => $pdf->getClientOriginalName(),
+                'headers'  => [
+                    'Content-Type' => $pdf->getMimeType()
+                ],
+            ];
         }
 
-        if (empty($inputText) && !$pdfPath) {
+        if (empty($validated['text']) && !$request->hasFile('pdf')) {
             return back()->withErrors(['error' => 'Please provide text or upload a PDF.'])->withInput();
         }
 
-        // ✅ Conditionally build the payload
-        $payload = [
-            'profile' => $validated['profile'],
-            'text'    => $inputText,
-        ];
-
-        if ($pdfPath) {
-            $payload['pdf_path'] = $pdfPath;
-        }
-
-        $response = Http::timeout(0)->post('http://127.0.0.1:5001/proofread', $payload);
+        $response = Http::timeout(0)
+            ->asMultipart()
+            ->post('http://127.0.0.1:5001/proofread', $multipartData);
 
         if ($response->failed()) {
-            return back()->withErrors(['error' => 'Proofreader service failed.'])->withInput();
+            return back()->withErrors(['error' => 'Proofreader service failed: ' . $response->body()])
+                         ->withInput();
         }
 
-        $result = $response->json();
-
         return view('proofreader', [
-            'response' => $result,
+            'response' => $response->json(),
             'old' => [
                 'profile' => $validated['profile'],
-                'text'    => $inputText,
+                'text'    => $validated['text'],
             ],
         ]);
     }

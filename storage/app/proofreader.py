@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
 import os
-import PyPDF2
+import re
+import tempfile
+from fastapi import UploadFile
 from langchain_ollama import OllamaLLM
 from langchain_core.prompts import ChatPromptTemplate
 from pydantic import BaseModel
+import PyPDF2
 
 class ProofreaderInput(BaseModel):
     profile: str
     text: str = ""
-    pdf_path: str = ""
 
-# Hard-coded style profiles
+# Style Profiles
 PROFILES = {
     "academic": {
         "description": "Formal tone, avoid contractions, focus on technical accuracy.",
@@ -28,20 +30,31 @@ PROFILES = {
 
 DEFAULT_MODEL = "gemma3"
 
-def run_proofread(profile: str, text: str = "", pdf_path: str = "") -> dict:
-    """
-    Select the style profile, optionally extract text from a PDF,
-    run the LLM, and return the corrected version and list of changes.
-    """
+# Extract text from first 2 pages of a PDF
+def extract_text_from_pdf(file_path: str) -> str:
+    with open(file_path, "rb") as f:
+        reader = PyPDF2.PdfReader(f)
+        pages = reader.pages[:2]
+        return "\n".join([page.extract_text() or "" for page in pages])
 
-    # If a PDF is provided, extract its text
-    if pdf_path:
-        if not os.path.exists(pdf_path):
-            raise ValueError(f"PDF file not found at: {pdf_path}")
+# Clean output formatting
+def clean_output(text: str) -> str:
+    text = re.sub(r"\*\*(.*?)\*\*", r"\1", text)
+    text = re.sub(r"\*(.*?)\*", r"\1", text)
+    text = re.sub(r"^\s*[\*\-]\s*", "", text, flags=re.MULTILINE)
+    return text.strip()
+
+# Main proofread function
+async def run_proofread(profile: str, text: str = "", pdf_file: UploadFile = None) -> dict:
+    if pdf_file:
         try:
-            with open(pdf_path, "rb") as f:
-                reader = PyPDF2.PdfReader(f)
-                text = "\n".join([page.extract_text() or "" for page in reader.pages])
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+                contents = await pdf_file.read()
+                tmp.write(contents)
+                tmp_path = tmp.name
+
+            text = extract_text_from_pdf(tmp_path) 
+            os.unlink(tmp_path)   
         except Exception as e:
             raise ValueError(f"Failed to read PDF: {e}")
 
@@ -54,13 +67,12 @@ def run_proofread(profile: str, text: str = "", pdf_path: str = "") -> dict:
 
     instructions = profile_cfg["instructions"]
 
-    # Add note for long text
     if len(text) > 2000:
         instructions += (
             "\nNote: This text may come from a PDF, so ignore formatting issues and focus on clarity."
         )
 
-    # Final prompt
+    # Prompt Template
     prompt_template = f"""
 {instructions}
 
@@ -87,22 +99,21 @@ Changes made:
 """
 
     prompt = ChatPromptTemplate.from_template(prompt_template)
-    model  = OllamaLLM(model=DEFAULT_MODEL)
-    chain  = prompt | model
+    model = OllamaLLM(model=DEFAULT_MODEL)
+    chain = prompt | model
 
     raw_output = chain.invoke({"input_text": text})
 
     try:
-        corrected_section = raw_output.split("Corrected text:")[1].split("===END_CORRECTED===")[0].strip()
-        changes_section = raw_output.split("Changes made:")[1].split("===END_CHANGES===")[0].strip()
-        corrected = corrected_section
+        corrected = raw_output.split("Corrected text:")[1].split("===END_CORRECTED===")[0].strip()
+        changes_block = raw_output.split("Changes made:")[1].split("===END_CHANGES===")[0].strip()
         changes = [
             line.lstrip("*-•1234. ").strip()
-            for line in changes_section.splitlines()
+            for line in changes_block.splitlines()
             if line.strip()
         ]
     except Exception:
         corrected = raw_output.strip()
         changes = []
 
-    return {"corrected": corrected, "changes": changes}
+    return {"corrected": clean_output(corrected), "changes": changes}

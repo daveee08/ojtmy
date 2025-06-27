@@ -70,12 +70,30 @@ Route::post('/informational', 'App\Http\Controllers\InformationalController@proc
 Route::get('/proofreader', [ProofreaderController::class, 'showForm'])->name('proofreader.form');
 Route::post('/proofreader', [ProofreaderController::class, 'processForm'])->name('proofreader.process');
 
-// QuizMe Tool
-Route::get('/quizme', [QuizmeController::class, 'showForm']);
-Route::post('/quizme', [QuizmeController::class, 'processForm']);
-Route::post('/quizme/download', [QuizmeController::class, 'downloadContent'])->name('quizme.download');
-Route::post('/quizme/evaluate-answer', [QuizmeController::class, 'evaluateAnswer']);
-Route::post('/quizme/chat', [QuizmeController::class, 'chat']);
+// ✅ QuizMe Tool
+Route::get('/quizme', 'App\Http\Controllers\QuizmeController@showForm');
+Route::post('/quizme', 'App\Http\Controllers\QuizmeController@processForm');
+Route::post('/quizme/download', 'App\Http\Controllers\QuizmeController@downloadContent')->name('quizme.download');
+Route::post('/quizme/evaluate-answer', 'App\Http\Controllers\QuizmeController@evaluateAnswer');
+Route::post('/quizme/chat', 'App\Http\Controllers\QuizmeController@chat');
+
+// ✅ Qoutes of the Day
+Route::get('/qotd', 'App\\Http\\Controllers\\QOTDController@showForm');
+Route::post('/qotd', 'App\\Http\\Controllers\\QOTDController@generateQuote');
+Route::post('/qotd/download', 'App\\Http\\Controllers\\QOTDController@downloadQuote')->name('qotd.download');
+
+// ✅ Tongue Twister
+Route::get('/tonguetwister', 'App\Http\Controllers\TongueTwistController@showForm');
+Route::post('/tonguetwister', 'App\\Http\\Controllers\\TongueTwistController@generateTongueTwister');
+
+// ✅ Teacher Jokes
+Route::get('/teacherjokes', 'App\\Http\\Controllers\\TeacherJokesController@showForm');
+Route::post('/teacherjokes', 'App\\Http\\Controllers\\TeacherJokesController@generateJoke');
+
+// ✅ Coach Sports Practice
+Route::get('/coachsportprac', 'App\\Http\\Controllers\\CoachSportsPracController@showForm');
+Route::post('/coachsportprac', 'App\\Http\\Controllers\\CoachSportsPracController@generatePracticePlan');
+Route::post('/coachsportprac/download', 'App\Http\Controllers\CoachSportsPracController@downloadPracticePlan')->name('coachsportprac.download');
 
 // ✅ 5 Questions Agent
 Route::get('/5questions', [FiveQuestionsController::class, 'showForm'])->name('fivequestions.form');

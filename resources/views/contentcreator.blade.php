@@ -2,14 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Idea Generator</title>
+    <title>Content Creator</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
             background-color: #f4f7fb;
             font-family: 'Poppins', sans-serif;
         }
-
         .ck-card {
             background-color: #fff;
             border-radius: 12px;
@@ -17,7 +16,6 @@
             padding: 40px;
             border: 1px solid #e4e8f0;
         }
-
         .ck-btn {
             background-color: #EC298B;
             color: #fff;
@@ -27,73 +25,35 @@
             font-weight: 600;
             font-size: 16px;
         }
-
         .ck-btn:hover {
             background-color: #d32078;
         }
-
         .ck-title {
             font-size: 1.8rem;
             font-weight: 600;
             text-align: center;
             margin-bottom: 10px;
         }
-
         .ck-sub {
             text-align: center;
             margin-bottom: 25px;
             color: #666;
         }
-
-        select,
-        textarea {
+        select, textarea {
             border-radius: 8px;
-        }
-
-        /* Spinner Overlay */
-        #loading-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background-color: rgba(255, 255, 255, 0.85);
-            z-index: 9999;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-        }
-
-        .spinner-border {
-            width: 3rem;
-            height: 3rem;
-            color: #EC298B;
-        }
-
-        .loading-text {
-            margin-top: 1rem;
-            font-weight: bold;
-            color: #EC298B;
         }
     </style>
 </head>
 <body>
 
-<!-- Loading Spinner -->
-<div id="loading-overlay">
-    <div class="spinner-border" role="status">
-        <span class="visually-hidden">Loading...</span>
-    </div>
-    <div class="loading-text">Generating your ideas...</div>
-</div>
-
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-lg-8">
             <div class="ck-card">
-                <h2 class="ck-title">Idea Generator</h2>
-                <p class="ck-sub">Use AI as a thought partner to generate ideas on any topic.</p>
+                <h2 class="ck-title">Content Creator</h2>
+                <p class="ck-sub">Use AI to write content and a matching social media caption.</p>
 
-                <form method="POST" action="{{ route('idea.generate') }}" onsubmit="showLoading()">
+                <form method="POST" action="{{ route('content.generate') }}">
                     @csrf
 
                     <div class="mb-3">
@@ -114,19 +74,36 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Help me come up with ideas for… (be specific): <span class="text-danger">*</span></label>
-                        <textarea class="form-control" name="prompt" rows="4" placeholder="A science fair project, ways to explain mitosis, campaign slogans for class president…" required>{{ old('prompt') }}</textarea>
+                        <label class="form-label fw-bold">Text Length: <span class="text-danger">*</span></label>
+                        <select class="form-select" name="text_length" required>
+                            <option disabled selected>Select a length</option>
+                            <option value="1 paragraph">1 paragraph</option>
+                            <option value="2 paragraphs">2 paragraphs</option>
+                            <option value="3 paragraphs">3 paragraphs</option>
+                            <option value="1 page">1 page</option>
+                            <option value="2 pages">2 pages</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">What content do you want? <span class="text-danger">*</span></label>
+                        <textarea class="form-control" name="prompt" rows="4" placeholder="E.g. Write an article about digital minimalism, or an inspiring bio for a female scientist…" required>{{ old('prompt') }}</textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Additional criteria (optional):</label>
+                        <textarea class="form-control" name="additional_criteria" rows="3" placeholder="E.g. Must include 3 tips, or must sound funny, or align with science week theme…">{{ old('additional_criteria') }}</textarea>
                     </div>
 
                     <div class="text-center mt-4">
-                        <button type="submit" class="ck-btn w-100">Generate</button>
+                        <button type="submit" class="ck-btn w-100">Generate Content</button>
                     </div>
                 </form>
 
-                @if(session('ideas'))
-                <hr class="my-4">
-                <h5 class="fw-bold" style="color:#EC298B;">Generated Ideas:</h5>
-                <pre class="mt-3">{{ session('ideas') }}</pre>
+                @if(session('generated_content'))
+                    <hr class="my-4">
+                    <h5 class="fw-bold" style="color:#EC298B;">Generated Output:</h5>
+                    <pre class="mt-3">{{ session('generated_content') }}</pre>
                 @endif
 
                 @if(session('error'))
@@ -137,11 +114,7 @@
     </div>
 </div>
 
-<script>
-    function showLoading() {
-        document.getElementById('loading-overlay').style.display = 'flex';
-    }
-</script>
-
 </body>
 </html>
+
+

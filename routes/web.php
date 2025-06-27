@@ -9,8 +9,9 @@ use App\Http\Controllers\StepTutorController;
 use App\Http\Controllers\FiveQuestionsController;
 use App\Http\Controllers\EmailWriterController;
 use App\Http\Controllers\ThankYouNoteController;
+use App\Http\Controllers\RealWorldController;
+====
 use App\Http\Controllers\AuthController;
-
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -102,3 +103,7 @@ Route::post('/rewriter', 'App\Http\Controllers\RewriterController@processForm');
 //email writer
 Route::get('/email-writer', [EmailWriterController::class, 'show'])->name('email.writer.show');
 Route::post('/email-writer', [EmailWriterController::class, 'generate'])->name('email.writer.generate');
+
+// Real World Agent
+Route::get('/realworld', [RealWorldController::class, 'showForm'])->name('realworld.form');
+Route::post('/realworld', [RealWorldController::class, 'processForm'])->name('realworld.process');

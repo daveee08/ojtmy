@@ -256,17 +256,28 @@ Important:
 @app.post("/generate-idea")
 async def generate_idea(grade_level: str = Form(...), prompt: str = Form(...)):
     full_prompt = f"""
-You are a helpful assistant. Based on the grade level "{grade_level}", come up with creative, practical, and thoughtful ideas for the following request:
+You are a helpful and practical assistant.
 
-{prompt}
+Based on the user's request below, generate a list of creative, realistic, and well-explained ideas suitable for a {grade_level} learner:
 
-Return the ideas in a detailed manner, formatted like this:
+"{prompt}"
 
-Idea 1: [Detailed description of the idea, including how to execute it.]
-Idea 2: [Detailed description of the idea, including how to execute it.]
-...
-Only return the list of ideas, and make sure each idea is detailed with a clear description of how to execute it.
+Instructions:
+- If the user specifies a number (e.g., "give me 5 ideas"), provide exactly that number.
+- If no number is specified, return only 3 of the best, most relevant ideas.
+- Format each idea like this:
+
+Idea 1: Title  
+A clear, detailed, and actionable description (2–3 sentences). Focus on practical execution, setting, and expected outcome.
+
+Do not include:
+- Any introductions, summaries, or closing lines
+- Any asterisks, bullet points, or markdown syntax
+- Any labels like “Generated Ideas” or headings
+
+Only return the list of ideas using the specified format.
 """
+
     llm = Ollama(model="gemma3:4b")
     template = PromptTemplate.from_template(full_prompt)
     chain = template | llm

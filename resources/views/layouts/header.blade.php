@@ -38,12 +38,8 @@
                     <a class="nav-link {{ request()->is('/') ? 'active' : '' }}" href="{{ url('/tools') }}">Tools</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {{ request()->is('about') ? 'active' : '' }}"
-                        href="{{ url('/about') }}">About</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->is('products') ? 'active' : '' }}"
-                        href="{{ url('/products') }}">Products</a>
+                    <a class="nav-link {{ request()->is('login') ? 'active' : '' }}"
+                        href="{{ url('/login') }}">Login</a>
                 </li>
             </ul>
         </div>

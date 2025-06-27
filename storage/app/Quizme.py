@@ -81,35 +81,37 @@ async def generate_quiz(request: QuizRequest):
             input_variables=["topic", "grade_level", "num_questions", "content_context"],
             template="""
             You are an Expert helpful AI assistant that creates quizzes.
-            Generate **exactly** {num_questions} multiple-choice questions about **{topic}** for a {grade_level} student.
-            DO NOT include any introductory sentences or conversational text before the quiz questions. Start directly with "Question 1:".
-            The questions MUST be appropriate for the {grade_level}, varying in complexity based on whether it's Pre-K, Kindergarten, a specific grade (1st-12th), University, a specific college year (1st-4th Year College), Adult, or Professional Staff.
+            Your strict instruction is to generate **exactly** {num_questions} multiple-choice questions.
+            All questions MUST be solely about the topic: **{topic}**.
+            The difficulty of the questions MUST be appropriate for a {grade_level} student.
+            DO NOT include any introductory sentences, conversational text, or extraneous information before the quiz questions or after the last question. Start directly with "Question 1:".
+            **Crucially, ensure there is only ONE set of options (A, B, C, D) for each question, appearing immediately after the question text, and DO NOT include a separate "Options:" header before them.**
 
-            Here is the information to use for quiz generation: {content_context}
+            Here is relevant information for quiz generation: {content_context}
 
-            Each question should have 4 options (A, B, C, D) and clearly indicate the correct answer.
-            Format the output as follows (ensure you provide **exactly** {num_questions} questions and their options, no more, no less, and no additional conversational text):
+            Each question must have 4 options (A, B, C, D).
+            Format the output precisely as follows (ensure you provide **exactly** {num_questions} questions, no more, no less):
 
-            Question 1: [Question text]
-            Options:
+            Question 1: [Question text about {topic}]
             A) [Option A]
             B) [Option B]
             C) [Option C]
             D) [Option D]
 
-            Question 2: [Question text]
-            Options:
+            Question 2: [Question text about {topic}]
             A) [Option A]
             B) [Option B]
             C) [Option C]
             D) [Option D]
-            ...
+            ... (continue for {num_questions} questions)
             """
         )
         # quiz_chain = LLMChain(llm=llm, prompt=quiz_prompt_template) # Deprecated
         # quiz_output = quiz_chain.run(topic=request.topic, grade_level=request.grade_level, num_questions=request.num_questions, search_results=search_results) # Deprecated
         quiz_output_raw = (quiz_prompt_template | llm).invoke({'topic': request.topic, 'grade_level': request.grade_level, 'num_questions': request.num_questions, 'content_context': content_context})
         
+        logging.info(f"Raw LLM output for quiz generation (length {len(quiz_output_raw)}):\n{quiz_output_raw[:1000]}...") # Log first 1000 chars
+
         try:
             # Parse the raw text output from the LLM into structured Question objects
             quiz_validated = parse_quiz_text(quiz_output_raw)
@@ -118,6 +120,7 @@ async def generate_quiz(request: QuizRequest):
                 raise ValueError("Parsing resulted in an empty or invalid quiz.")
         except Exception as e:
             logging.error(f"Failed to parse quiz text: {e}. Raw output: {quiz_output_raw}")
+            logging.error(f"Raw LLM output that failed to parse:\n{quiz_output_raw}")
             raise ValueError("AI did not return a parsable quiz structure.") from e
 
         # Generate correct answers for each question separately
@@ -150,10 +153,11 @@ async def generate_quiz(request: QuizRequest):
                     logging.warning(f"Raw LLM output for correct answer was empty for question: {question.question_text}. Setting to default ''.")
                     question.correct_answer = "" # Set to empty if raw output is empty
                 else:
-                    # More lenient extraction: search for the first occurrence of A-D anywhere
+                    # Find the first occurrence of a single letter A-D, ignoring case.
+                    # This is robust against leading/trailing text and markdown.
                     correct_answer_match = re.search(r'([A-D])', correct_answer_raw, re.IGNORECASE)
                     if correct_answer_match:
-                        question.correct_answer = correct_answer_match.group(1).upper() # Ensure it's uppercase
+                        question.correct_answer = correct_answer_match.group(1).upper() # Extract the captured letter and make it uppercase
                         logging.info(f"Successfully extracted correct answer: {question.correct_answer} for question: {question.question_text}")
                     else:
                         logging.warning(f"AI returned unparsable correct answer: '{correct_answer_raw}' for question: {question.question_text}. Setting to default ''.")
@@ -183,57 +187,30 @@ async def generate_quiz(request: QuizRequest):
         return {"quiz": quiz_validated, "resources": resource_output}
     except Exception as e:
         logging.error(f"Error generating quiz: {e}")
+        logging.error(f"Raw LLM output that failed to parse:\n{quiz_output_raw}")
         return {"error": str(e)}
 
 def parse_quiz_text(quiz_text: str) -> list[Question]:
     questions = []
-    logging.info(f"Attempting to parse raw quiz text (length {len(quiz_text)}):\n{quiz_text[:500]}...")
-    
-    # This regex is designed to capture a question block with question text and options A-D.
-    # It's more lenient with `.*?` (non-greedy) and `\s*` to match across lines and varying whitespace.
-    # It no longer expects the 'Correct Answer:' line in this initial parsing.
-    question_pattern = re.compile(
-        r'Question \d+:\s*(.*?)\s*\n'  # Question number and text
-        r'(?:Options:\s*\n)?' # Optional "Options:" header, non-capturing group
-        r'A\)\s*(.*?)\s*\n'    # Option A
-        r'B\)\s*(.*?)\s*\n'    # Option B
-        r'C\)\s*(.*?)\s*\n'    # Option C
-        r'D\)\s*(.*?)(?:\s*\n|$)',    # Option D, ends at line or string end, or just whitespace
-        re.DOTALL | re.MULTILINE
+    # This regex matches both "Question 1: ..." and "**Question 1:**\n..." formats
+    pattern = re.compile(
+        r"(?:\*{0,2})Question\s*\d+:?\*{0,2}\s*(?:(.+?)\n|)\s*"
+        r"(?:\n)?A[).]?\s*(.+?)\n"
+        r"B[).]?\s*(.+?)\n"
+        r"C[).]?\s*(.+?)\n"
+        r"D[).]?\s*(.+?)(?:\n\n|\Z)",
+        re.DOTALL | re.IGNORECASE
     )
-
-    for match in question_pattern.finditer(quiz_text):
-        try:
-            logging.info(f"Found potential question match. Groups: {match.groups()}")
-            # Extracting captured groups
-            question_text = match.group(1).strip()
-            option_a = match.group(2).strip()
-            option_b = match.group(3).strip()
-            option_c = match.group(4).strip()
-            option_d = match.group(5).strip()
-
-            options = {
-                "A": option_a,
-                "B": option_b,
-                "C": option_c,
-                "D": option_d
-            }
-
-            # Validate that extracted parts are not empty
-            if not (question_text and all(options.values())): # Check if all option values are non-empty
-                logging.warning(f"Skipping malformed question block due to empty components: {match.group(0)}")
-                continue
-
-            # Temporarily set correct_answer to an empty string, will be populated later
-            questions.append(Question(question_text=question_text, options=options, correct_answer=""))
-        except IndexError as e:
-            logging.warning(f"Malformed question block found (IndexError), skipping: {match.group(0)}. Error: {e}")
-            continue # Skip this block if it's malformed
-        except Exception as e:
-            logging.error(f"An unexpected error occurred during parsing a question block: {match.group(0)}. Error: {e}")
-            continue
-
-    logging.info(f"Finished parsing. Parsed {len(questions)} questions.")
+    for match in pattern.finditer(quiz_text):
+        # If the question text is on the same line as the header, it's in group(1)
+        question_text = match.group(1).strip() if match.group(1) else ""
+        options = {
+            "A": match.group(2).strip(),
+            "B": match.group(3).strip(),
+            "C": match.group(4).strip(),
+            "D": match.group(5).strip(),
+        }
+        questions.append(Question(question_text=question_text, options=options, correct_answer=""))
     return questions
 
 @app.post("/evaluate-answer")

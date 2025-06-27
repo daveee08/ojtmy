@@ -1,7 +1,7 @@
-<!-- @extends('layouts.header') -->
+@extends('layouts.header')
 @extends('layouts.navbar')
 
-@section('title', 'Login - CK Tools')
+@section('title', 'Register - CK Tools')
 
 @section('styles')
     <style>
@@ -55,7 +55,7 @@
             text-align: left;
         }
 
-        .btn-login {
+        .btn-register {
             background-color: #e91e63;
             color: white;
             padding: 14px 36px;
@@ -66,16 +66,16 @@
             width: 100%;
         }
 
-        .btn-login:hover {
+        .btn-register:hover {
             background-color: #d81557;
         }
 
-        .register-link {
+        .login-link {
             margin-top: 15px;
             color: #666;
         }
 
-        .register-link a {
+        .login-link a {
             color: #e91e63;
             text-decoration: none;
         }
@@ -85,8 +85,8 @@
 @section('content')
 <div class="container">
     <div class="hero">
-        <h1>Welcome Back</h1>
-        <p>Please login to continue using CK Tools</p>
+        <h1>Create Account</h1>
+        <p>Join CK Tools today</p>
 
         @if ($errors->any())
             <div class="error">
@@ -94,11 +94,16 @@
             </div>
         @endif
 
-        <form method="POST" action="{{ url('/login') }}">
+        <form method="POST" action="{{ url('/register') }}">
             @csrf
             <div class="form-group">
+                <label for="name">Name</label>
+                <input type="text" id="name" name="name" value="{{ old('name') }}" required autofocus>
+            </div>
+
+            <div class="form-group">
                 <label for="email">Email</label>
-                <input type="email" id="email" name="email" value="{{ old('email') }}" required autofocus>
+                <input type="email" id="email" name="email" value="{{ old('email') }}" required>
             </div>
 
             <div class="form-group">
@@ -106,11 +111,16 @@
                 <input type="password" id="password" name="password" required>
             </div>
 
-            <button type="submit" class="btn-login">Login</button>
+            <div class="form-group">
+                <label for="password_confirmation">Confirm Password</label>
+                <input type="password" id="password_confirmation" name="password_confirmation" required>
+            </div>
+
+            <button type="submit" class="btn-register">Register</button>
         </form>
 
-        <div class="register-link">
-            Don't have an account? <a href="{{ url('/register') }}">Register here</a>
+        <div class="login-link">
+            Already have an account? <a href="{{ url('/login') }}">Login here</a>
         </div>
     </div>
 </div>

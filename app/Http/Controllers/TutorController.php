@@ -6,22 +6,41 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
-use App\Models\ChatHistory; // Import the model for chat history
+use App\Models\ChatHistory;
+use App\Models\ConversationHistory;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class TutorController extends Controller
 {
     public function showForm()
     {
-        return view('tutor');
+        $history = ConversationHistory::where('user_id', Auth::id())
+            ->where('agent', 'tutor')
+            ->orderBy('created_at')
+            ->get();
+
+        $chatHistory = $history->map(function ($item) {
+            return [
+                'role' => $item->sender,
+                'content' => $item->message
+            ];
+        })->toArray();
+
+        return view('tutor', [
+            'history' => $chatHistory
+        ]);
     }
 
-    // TutorController.php
 
     public function processForm(Request $request)
     {
         set_time_limit(0);
 
-        // Validate inputs
+        // Log headers to debug AJAX issue
+        Log::info('Headers:', $request->headers->all());
+        Log::info('Is AJAX: ' . ($request->ajax() ? 'yes' : 'no'));
+
         $validated = $request->validate([
             'grade_level' => 'required|string',
             'input_type' => 'required|in:topic,pdf',
@@ -31,31 +50,47 @@ class TutorController extends Controller
         ]);
 
         // Store grade level in session if not yet stored
-        if (!Session::has('grade_level')) {
-            Session::put('grade_level', $validated['grade_level']);
+        if (!session()->has('grade_level')) {
+            session(['grade_level' => $validated['grade_level']]);
         }
 
-        // Initialize or retrieve chat history
-        $chatHistory = Session::get('chat_history', []);
+        // Fetch conversation history
+        $history = ConversationHistory::where('user_id', Auth::id())
+            ->where('agent', 'tutor')
+            ->orderBy('created_at')
+            ->get();
 
+        $chatHistory = $history->map(function ($item) {
+            return [
+                'role' => $item->sender,
+                'content' => $item->message
+            ];
+        })->toArray();
+
+        $mode = count($chatHistory) >= 1 ? 'chat' : 'manual';
         // New user message
         $newMessage = $validated['topic'] ?? '[PDF Upload]';
+        if (!empty($validated['add_cont'])) {
+            $newMessage .= "\n\nAdditional Context:\n" . $validated['add_cont'];
+        }
         $chatHistory[] = ['role' => 'user', 'content' => $newMessage];
 
-        // Save user message in DB
-        ChatHistory::create([
-            'session_id' => session()->getId(),
-            'role' => 'user',
-            'message' => $newMessage
+        // Store user message
+        ConversationHistory::create([
+            'user_id' => Auth::id(),
+            'agent' => 'tutor',
+            'message' => $newMessage,
+            'sender' => 'user'
         ]);
+        
 
-        // Extract prior messages (excluding latest)
+        // Build context from history
         $priorMessages = array_slice($chatHistory, 0, -1);
         $historyText = collect($priorMessages)->pluck('content')->implode("\n");
 
-        // Summarize history if it's long
+        // Optional summary
         $contextSummary = $historyText;
-        if (str_word_count($historyText) > 3000) {
+        if (str_word_count($historyText) > 24000) {
             $summaryResponse = Http::timeout(10)->post('http://127.0.0.1:5001/summarize-history', [
                 'history' => $historyText,
             ]);
@@ -64,27 +99,25 @@ class TutorController extends Controller
             }
         }
 
-        // Append additional context
         if (!empty($validated['add_cont'])) {
             $contextSummary .= "\n" . $validated['add_cont'];
         }
 
-        // Final input to tutor agent
         $finalTopic = "Prior Conversation Summary:\n" . $contextSummary . "\n\nStudent’s Follow-up:\n" . $newMessage;
 
-        // Decide prompt mode
-        $mode = count($chatHistory) === 1 ? 'chat' : 'manual';  // First message = use chat prompt
+        // $mode = count($chatHistory) === 1 ? 'chat' : 'manual';
+        Log::info('Mode determined:', ['mode' => $mode]);
 
-        // Prepare payload for Python
         $multipartData = [
             ['name' => 'grade_level', 'contents' => $validated['grade_level']],
             ['name' => 'input_type', 'contents' => $validated['input_type']],
             ['name' => 'topic', 'contents' => $finalTopic],
             ['name' => 'add_cont', 'contents' => ''],
-            ['name' => 'mode', 'contents' => $mode], // ✅ Explicitly pass the mode
+            ['name' => 'mode', 'contents' => $mode],
+            ['name' => 'user_id', 'contents' => Auth::id()],
+            ['name' => 'history', 'contents' => json_encode($chatHistory)],
         ];
 
-        // Attach file if uploaded
         if ($request->hasFile('pdf_file')) {
             $pdf = $request->file('pdf_file');
             $multipartData[] = [
@@ -97,27 +130,55 @@ class TutorController extends Controller
             ];
         }
 
-        // Call Python backend
         $response = Http::timeout(0)
             ->asMultipart()
             ->post('http://127.0.0.1:5001/tutor', $multipartData);
 
+        // Handle failure
         if ($response->failed()) {
-            return back()->withErrors(['error' => 'Python API failed: ' . $response->body()]);
+            $errorMessage = 'Python API failed: ' . $response->body();
+            Log::error($errorMessage);
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'error' => 'Python API failed',
+                    'details' => $response->body()
+                ], 500);
+            }
+
+            return back()->withErrors(['error' => $errorMessage]);
         }
 
         $output = $response->json()['output'] ?? 'No output';
 
-        // Store assistant response
-        $chatHistory[] = ['role' => 'assistant', 'content' => $output];
-        ChatHistory::create([
-            'session_id' => session()->getId(),
-            'role' => 'assistant',
-            'message' => $output
+        // Store agent response
+        ConversationHistory::create([
+            'user_id' => Auth::id(),
+            'agent' => 'tutor',
+            'message' => $output,
+            'sender' => 'agent'
         ]);
 
-        // Save chat history in session
-        Session::put('chat_history', $chatHistory);
+        // Reload updated history
+        $latestHistory = ConversationHistory::where('user_id', Auth::id())
+            ->where('agent', 'tutor')
+            ->orderBy('created_at')
+            ->get();
+
+        $chatHistory = $latestHistory->map(function ($item) {
+            return [
+                'role' => $item->sender,
+                'content' => $item->message
+            ];
+        })->toArray();
+
+        // Return JSON if requested
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'message' => $output,
+                'history' => $chatHistory
+            ]);
+        }
 
         return view('tutor', [
             'response' => $output,
@@ -125,4 +186,14 @@ class TutorController extends Controller
         ]);
     }
 
+    public function clearHistory(Request $request)
+    {
+        ConversationHistory::where('user_id', Auth::id())
+            ->where('agent', 'tutor')
+            ->delete();
+
+        session()->forget('grade_level');
+
+        return redirect()->back()->with('status', 'Conversation history cleared.');
+    }
 }

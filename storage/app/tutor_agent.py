@@ -1,13 +1,16 @@
-from fastapi import FastAPI, UploadFile, Form, HTTPException
+from fastapi import FastAPI, UploadFile, Form, HTTPException, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 import traceback, os, re, tempfile
+# from langchain_core.messages import ChatMessageHistory
+import json
+import httpx
 
 from langchain_ollama import OllamaLLM
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_core.messages import HumanMessage, AIMessage
-from chat_router import chat_router, get_history_by_session_id
+from chat_router import chat_router
 
 # ===================== App Initialization =====================
 app = FastAPI()
@@ -157,31 +160,30 @@ async def generate_output_with_file(grade_level, input_type, topic="", add_cont=
 
 @app.post("/tutor")
 async def tutor_endpoint(
+    user_id: int = Form(...),
     grade_level: str = Form(...),
     input_type: str = Form(...),
     topic: str = Form(""),
     add_cont: str = Form(""),
     mode: str = Form("manual"),
-    session_id: str = Form(...),
-    pdf_file: UploadFile = None
+    history: str = Form("[]"),
+    pdf_file: UploadFile = None,
+    request = None
 ):
     try:
-        output = await generate_output_with_file(
-            grade_level=grade_level,
-            input_type=input_type,
-            topic=topic,
-            add_cont=add_cont,
-            pdf_file=pdf_file,
-            mode=mode
-        )
-
-        # Save history
-        history = get_history_by_session_id(session_id)
-        human_msg = topic if topic.strip() else f"Uploaded PDF: {pdf_file.filename if pdf_file else 'N/A'}"
-        history.add_messages([
-            HumanMessage(content=human_msg),
-            AIMessage(content=output)
-        ])
+        # Directly forward the history JSON string to /chat_with_history
+        async with httpx.AsyncClient() as client:
+            form_data = {
+                "topic": topic,
+                "history": history,
+                "user_id": str(user_id)
+            }
+            # Use a fixed URL for chat_with_history
+            chat_url = "http://127.0.0.1:5001/chat_with_history"
+            resp = await client.post(chat_url, data=form_data)
+            resp.raise_for_status()
+            result = resp.json()
+            output = result.get("response", "No output")
 
         return {"output": output}
     except Exception as e:

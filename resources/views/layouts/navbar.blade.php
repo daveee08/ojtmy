@@ -111,6 +111,15 @@
         <a href="#tool-rewriter">Rewriter</a>
         <a href="#tool-proofreader">Proofreader</a>
         <a href="#tool-quizme">Quiz Me</a>
+        @auth
+            <form method="POST" action="{{ url('/logout') }}" style="margin-top: 30px;">
+                @csrf
+                <button type="submit" class="btn btn-link" style="color: #e91e63; text-decoration: none; font-weight: 600;">Logout</button>
+            </form>
+        @else
+            <a href="{{ url('/login') }}" style="color: #e91e63; font-weight: 600;">Login</a>
+            <a href="{{ url('/register') }}" style="color: #e91e63; font-weight: 600;">Register</a>
+        @endauth
     </div>
 
     <div class="content">

@@ -37,10 +37,18 @@
                 <li class="nav-item">
                     <a class="nav-link {{ request()->is('/') ? 'active' : '' }}" href="{{ url('/tools') }}">Tools</a>
                 </li>
+                @auth
                 <li class="nav-item">
-                    <a class="nav-link {{ request()->is('login') ? 'active' : '' }}"
-                        href="{{ url('/login') }}">Login</a>
+                    <form method="POST" action="{{ url('/logout') }}" style="display:inline;">
+                        @csrf
+                        <button type="submit" class="nav-link btn btn-link" style="display:inline; color:#e91e63; font-weight:600; padding:0; background:none; border:none;">Logout</button>
+                    </form>
                 </li>
+                @else
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->is('login') ? 'active' : '' }}" href="{{ url('/login') }}">Login</a>
+                </li>
+                @endauth
             </ul>
         </div>
     </div>

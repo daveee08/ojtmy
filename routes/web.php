@@ -10,6 +10,8 @@ use App\Http\Controllers\FiveQuestionsController;
 use App\Http\Controllers\EmailWriterController;
 use App\Http\Controllers\ThankYouNoteController;
 use App\Http\Controllers\RealWorldController;
+====
+use App\Http\Controllers\AuthController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -23,6 +25,26 @@ Route::get('/', function () {
     return view('home');
 });
 
+// Authentication Routes
+Route::middleware('guest')->group(function () {
+    Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+    Route::post('/login', [AuthController::class, 'login']);
+    Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+    Route::post('/register', [AuthController::class, 'register']);
+});
+
+Route::get('/tools', function () {
+    return view('tool');
+});
+
+Route::middleware('auth')->group(function () {
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+    // Conversation history for tutor agent
+    Route::get('/tutor/conversation/history', [\App\Http\Controllers\ConversationController::class, 'history']);
+    Route::post('/tutor/conversation/store', [\App\Http\Controllers\ConversationController::class, 'store']);
+    // Add your protected routes here
+});
+
 // ✅ Summarizer Tool
 Route::get('/summarize', [SummarizeController::class, 'index']);
 Route::post('/summarize', [SummarizeController::class, 'summarize']);
@@ -34,6 +56,7 @@ Route::post('/scaffolder', 'App\Http\Controllers\ScaffolderController@processFor
 // ✅ Tutor Tool
 Route::get('/tutor', 'App\Http\Controllers\TutorController@showForm');
 Route::post('/tutor', 'App\Http\Controllers\TutorController@processForm');
+Route::post('/tutor/clear', [App\Http\Controllers\TutorController::class, 'clearHistory'])->middleware('auth');
 
 // ✅ Leveler Tool
 Route::get('/leveler', 'App\Http\Controllers\LevelerController@showForm');
@@ -72,6 +95,11 @@ Route::post('/rewriter', [RewriterController::class, 'processForm']);
 Route::get('/rewriter', 'App\Http\Controllers\RewriterController@showForm');
 Route::post('/rewriter', 'App\Http\Controllers\RewriterController@processForm');
 
+// Route::post('/tutor/clear', function () {
+//     Session::forget('chat_history');
+//     Session::forget('grade_level');
+//     return redirect('/tutor');
+// });
 //email writer
 Route::get('/email-writer', [EmailWriterController::class, 'show'])->name('email.writer.show');
 Route::post('/email-writer', [EmailWriterController::class, 'generate'])->name('email.writer.generate');

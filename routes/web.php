@@ -9,6 +9,7 @@ use App\Http\Controllers\StepTutorController;
 use App\Http\Controllers\FiveQuestionsController;
 use App\Http\Controllers\EmailWriterController;
 use App\Http\Controllers\ThankYouNoteController;
+use App\Http\Controllers\IdeaGeneratorController;
 
 /*
 |--------------------------------------------------------------------------
@@ -33,6 +34,10 @@ Route::post('/summarize', [SummarizeController::class, 'summarize']);
 //Thank you note
 Route::get('/thankyounote', 'App\Http\Controllers\ThankYouNoteController@showForm')->name('thankyou.show');
 Route::post('/thankyounote', 'App\Http\Controllers\ThankYouNoteController@processForm')->name('thankyou.generate');
+
+//Idea Generator
+Route::get('/idea-generator', [IdeaGeneratorController::class, 'showForm'])->name('idea.show');
+Route::post('/idea-generator', [IdeaGeneratorController::class, 'generate'])->name('idea.generate');
 
 Route::get('/', function(){
     return view('home');

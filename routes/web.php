@@ -28,6 +28,9 @@ Route::get('/', function () {
 Route::get('/summarize', [SummarizeController::class, 'index']);
 Route::post('/summarize', [SummarizeController::class, 'summarize']);
 
+Route::get('/thankyou-note', [ThankYouNoteController::class, 'showForm'])->name('thankyou.show');
+Route::post('/thankyou-note', [ThankYouNoteController::class, 'generate'])->name('thankyou.generate');
+
 // ✅ Scaffolder Tool
 Route::get('/scaffolder', 'App\Http\Controllers\ScaffolderController@showForm');
 Route::post('/scaffolder', 'App\Http\Controllers\ScaffolderController@processForm');

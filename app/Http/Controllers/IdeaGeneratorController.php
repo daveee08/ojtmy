@@ -20,10 +20,11 @@ class IdeaGeneratorController extends Controller
         ]);
 
 
-       $response = Http::asForm()->post('http://127.0.0.1:8001/generate-idea', [
+       $response = Http::timeout(300)->asForm()->post('http://127.0.0.1:8001/generate-idea', [
             'grade_level' => $request->grade_level,
             'prompt' => $request->prompt,
         ]);
+
 
 
         if ($response->successful()) {

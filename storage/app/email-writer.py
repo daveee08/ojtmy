@@ -251,3 +251,24 @@ Important:
     chain = prompt | llm
     result = chain.invoke({"reason": reason.strip()})
     return {"thank_you_note": result.strip()}
+
+# ------------------- Idea Generator -------------------
+@app.post("/generate-idea")
+async def generate_idea(grade_level: str = Form(...), prompt: str = Form(...)):
+    full_prompt = f"""
+You are a helpful assistant. Based on the grade level "{grade_level}", come up with creative, practical, and thoughtful ideas for the following request:
+
+{prompt}
+
+Return the ideas in a detailed manner, formatted like this:
+
+Idea 1: [Detailed description of the idea, including how to execute it.]
+Idea 2: [Detailed description of the idea, including how to execute it.]
+...
+Only return the list of ideas, and make sure each idea is detailed with a clear description of how to execute it.
+"""
+    llm = Ollama(model="gemma3:4b")
+    template = PromptTemplate.from_template(full_prompt)
+    chain = template | llm
+    result = chain.invoke({})
+    return {"idea": result.strip()}

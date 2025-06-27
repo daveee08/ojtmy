@@ -27,14 +27,6 @@ Route::view('/tools-hub', 'hub');
 Route::get('/summarize', [SummarizeController::class, 'index']);
 Route::post('/summarize', [SummarizeController::class, 'summarize']);
 
-// ✅ Proofreader Tool
-
-use App\Http\Controllers\ProofreaderController; // ✅ Import your controller
-use App\Http\Controllers\StepTutorController;
-
-
-
-
 Route::get('/', [SummarizeController::class, 'index']);
 Route::post('/summarize', [SummarizeController::class, 'summarize']);
 Route::view('/tools-hub', 'hub');

@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from typing import List
 from langchain_ollama import OllamaLLM
 from langchain_core.prompts import ChatPromptTemplate
+import re
 
 class FiveQuestionInput(BaseModel):
     grade_level: str
@@ -12,24 +13,28 @@ class FiveQuestionInput(BaseModel):
 def generate_questions(grade_level: str, prompt: str) -> List[str]:
     instructions = f"""
 You are a smart AI that helps users think critically.
-You generate open-ended questions based on a given topic and grade level.
-Make sure you separate each question with a newline.
-Each question will start with a number for clarity.
-Make sure you make 5 questions, no more, no less.
 
-Based on the grade level "{grade_level}", generate 5 thoughtful, deep, open-ended questions 
-that push the user's thinking about this topic:
+Based on the grade level "{grade_level}", generate exactly **five** open-ended, deep, and thoughtful questions
+that challenge the user's thinking about the topic: "{prompt}".
 
-"{prompt}"
+Each question should be on its own line and begin with a number (e.g., "1. ...", "2. ...", ..., "5. ...").
+Do not include an introduction or summary—just output the five questions as a numbered list.
+No bullet points. No extra formatting.
 
-Make the questions simple enough for the grade level, but still meaningful and thought-provoking.
-Only return the 5 questions as a list.
+Example format:
+1. Question one?
+2. Question two?
+3. Question three?
+4. Question four?
+5. Question five?
 """
 
     model = OllamaLLM(model="gemma3")
     chain = ChatPromptTemplate.from_template(instructions) | model
     result = chain.invoke({})  # No input vars needed
 
-    # Clean and return top 5 lines
-    lines = [line.strip(" -•1234.").strip() for line in result.splitlines() if line.strip()]
-    return lines[:5]
+    # Use regex to extract numbered questions
+    pattern = r"\d\.\s+(.*?)(?=\n\d\.|\Z)"
+    matches = re.findall(pattern, result, re.DOTALL)
+
+    return [q.strip() for q in matches][:5]

@@ -76,11 +76,11 @@
                 @if(isset($questions))
                     <div class="alert alert-success mt-4">
                         <h5 class="text-highlight">Here are your 5 AI-generated questions:</h5>
-                        <ul>
+                        <ol>
                             @foreach($questions as $q)
                                 <li>{{ $q }}</li>
                             @endforeach
-                        </ul>
+                        </ol>
                     </div>
                 @endif
 

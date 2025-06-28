@@ -95,3 +95,18 @@ async def chat_api(
         traceback_str = traceback.format_exc()
         print(f"[Chat Error] {e}\n{traceback_str}")
         raise HTTPException(status_code=500, detail="Chat processing failed.")
+
+@chat_router.get("/chat/history/{session_id}")
+async def get_chat_history(session_id: str):
+    try:
+        history = get_history_by_session_id(session_id)
+        # Convert messages to a more easily consumable format if needed
+        formatted_messages = [
+            {"type": "human" if isinstance(msg, HumanMessage) else "ai", "content": msg.content}
+            for msg in history.messages
+        ]
+        return JSONResponse(content={"session_id": session_id, "history": formatted_messages})
+    except Exception as e:
+        traceback_str = traceback.format_exc()
+        print(f"[Get History Error] {e}\n{traceback_str}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve chat history.")

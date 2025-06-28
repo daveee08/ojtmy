@@ -1,15 +1,23 @@
-# storage/app/python/tutor_agent.py
+from fastapi import FastAPI, UploadFile, Form, HTTPException, Request
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
+import traceback, os, re, tempfile
+# from langchain_core.messages import ChatMessageHistory
+import json
+import httpx
 
-import os
-import re
-from pydantic import BaseModel, ValidationError
 from langchain_ollama import OllamaLLM
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_community.document_loaders import PyPDFLoader
-from fastapi import UploadFile
-import tempfile, os, re
+from langchain_core.messages import HumanMessage, AIMessage
+from chat_router import chat_router
 
-# Define your prompt templates
+# ===================== App Initialization =====================
+app = FastAPI()
+app.include_router(chat_router)
+
+# ===================== Prompt Templates =====================
+
 manual_topic_template = """
 You are an experienced and friendly virtual tutor, specializing in guiding students towards deep conceptual understanding. Your goal is to explain the given topic clearly and comprehensively, ensuring the student grasps the core ideas, their significance, and how they relate to broader concepts.
 
@@ -32,8 +40,7 @@ Please structure your explanation as follows:
 - Identify common misunderstandings students might have about this topic.
 - Provide clear explanations to correct these misconceptions.
 
-
-Important: Don't ask for a follow-up question.
+Important: From now on, please respond speaking in the first person.
 ---
 Student Details:
 - Grade Level: {grade_level}
@@ -65,8 +72,7 @@ Please structure your explanation as follows:
 - Identify common misunderstandings students might have about this topic.
 - Provide clear explanations to correct these misconceptions.
 
-
-Important: Don't ask for a follow-up question.
+Important: From now on, please respond speaking in the first person.
 
 ---
 **Student Details:**
@@ -77,57 +83,199 @@ Important: Don't ask for a follow-up question.
 **Your Output (following the structure above):**
 """
 
-# Initialize your language model and prompt templates
-model = OllamaLLM(model="gemma3")
+chat_history_template = """
+You are a skilled and supportive virtual tutor assisting a student in an ongoing conversation. Your task is to continue the tutoring session based on the summarized history of prior interactions and the latest student question.
+
+Structure your response clearly and helpfully, as if you're replying to the student's most recent input with awareness of the prior discussion.
+
+---  
+**Student Details:**  
+- Grade Level: {grade_level}  
+- Prior Conversation Summary: {conversation_summary}  
+- Current Message: {topic}  
+- Additional Notes: {add_cont}  
+
+From now on, please respond speaking in the first person.
+
+**Your Output (explanation only):**
+"""
+
+# ===================== LangChain Setup =====================
+model = OllamaLLM(model="llama3")
 manual_prompt = ChatPromptTemplate.from_template(manual_topic_template)
 pdf_prompt = ChatPromptTemplate.from_template(pdf_topic_template)
+chat_history_prompt = ChatPromptTemplate.from_template(chat_history_template)
 
-# Pydantic model used for input validation
-class TutorInput(BaseModel):
-    grade_level: str
-    input_type: str
-    topic: str = ""
-    pdf_path: str = ""
-    add_cont: str = ""
+# ===================== Helper Functions =====================
 
-# Function to extract text from PDF (using only the first 2 pages)
 def extract_text_from_pdf(path: str) -> str:
-    if not os.path.exists(path):
-        raise FileNotFoundError("PDF file not found.")
     loader = PyPDFLoader(path)
     pages = loader.load()
     return " ".join([page.page_content for page in pages[:2]])
 
-# Function to clean the output from formatting artifacts
 def clean_output(text: str) -> str:
     text = re.sub(r"\*\*(.*?)\*\*", r"\1", text)
     text = re.sub(r"\*(.*?)\*", r"\1", text)
     text = re.sub(r"^\s*[\*\-]\s*", "", text, flags=re.MULTILINE)
     return text.strip()
 
-# Main function containing the tutor logic
-async def generate_output_with_file(grade_level, input_type, topic="", add_cont="", pdf_file: UploadFile = None):
+async def generate_output_with_file(grade_level, input_type, topic="", add_cont="", pdf_file: UploadFile = None, mode="manual"):
     if input_type == "pdf":
-        # Save PDF temporarily
+        if not pdf_file:
+            raise ValueError("PDF file is required but not provided.")
         with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
-            content = await pdf_file.read()
-            tmp.write(content)
+            contents = await pdf_file.read()
+            tmp.write(contents)
             tmp_path = tmp.name
-
         topic = extract_text_from_pdf(tmp_path)
-        os.unlink(tmp_path)  # Delete file after use
+        user_input = {
+            "grade_level": grade_level,
+            "topic": topic,
+            "add_cont": add_cont
+        }
         prompt = pdf_prompt
+    elif mode == "chat":
+        prompt = chat_history_prompt
+        user_input = {
+            "grade_level": grade_level,
+            "conversation_summary": topic,
+            "topic": "",
+            "add_cont": add_cont
+        }
     else:
         prompt = manual_prompt
-
-    user_input = {
-        "grade_level": grade_level,
-        "input_type": input_type,
-        "topic": topic,
-        "pdf_path": "",
-        "add_cont": add_cont
-    }
+        user_input = {
+            "grade_level": grade_level,
+            "topic": topic,
+            "add_cont": add_cont
+        }
 
     chain = prompt | model
     result = chain.invoke(user_input)
     return clean_output(result)
+
+
+
+# ===================== Routes =====================
+
+@app.post("/tutor")
+async def tutor_endpoint(
+    user_id: int = Form(...),
+    grade_level: str = Form(...),
+    input_type: str = Form(...),
+    topic: str = Form(""),
+    add_cont: str = Form(""),
+    mode: str = Form("manual"),
+    history: str = Form("[]"),
+    pdf_file: UploadFile = None,
+    request: Request = None
+):
+    try:
+        if mode == "chat":
+            # Send to chat_with_history only for chat mode
+            async with httpx.AsyncClient() as client:
+                form_data = {
+                    "topic": topic,
+                    "history": history,
+                    "user_id": str(user_id)
+                }
+                chat_url = "http://127.0.0.1:5001/chat_with_history"
+                resp = await client.post(chat_url, data=form_data)
+                resp.raise_for_status()
+                result = resp.json()
+                output = result.get("response", "No output")
+        else:
+            # Use manual or PDF logic
+            output = await generate_output_with_file(
+                grade_level=grade_level,
+                input_type=input_type,
+                topic=topic,
+                add_cont=add_cont,
+                pdf_file=pdf_file,
+                mode=mode
+            )
+
+        return {"output": output}
+    except Exception as e:
+        traceback_str = traceback.format_exc()
+        print(traceback_str)
+        return JSONResponse(status_code=500, content={"detail": str(e), "trace": traceback_str})
+
+
+
+# ===================== Models =====================
+
+class HistoryRequest(BaseModel):
+    history: str
+
+from step_tutor_agent import StepTutorInput, explain_topic_step_by_step
+
+
+@app.post("/step-tutor")
+async def step_tutor_endpoint(
+    user_id: int = Form(...),
+    grade_level: str = Form(...),
+    topic: str = Form(""),
+    mode: str = Form("chat"),
+    history: str = Form("[]"),
+):
+    try:
+        if mode == "chat":
+            # Send to chat_with_history only for chat mode
+            async with httpx.AsyncClient() as client:
+                form_data = {
+                    "topic": topic,
+                    "history": history,
+                    "user_id": str(user_id)
+                }
+                chat_url = "http://127.0.0.1:5001/chat_with_history"
+                resp = await client.post(chat_url, data=form_data)
+                resp.raise_for_status()
+                result = resp.json()
+                output = result.get("response", "No output")
+        else:
+            # Use manual or PDF logic
+            output = await explain_topic_step_by_step(
+                grade_level=grade_level,
+                topic=topic,
+                # mode=mode
+            )
+
+        return {"output": output}
+    except Exception as e:
+        traceback_str = traceback.format_exc()
+        print(traceback_str)
+        return JSONResponse(status_code=500, content={"detail": str(e), "trace": traceback_str})
+    
+# async def step_tutor_endpoint(data: StepTutorInput):
+#     try:
+#         output = await explain_topic_step_by_step(
+#             grade_level=data.grade_level,
+#             topic=data.topic
+#         )
+#         return {"response": output}
+#     except Exception as e:
+#         return {"error": str(e)}
+
+
+# @app.post("/step-tutor")
+
+# async def step_tutor_endpoint(data: StepTutorInput):
+#     try:
+#         output = await explain_topic_step_by_step(
+#             grade_level=data.grade_level,
+#             topic=data.topic
+#         )
+#         return {"response": output}
+#     except Exception as e:
+#         return {"error": str(e)}
+
+
+@app.post("/summarize-history")
+async def summarize_history_endpoint(data: HistoryRequest):
+    try:
+        # Placeholder: Replace with actual summarization function
+        summary = f"Summary of conversation: {data.history[:100]}..."
+        return {"summary": summary}
+    except Exception as e:
+        return {"error": str(e)}

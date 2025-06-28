@@ -11,6 +11,8 @@ use App\Http\Controllers\EmailWriterController;
 use App\Http\Controllers\ThankYouNoteController;
 use App\Http\Controllers\RealWorldController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ChatconversationController;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -35,6 +37,13 @@ Route::middleware('guest')->group(function () {
 Route::get('/tools', function () {
     return view('tool');
 });
+
+Route::get('/chat', function () {
+    return view('chat');
+});
+
+Route::get('/chat/history/{session_id}', [ChatconversationController::class, 'getHistory']);
+Route::post('/chat', [ChatconversationController::class, 'sendMessage']);
 
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
@@ -69,6 +78,10 @@ Route::post('/informational', 'App\Http\Controllers\InformationalController@proc
 Route::get('/proofreader', [ProofreaderController::class, 'showForm'])->name('proofreader.form');
 Route::post('/proofreader', [ProofreaderController::class, 'processForm'])->name('proofreader.process');
 
+// ✅ Rewriter Tool
+Route::get('/rewriter', 'App\Http\Controllers\RewriterController@showForm');
+Route::post('/rewriter', 'App\Http\Controllers\RewriterController@processForm');
+
 // ✅ QuizMe Tool
 Route::get('/quizme', 'App\Http\Controllers\QuizmeController@showForm');
 Route::post('/quizme', 'App\Http\Controllers\QuizmeController@processForm');
@@ -94,9 +107,13 @@ Route::get('/coachsportprac', 'App\\Http\\Controllers\\CoachSportsPracController
 Route::post('/coachsportprac', 'App\\Http\\Controllers\\CoachSportsPracController@generatePracticePlan');
 Route::post('/coachsportprac/download', 'App\Http\Controllers\CoachSportsPracController@downloadPracticePlan')->name('coachsportprac.download');
 
-// ✅ 5 Questions Agent
+// ✅ 5 Questions Tool
 Route::get('/5questions', [FiveQuestionsController::class, 'showForm'])->name('fivequestions.form');
 Route::post('/5questions', [FiveQuestionsController::class, 'processForm'])->name('fivequestions.process');
+
+// ✅ Step Tutor Tool
+Route::get('/step-tutor', [StepTutorController::class, 'showForm']);
+Route::post('/step-tutor', [StepTutorController::class, 'processForm']);
 
 // ✅ Step Tutor
 Route::get('/step-tutor', [StepTutorController::class, 'showForm']);
@@ -108,17 +125,12 @@ Route::post('/step-tutor/clear', [App\Http\Controllers\StepTutorController::clas
 Route::get('/explanations', 'App\Http\Controllers\ExplanationsController@showForm');
 Route::post('/explanations', 'App\Http\Controllers\ExplanationsController@processForm');
 
-// Rewriter Tool
-Route::get('/rewriter', [RewriterController::class, 'showForm']);
-Route::post('/rewriter', [RewriterController::class, 'processForm']);
-Route::get('/rewriter', 'App\Http\Controllers\RewriterController@showForm');
-Route::post('/rewriter', 'App\Http\Controllers\RewriterController@processForm');
-
 // Route::post('/tutor/clear', function () {
 //     Session::forget('chat_history');
 //     Session::forget('grade_level');
 //     return redirect('/tutor');
 // });
+
 //email writer
 Route::get('/email-writer', [EmailWriterController::class, 'show'])->name('email.writer.show');
 Route::post('/email-writer', [EmailWriterController::class, 'generate'])->name('email.writer.generate');

@@ -33,7 +33,7 @@
         </div>
 
         {{-- Input Form --}}
-        <form id="chat-form" enctype="multipart/form-data">
+        <form id="chat-form">
             <div class="mb-4">
                 <label for="grade-level" class="block text-sm font-medium text-gray-700">Grade level:</label>
                 <select name="grade_level" id="grade-level" required
@@ -66,16 +66,6 @@
                     placeholder="Type your interests, e.g., 'fantasy adventures', 'mystery with detectives', 'sci-fi with robots'" required></textarea>
             </div>
 
-            {{-- NEW: PDF Upload input within the main form --}}
-            <div class="mb-4">
-                <label for="pdf-file-input" class="block text-sm font-medium text-gray-700 mb-2">Upload a PDF Document to inform suggestions (optional):</label>
-                <input type="file" id="pdf-file-input" name="pdf_file" accept="application/pdf"
-                    class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4
-                    file:rounded-md file:border-0 file:text-sm file:font-semibold
-                    file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"/>
-                <div id="pdf-upload-status" class="mt-3 text-sm hidden"></div>
-            </div>
-
             <div class="pt-4 text-center">
                 <button type="submit" id="send-button"
                     class="bg-indigo-600 text-white px-6 py-2 rounded hover:bg-indigo-700 transition">
@@ -96,36 +86,22 @@
 
     <script>
         const userInterests = document.getElementById('user-interests');
-        const pdfFileInput = document.getElementById('pdf-file-input');
-        const pdfUploadStatus = document.getElementById('pdf-upload-status');
 
         // Set initial required state
         userInterests.required = true;
-
-        // Toggle required attribute based on PDF input
-        pdfFileInput.addEventListener('change', function() {
-            if (this.files.length > 0) {
-                userInterests.required = false;
-                pdfUploadStatus.classList.remove('hidden', 'text-red-800', 'text-green-800');
-                pdfUploadStatus.innerText = 'PDF selected. Interests are now optional.';
-            } else {
-                userInterests.required = true;
-                pdfUploadStatus.classList.add('hidden');
-            }
-        });
 
         document.getElementById('chat-form').addEventListener('submit', async function(e) {
             e.preventDefault();
 
             const interests = userInterests.value.trim();
             const gradeLevel = document.getElementById('grade-level').value;
-            const pdfFile = pdfFileInput.files[0];
 
-            // Client-side validation: if no PDF and no interests, prevent submission
-            if (!pdfFile && !interests) {
-                pdfUploadStatus.classList.remove('hidden', 'text-green-800');
-                pdfUploadStatus.classList.add('text-red-800');
-                pdfUploadStatus.innerText = 'Please enter your interests or upload a PDF file.';
+            // Client-side validation: if no interests, prevent submission
+            if (!interests) {
+                // Add a visual cue to the user that interests are required
+                userInterests.focus();
+                userInterests.style.borderColor = 'red';
+                alert('Please enter your interests.');
                 return;
             }
 
@@ -138,19 +114,14 @@
             responseContainer.classList.remove('bg-red-100', 'border-red-300', 'text-red-800');
             responseContainer.classList.add('bg-blue-100', 'border-blue-300', 'text-blue-800');
             thinkingIndicator.classList.remove('hidden');
-            pdfUploadStatus.classList.add('hidden'); // Hide PDF status on new submission
 
             const formData = new FormData();
             formData.append('interests', interests);
             formData.append('grade_level', gradeLevel);
-            if (pdfFile) {
-                formData.append('pdf_file', pdfFile);
-            }
 
             try {
                 const res = await fetch("/suggest", {
                     method: "POST",
-                    // No 'Content-Type' header needed for FormData
                     body: formData,
                     headers: {
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')

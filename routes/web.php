@@ -101,6 +101,8 @@ Route::post('/5questions', [FiveQuestionsController::class, 'processForm'])->nam
 // ✅ Step Tutor
 Route::get('/step-tutor', [StepTutorController::class, 'showForm']);
 Route::post('/step-tutor', [StepTutorController::class, 'processForm']);
+Route::post('/step-tutor/clear', [App\Http\Controllers\StepTutorController::class, 'clearHistory'])->middleware('auth');
+
 
 // ✅ Explanations Tool
 Route::get('/explanations', 'App\Http\Controllers\ExplanationsController@showForm');

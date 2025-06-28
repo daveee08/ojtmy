@@ -14,7 +14,7 @@ chat_prompt = ChatPromptTemplate.from_messages([
     ("human", "{topic}")
 ])
 
-model = Ollama(model="llama3")
+model = Ollama(model="gemma3:1b")
 
 @chat_router.post("/chat_with_history")
 async def chat_with_history_api( 

@@ -11,6 +11,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_core.messages import HumanMessage, AIMessage
 from chat_router import chat_router
+from typing import Optional
 
 # ===================== App Initialization =====================
 app = FastAPI()
@@ -101,7 +102,7 @@ From now on, please respond speaking in the first person.
 """
 
 # ===================== LangChain Setup =====================
-model = OllamaLLM(model="llama3")
+model = OllamaLLM(model="gemma3:1b")
 manual_prompt = ChatPromptTemplate.from_template(manual_topic_template)
 pdf_prompt = ChatPromptTemplate.from_template(pdf_topic_template)
 chat_history_prompt = ChatPromptTemplate.from_template(chat_history_template)
@@ -214,7 +215,7 @@ from step_tutor_agent import StepTutorInput, explain_topic_step_by_step
 @app.post("/step-tutor")
 async def step_tutor_endpoint(
     user_id: int = Form(...),
-    grade_level: str = Form(...),
+    grade_level: Optional[str] = Form(None),
     topic: str = Form(""),
     mode: str = Form("chat"),
     history: str = Form("[]"),

@@ -5,6 +5,9 @@ from langchain_community.llms import Ollama # type: ignore
 from langchain_core.prompts import ChatPromptTemplate # type: ignore
 from langchain_community.document_loaders.pdf import PyPDFLoader # type: ignore
 import shutil, os, re, tempfile, uvicorn, traceback # type: ignore
+from typing import Optional
+from uuid import uuid4
+from chat_router import chat_router
 
 manual_topic_template = """
 You are an experienced and friendly virtual tutor who helps students understand academic topics clearly and effectively.
@@ -109,6 +112,7 @@ async def generate_output(
     return clean_output(result)
 
 app = FastAPI()
+app.include_router(chat_router)
 
 @app.post("/leveler")
 async def leveler_api(
@@ -117,11 +121,15 @@ async def leveler_api(
     pdf_file: UploadFile = File(None),
     grade_level: str = Form(...),
     learning_speed: str = Form(...),
+    session_id: Optional[str] = Form(default=None)
 ):
     
     try:
         if input_type == "pdf" and not pdf_file:
             raise HTTPException(status_code=400, detail="PDF file required for PDF input_type")
+
+        if not session_id:
+            session_id = str(uuid4())
 
         output = await generate_output(
             input_type=input_type,
@@ -131,6 +139,17 @@ async def leveler_api(
             learning_speed=learning_speed,
         )
 
+        # Save the interaction to chat history JSON
+        from chat_router import get_history_by_session_id
+        from langchain_core.messages import HumanMessage, AIMessage
+
+        history = get_history_by_session_id(session_id)
+        human_content = topic if topic.strip() else f"Uploaded PDF: {pdf_file.filename}"
+        history.add_messages([
+            HumanMessage(content=human_content),
+            AIMessage(content=output)
+        ])
+
         return {"output": output}
     except Exception as e:
         traceback_str = traceback.format_exc()
@@ -138,4 +157,5 @@ async def leveler_api(
         return JSONResponse(status_code=500, content={"detail": str(e), "trace": traceback_str})
 
 if __name__ == "__main__":
-    uvicorn.run("leveler_agent:app", host="127.0.0.1", port=5001, reload=True)
+    uvicorn.run("leveler_cont:app", host="127.0.0.1", port=5001, reload=True)
+    

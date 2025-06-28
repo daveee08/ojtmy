@@ -101,6 +101,14 @@
             background-color: #d81b60;
         }
 
+        .text-pink {
+            color: #e91e63 !important;
+        }
+
+        .text-highlight {
+            color: #e91e63 !important; /* Specific color for fullscreen spinner */
+        }
+
         ul.list-group li {
             border: none;
             padding-left: 0;
@@ -134,6 +142,14 @@
             </div>
         </div>
     </nav>
+
+    {{-- Fullscreen loading overlay --}}
+    <div id="loadingOverlay" class="position-fixed top-0 start-0 w-100 h-100 d-none justify-content-center align-items-center bg-white bg-opacity-75" style="z-index: 9999;">
+        <div class="text-center">
+            <div class="spinner-border text-highlight mb-3" role="status" style="width: 3rem; height: 3rem;"></div>
+            <div class="fw-semibold text-highlight">Generating Response..</div>
+        </div>
+    </div>
 
     <!-- Main Content -->
     <div class="container">
@@ -247,15 +263,16 @@
                     </div>
 
                     <div id="conversational-ai" class="mt-4" style="display:none;">
-                        <h5 class="section-title">CK Quiz Me Follow up AI</h5>
+                        <h5 class="section-title">CK Quiz me Follow up AI</h5>
                         <div id="chat-history" class="border p-3 mb-3" style="max-height: 300px; overflow-y: auto; background-color: #f8f9fa; border-radius: 8px;"></div>
                         <div class="input-group mb-3">
                             <input type="text" class="form-control" id="chatInput" placeholder="Ask a follow-up question or for more details...">
                             <button class="btn btn-primary" type="button" id="sendChatBtn">Send</button>
                         </div>
-                        <div id="chatLoadingSpinner" class="spinner-border text-primary" role="status" style="display:none;">
+                        <div id="chatLoadingSpinner" class="spinner-border text-pink mt-3" role="status" style="display:none;">
                             <span class="visually-hidden">Loading...</span>
                         </div>
+                        <span id="chatLoadingText" class="text-pink ms-2" style="display:none;">Generating response...</span>
                     </div>
 
                     <div id="errorMessage" class="alert alert-danger mt-4" style="display:none;"></div>
@@ -270,16 +287,19 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
-        crossorigin="anonymous">
+        crossorigin="anonymous" defer>
     </script>
 
-    <script>
+    <script defer>
+        console.log("Quizbot script has started execution. From Alert");
+        alert("Quizbot script has started execution!");
         let currentQuiz = [];
         let currentQuestionIndex = 0;
         let currentTopic = '';
         let currentGradeLevel = '';
 
         document.getElementById('quizForm').addEventListener('submit', async function(event) {
+            console.log('Generate Quiz button clicked, form submitted.');
             event.preventDefault();
 
             const generateBtn = document.getElementById('generateBtn');
@@ -291,14 +311,8 @@
             const errorMessageDiv = document.getElementById('errorMessage');
             const quizContentPre = document.getElementById('quizContent'); // This will be used for final summary text download
             const resourcesContentPre = document.getElementById('resourcesContent');
-            const quizTextContentInput = document.getElementById('quizTextContent');
-            const quizPdfContentInput = document.getElementById('quizPdfContent');
-            const resourcesTextContentInput = document.getElementById('resourcesTextContent');
-            const resourcesPdfContentInput = document.getElementById('resourcesPdfContent');
-            const quizTopicNameInput = document.getElementById('quizTopicName');
-            const quizPdfTopicNameInput = document.getElementById('quizPdfTopicName');
-            const resourcesTopicNameInput = document.getElementById('resourcesTopicName');
-            const resourcesPdfTopicNameInput = document.getElementById('resourcesPdfTopicName');
+            const loadingOverlay = document.getElementById('loadingOverlay'); // Get the fullscreen overlay
+            const conversationalAiDiv = document.getElementById('conversational-ai'); // Define it here
 
             // Reset UI
             errorMessageDiv.style.display = 'none';
@@ -308,16 +322,23 @@
             quizContentPre.textContent = '';
             resourcesContentPre.textContent = '';
             document.getElementById('feedback').innerHTML = '';
+            conversationalAiDiv.style.display = 'none'; // Ensure chat is hidden on new quiz generation
+            document.getElementById('chat-history').innerHTML = ''; // Clear chat history
 
-            // Show loading indicator
-            generateBtn.disabled = true;
-            loadingSpinner.style.display = 'inline-block';
-            loadingText.style.display = 'inline';
+            // Show fullscreen loading overlay
+            loadingOverlay.classList.remove('d-none');
+            loadingOverlay.classList.add('d-flex');
 
             currentTopic = document.getElementById('topic').value;
             currentGradeLevel = document.getElementById('grade_level').value;
             const num_questions = document.getElementById('num_questions').value;
             const csrfToken = document.querySelector('input[name="_token"]').value;
+
+            console.log('Sending quiz request with:');
+            console.log('Topic:', currentTopic);
+            console.log('Grade Level:', currentGradeLevel);
+            console.log('Number of Questions:', num_questions);
+            console.log('CSRF Token:', csrfToken);
 
             try {
                 const response = await fetch('/quizme', {
@@ -337,16 +358,41 @@
                     if (Array.isArray(data.quiz) && data.quiz.length > 0) {
                         currentQuiz = data.quiz;
 
+                        // Construct full quiz text immediately after successful generation
+                        let fullQuizText = '';
+                        currentQuiz.forEach((q, index) => {
+                            fullQuizText += `Question ${index + 1}: ${q.question_text.replace(/\*\*/g, '')}\n`;
+                            for (const optionKey in q.options) {
+                                fullQuizText += `${optionKey}) ${q.options[optionKey].replace(/\*\*/g, '')}\n`;
+                            }
+                            fullQuizText += `Correct Answer: ${q.correct_answer.replace(/\*\*/g, '')}\n\n`;
+                        });
+
+                        // Populate download forms with the newly generated quiz content
+                        const quizTextContent = document.getElementById('quizTextContent');
+                        if (quizTextContent) quizTextContent.value = fullQuizText;
+                        const quizPdfContent = document.getElementById('quizPdfContent');
+                        if (quizPdfContent) quizPdfContent.value = fullQuizText;
+                        const quizTopicName = document.getElementById('quizTopicName');
+                        if (quizTopicName) quizTopicName.value = currentTopic;
+                        const quizPdfTopicName = document.getElementById('quizPdfTopicName');
+                        if (quizPdfTopicName) quizPdfTopicName.value = currentTopic;
+
                         // Clean ** from resources before setting for display and download
                         const cleanedResources = data.resources.replace(/\*\*/g, '');
-                        resourcesTextContentInput.value = cleanedResources;
-                        resourcesPdfContentInput.value = cleanedResources;
-                        resourcesContentPre.textContent = cleanedResources;
+                        const resourcesTextContent = document.getElementById('resourcesTextContent');
+                        if (resourcesTextContent) resourcesTextContent.value = cleanedResources;
+                        const resourcesPdfContent = document.getElementById('resourcesPdfContent');
+                        if (resourcesPdfContent) resourcesPdfContent.value = cleanedResources;
+                        const resourcesContent = document.getElementById('resourcesContent');
+                        if (resourcesContent) resourcesContent.textContent = cleanedResources;
                         resourcesOutputDiv.style.display = 'block';
 
                         // Set the topic name for download forms
-                        resourcesTopicNameInput.value = currentTopic;
-                        resourcesPdfTopicNameInput.value = currentTopic;
+                        const resourcesTopicName = document.getElementById('resourcesTopicName');
+                        if (resourcesTopicName) resourcesTopicName.value = currentTopic;
+                        const resourcesPdfTopicName = document.getElementById('resourcesPdfTopicName');
+                        if (resourcesPdfTopicName) resourcesPdfTopicName.value = currentTopic;
 
                         currentQuestionIndex = 0; // Start with the first question
                         displayQuestion();
@@ -373,20 +419,30 @@
                     console.error('General fetch error:', error);
                 }
             } finally {
-                // Hide loading indicator
+                // Hide fullscreen loading overlay and re-enable button in all cases
+                loadingOverlay.classList.add('d-none');
+                loadingOverlay.classList.remove('d-flex');
                 generateBtn.disabled = false;
+
+                // Hide old loading indicators if they were somehow still active
                 loadingSpinner.style.display = 'none';
                 loadingText.style.display = 'none';
             }
         });
 
         document.getElementById('submitAnswerBtn').addEventListener('click', async function() {
-            const userAnswer = document.getElementById('userAnswer').value;
-            const currentQuestion = currentQuiz[currentQuestionIndex];
+            const userAnswer = document.getElementById('userAnswer').value.trim();
             const feedbackDiv = document.getElementById('feedback');
+            // Prevent numeric answers
+            if (!/^[A-Da-d]$/.test(userAnswer)) {
+                feedbackDiv.innerHTML = '<span class="text-danger">Please enter only A, B, C, or D as your answer.</span>';
+                return;
+            }
+            const currentQuestion = currentQuiz[currentQuestionIndex];
             const submitAnswerBtn = document.getElementById('submitAnswerBtn');
             const nextQuestionBtn = document.getElementById('nextQuestionBtn');
             const csrfToken = document.querySelector('input[name="_token"]').value;
+            const loadingOverlay = document.getElementById('loadingOverlay'); // Get the fullscreen overlay
 
             // Client-side check for missing correct_answer to prevent backend validation error
             if (!currentQuestion.correct_answer || currentQuestion.correct_answer === "") {
@@ -459,16 +515,22 @@
             const chatInput = document.getElementById('chatInput');
             const sendChatBtn = document.getElementById('sendChatBtn');
             const chatLoadingSpinner = document.getElementById('chatLoadingSpinner');
+            const chatLoadingText = document.getElementById('chatLoadingText');
             const csrfToken = document.querySelector('input[name="_token"]').value;
+            const loadingOverlay = document.getElementById('loadingOverlay'); // Get the fullscreen overlay
 
             // Add user message to chat history
             chatHistoryDiv.innerHTML += `<p class="mb-1"><strong>You:</strong> ${userQuery}</p>`;
             chatInput.value = ''; // Clear input
             chatHistoryDiv.scrollTop = chatHistoryDiv.scrollHeight; // Scroll to bottom
 
-            // Show loading indicator
-            sendChatBtn.disabled = true;
-            chatLoadingSpinner.style.display = 'inline-block';
+            // Show fullscreen loading overlay for chat
+            loadingOverlay.classList.remove('d-none');
+            loadingOverlay.classList.add('d-flex');
+
+            sendChatBtn.disabled = true; // Disable send button
+            chatLoadingSpinner.style.display = 'none'; // Hide specific chat spinner
+            chatLoadingText.style.display = 'none'; // Hide specific chat loading text
 
             try {
                 const response = await fetch('/quizme/chat', {
@@ -496,8 +558,14 @@
                 console.error('Chat fetch error:', error);
                 chatHistoryDiv.innerHTML += `<p class="text-danger mb-1"><strong>CK Quiz Me Follow up AI Error:</strong> Network error or service unavailable.</p>`;
             } finally {
+                // Hide fullscreen loading overlay
+                loadingOverlay.classList.add('d-none');
+                loadingOverlay.classList.remove('d-flex');
+
                 sendChatBtn.disabled = false;
-                chatLoadingSpinner.style.display = 'none';
+                // Re-enable specific chat spinner/text if needed (though now handled by fullscreen)
+                // chatLoadingSpinner.style.display = 'none'; 
+                // chatLoadingText.style.display = 'none';
                 chatHistoryDiv.scrollTop = chatHistoryDiv.scrollHeight; // Scroll to bottom again
             }
         });
@@ -558,16 +626,16 @@
                 document.getElementById('summaryText').textContent = "You have completed the quiz!";
 
                 // Populate download forms for the entire quiz
-                const quizTextContentInput = document.getElementById('quizTextContent');
-                const quizPdfContentInput = document.getElementById('quizPdfContent');
-                quizTextContentInput.value = fullQuizText.replace(/\*\*/g, '');
-                quizPdfContentInput.value = fullQuizText.replace(/\*\*/g, '');
+                const quizTextContent = document.getElementById('quizTextContent');
+                if (quizTextContent) quizTextContent.value = fullQuizText.replace(/\*\*/g, '');
+                const quizPdfContent = document.getElementById('quizPdfContent');
+                if (quizPdfContent) quizPdfContent.value = fullQuizText.replace(/\*\*/g, '');
 
                 // Set the topic name for download forms for the entire quiz
-                const quizTopicNameInput = document.getElementById('quizTopicName');
-                const quizPdfTopicNameInput = document.getElementById('quizPdfTopicName');
-                quizTopicNameInput.value = currentTopic;
-                quizPdfTopicNameInput.value = currentTopic;
+                const quizTopicName = document.getElementById('quizTopicName');
+                if (quizTopicName) quizTopicName.value = currentTopic;
+                const quizPdfTopicName = document.getElementById('quizPdfTopicName');
+                if (quizPdfTopicName) quizPdfTopicName.value = currentTopic;
 
                 // Move download buttons to the summary section
                 const downloadButtonsSummaryDiv = document.getElementById('download-buttons-summary');
@@ -600,19 +668,21 @@
 
         document.getElementById('clearInputsBtn').addEventListener('click', function() {
             document.getElementById('topic').value = '';
-            document.getElementById('grade_level').value = 'Pre-K'; // Reset to default first option
-            document.getElementById('num_questions').value = '10'; // Reset to default value
+            document.getElementById('grade_level').value = 'Pre-K';
+            document.getElementById('num_questions').value = '10';
             document.getElementById('interactive-quiz').style.display = 'none';
             document.getElementById('quiz-summary').style.display = 'none';
             document.getElementById('resources-output').style.display = 'none';
             document.getElementById('errorMessage').style.display = 'none';
             document.getElementById('feedback').innerHTML = '';
-            document.getElementById('conversational-ai').style.display = 'none'; // Hide chat on clear
-            document.getElementById('chat-history').innerHTML = ''; // Clear chat history
+            document.getElementById('conversational-ai').style.display = 'none';
+            document.getElementById('chat-history').innerHTML = '';
             currentQuiz = [];
             currentQuestionIndex = 0;
             currentTopic = '';
             currentGradeLevel = '';
+            document.getElementById('loadingOverlay').classList.add('d-none');
+            document.getElementById('loadingOverlay').classList.remove('d-flex');
         });
     </script>
 

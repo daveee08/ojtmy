@@ -10,7 +10,6 @@ use App\Http\Controllers\FiveQuestionsController;
 use App\Http\Controllers\EmailWriterController;
 use App\Http\Controllers\ThankYouNoteController;
 use App\Http\Controllers\RealWorldController;
-====
 use App\Http\Controllers\AuthController;
 /*
 |--------------------------------------------------------------------------

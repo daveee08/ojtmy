@@ -168,22 +168,32 @@ async def tutor_endpoint(
     mode: str = Form("manual"),
     history: str = Form("[]"),
     pdf_file: UploadFile = None,
-    request = None
+    request: Request = None
 ):
     try:
-        # Directly forward the history JSON string to /chat_with_history
-        async with httpx.AsyncClient() as client:
-            form_data = {
-                "topic": topic,
-                "history": history,
-                "user_id": str(user_id)
-            }
-            # Use a fixed URL for chat_with_history
-            chat_url = "http://127.0.0.1:5001/chat_with_history"
-            resp = await client.post(chat_url, data=form_data)
-            resp.raise_for_status()
-            result = resp.json()
-            output = result.get("response", "No output")
+        if mode == "chat":
+            # Send to chat_with_history only for chat mode
+            async with httpx.AsyncClient() as client:
+                form_data = {
+                    "topic": topic,
+                    "history": history,
+                    "user_id": str(user_id)
+                }
+                chat_url = "http://127.0.0.1:5001/chat_with_history"
+                resp = await client.post(chat_url, data=form_data)
+                resp.raise_for_status()
+                result = resp.json()
+                output = result.get("response", "No output")
+        else:
+            # Use manual or PDF logic
+            output = await generate_output_with_file(
+                grade_level=grade_level,
+                input_type=input_type,
+                topic=topic,
+                add_cont=add_cont,
+                pdf_file=pdf_file,
+                mode=mode
+            )
 
         return {"output": output}
     except Exception as e:
@@ -198,17 +208,68 @@ async def tutor_endpoint(
 class HistoryRequest(BaseModel):
     history: str
 
-class StepTutorInput(BaseModel):
-    grade_level: str
-    topic: str
+from step_tutor_agent import StepTutorInput, explain_topic_step_by_step
+
 
 @app.post("/step-tutor")
-async def step_tutor_endpoint(data: StepTutorInput):
+async def step_tutor_endpoint(
+    user_id: int = Form(...),
+    grade_level: str = Form(...),
+    topic: str = Form(""),
+    mode: str = Form("chat"),
+    history: str = Form("[]"),
+):
     try:
-        # Placeholder: Replace with actual step-by-step logic
-        return {"response": f"Step-by-step explanation for {data.topic} (Grade {data.grade_level})"}
+        if mode == "chat":
+            # Send to chat_with_history only for chat mode
+            async with httpx.AsyncClient() as client:
+                form_data = {
+                    "topic": topic,
+                    "history": history,
+                    "user_id": str(user_id)
+                }
+                chat_url = "http://127.0.0.1:5001/chat_with_history"
+                resp = await client.post(chat_url, data=form_data)
+                resp.raise_for_status()
+                result = resp.json()
+                output = result.get("response", "No output")
+        else:
+            # Use manual or PDF logic
+            output = await explain_topic_step_by_step(
+                grade_level=grade_level,
+                topic=topic,
+                # mode=mode
+            )
+
+        return {"output": output}
     except Exception as e:
-        return {"error": str(e)}
+        traceback_str = traceback.format_exc()
+        print(traceback_str)
+        return JSONResponse(status_code=500, content={"detail": str(e), "trace": traceback_str})
+    
+# async def step_tutor_endpoint(data: StepTutorInput):
+#     try:
+#         output = await explain_topic_step_by_step(
+#             grade_level=data.grade_level,
+#             topic=data.topic
+#         )
+#         return {"response": output}
+#     except Exception as e:
+#         return {"error": str(e)}
+
+
+# @app.post("/step-tutor")
+
+# async def step_tutor_endpoint(data: StepTutorInput):
+#     try:
+#         output = await explain_topic_step_by_step(
+#             grade_level=data.grade_level,
+#             topic=data.topic
+#         )
+#         return {"response": output}
+#     except Exception as e:
+#         return {"error": str(e)}
+
 
 @app.post("/summarize-history")
 async def summarize_history_endpoint(data: HistoryRequest):

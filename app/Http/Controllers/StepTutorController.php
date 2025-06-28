@@ -108,137 +108,128 @@ class StepTutorController extends Controller
 // }
 
 public function processForm(Request $request)
-    {
-        set_time_limit(0);
+{
+    set_time_limit(0);
 
-        // Log headers to debug AJAX issue
-        Log::info('Headers:', $request->headers->all());
-        Log::info('Is AJAX: ' . ($request->ajax() ? 'yes' : 'no'));
+    // Log headers to debug AJAX issue
+    Log::info('Headers:', $request->headers->all());
+    Log::info('Is AJAX: ' . ($request->ajax() ? 'yes' : 'no'));
 
-        $validated = $request->validate([
-            'grade_level' => 'required|string',
-            'topic' => 'nullable|string',
-        ]);
+    // Only validate topic, not grade_level
+    $validated = $request->validate([
+        'topic' => 'nullable|string',
+    ]);
 
-        // Store grade level in session if not yet stored
-        if (!session()->has('grade_level')) {
-            session(['grade_level' => $validated['grade_level']]);
-        }
+    // Fetch grade level from authenticated user
+    $user = Auth::user();
+    $gradeLevel = $user->grade_level;
 
-        // Fetch conversation history
-        $history = ConversationHistory::where('user_id', Auth::id())
-            ->where('agent', 'step-tutor')
-            ->orderBy('created_at')
-            ->get();
+    if (!$gradeLevel) {
+        return back()->withErrors(['error' => 'No grade level set for your account. Please update your profile.']);
+    }
 
-        $chatHistory = $history->map(function ($item) {
-            return [
-                'role' => $item->sender,
-                'content' => $item->message
-            ];
-        })->toArray();
+    // Fetch conversation history
+    $history = ConversationHistory::where('user_id', $user->id)
+        ->where('agent', 'step-tutor')
+        ->orderBy('created_at')
+        ->get();
 
-        $mode = count($chatHistory) >= 1 ? 'chat' : 'manual';
-        // New user message
-        $newMessage = $validated['topic'];
-        $chatHistory[] = ['role' => 'user', 'content' => $newMessage];
-
-        // Store user message
-        ConversationHistory::create([
-            'user_id' => Auth::id(),
-            'agent' => 'step-tutor',
-            'message' => $newMessage,
-            'sender' => 'user'
-        ]);
-        
-
-        // Build context from history
-        $priorMessages = array_slice($chatHistory, 0, -1);
-        $historyText = collect($priorMessages)->pluck('content')->implode("\n");
-
-        // Optional summary
-        $contextSummary = $historyText;
-        if (str_word_count($historyText) > 24000) {
-            $summaryResponse = Http::timeout(10)->post('http://127.0.0.1:5001/summarize-history', [
-                'history' => $historyText,
-            ]);
-            if ($summaryResponse->successful()) {
-                $contextSummary = $summaryResponse->json()['summary'] ?? $historyText;
-            }
-        }
-
-        // if (!empty($validated['add_cont'])) {
-        //     $contextSummary .= "\n" . $validated['add_cont'];
-        // }
-
-        $finalTopic = "Prior Conversation Summary:\n" . $contextSummary . "\n\nStudent’s Follow-up:\n" . $newMessage;
-
-        // $mode = count($chatHistory) === 1 ? 'chat' : 'manual';
-        Log::info('Mode determined:', ['mode' => $mode]);
-
-        $multipartData = [
-            ['name' => 'grade_level', 'contents' => $validated['grade_level']],
-            ['name' => 'topic', 'contents' => $finalTopic],
-            ['name' => 'mode', 'contents' => $mode],
-            ['name' => 'user_id', 'contents' => Auth::id()],
-            ['name' => 'history', 'contents' => json_encode($chatHistory)],
+    $chatHistory = $history->map(function ($item) {
+        return [
+            'role' => $item->sender,
+            'content' => $item->message
         ];
+    })->toArray();
 
-        $response = Http::timeout(0)
-            ->asMultipart()
-            ->post('http://127.0.0.1:5001/step-tutor', $multipartData);
+    $mode = count($chatHistory) >= 1 ? 'chat' : 'manual';
+    $newMessage = $validated['topic'];
+    $chatHistory[] = ['role' => 'user', 'content' => $newMessage];
 
-        // Handle failure
-        if ($response->failed()) {
-            $errorMessage = 'Python API failed: ' . $response->body();
-            Log::error($errorMessage);
+    // Store user message
+    ConversationHistory::create([
+        'user_id' => $user->id,
+        'agent' => 'step-tutor',
+        'message' => $newMessage,
+        'sender' => 'user'
+    ]);
 
-            if ($request->ajax() || $request->wantsJson()) {
-                return response()->json([
-                    'error' => 'Python API failed',
-                    'details' => $response->body()
-                ], 500);
-            }
+    // Build context from history
+    $priorMessages = array_slice($chatHistory, 0, -1);
+    $historyText = collect($priorMessages)->pluck('content')->implode("\n");
 
-            return back()->withErrors(['error' => $errorMessage]);
-        }
-
-        $output = $response->json()['output'] ?? 'No output';
-
-        // Store agent response
-        ConversationHistory::create([
-            'user_id' => Auth::id(),
-            'agent' => 'step-tutor',
-            'message' => $output,
-            'sender' => 'agent'
+    $contextSummary = $historyText;
+    if (str_word_count($historyText) > 24000) {
+        $summaryResponse = Http::timeout(10)->post('http://127.0.0.1:5001/summarize-history', [
+            'history' => $historyText,
         ]);
+        if ($summaryResponse->successful()) {
+            $contextSummary = $summaryResponse->json()['summary'] ?? $historyText;
+        }
+    }
 
-        // Reload updated history
-        $latestHistory = ConversationHistory::where('user_id', Auth::id())
-            ->where('agent', 'step-tutor')
-            ->orderBy('created_at')
-            ->get();
+    $finalTopic = "Prior Conversation Summary:\n" . $contextSummary . "\n\nStudent’s Follow-up:\n" . $newMessage;
 
-        $chatHistory = $latestHistory->map(function ($item) {
-            return [
-                'role' => $item->sender,
-                'content' => $item->message
-            ];
-        })->toArray();
+    Log::info('Mode determined:', ['mode' => $mode]);
 
-        // Return JSON if requested
+    $multipartData = [
+        ['name' => 'grade_level', 'contents' => $gradeLevel],
+        ['name' => 'topic', 'contents' => $finalTopic],
+        ['name' => 'mode', 'contents' => $mode],
+        ['name' => 'user_id', 'contents' => $user->id],
+        ['name' => 'history', 'contents' => json_encode($chatHistory)],
+    ];
+
+    $response = Http::timeout(0)
+        ->asMultipart()
+        ->post('http://127.0.0.1:5001/step-tutor', $multipartData);
+
+    if ($response->failed()) {
+        $errorMessage = 'Python API failed: ' . $response->body();
+        Log::error($errorMessage);
+
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
-                'message' => $output,
-                'history' => $chatHistory
-            ]);
+                'error' => 'Python API failed',
+                'details' => $response->body()
+            ], 500);
         }
 
-        return view('step-tutor', [
-            'response' => $output,
+        return back()->withErrors(['error' => $errorMessage]);
+    }
+
+    $output = $response->json()['output'] ?? 'No output';
+
+    ConversationHistory::create([
+        'user_id' => $user->id,
+        'agent' => 'step-tutor',
+        'message' => $output,
+        'sender' => 'agent'
+    ]);
+
+    $latestHistory = ConversationHistory::where('user_id', $user->id)
+        ->where('agent', 'step-tutor')
+        ->orderBy('created_at')
+        ->get();
+
+    $chatHistory = $latestHistory->map(function ($item) {
+        return [
+            'role' => $item->sender,
+            'content' => $item->message
+        ];
+    })->toArray();
+
+    if ($request->ajax() || $request->wantsJson()) {
+        return response()->json([
+            'message' => $output,
             'history' => $chatHistory
         ]);
     }
+
+    return view('step-tutor', [
+        'response' => $output,
+        'history' => $chatHistory
+    ]);
+}
 
     public function clearHistory(Request $request)
     {

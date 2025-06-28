@@ -129,10 +129,10 @@
         <form id="step-tutor-form" action="{{ url('/step-tutor') }}" method="POST" enctype="multipart/form-data">
           @csrf
           @if(!isset($history) || count($history) === 0)
-            <div class="mb-3">
+            <!-- <div class="mb-3">
               <label class="form-label">Grade Level</label>
               <input type="text" class="form-control" name="grade_level" required>
-            </div>
+            </div> -->
             <div class="mb-3">
               <label class="form-label">Your Message</label>
               <input type="text" class="form-control" name="topic" placeholder="Enter your topic or question..." required>

@@ -14,6 +14,7 @@ class ConversationHistory extends Model
         'agent',
         'message',
         'sender',
+        'sess_grade_level' // Added to store grade level from session
     ];
 
     public function user()

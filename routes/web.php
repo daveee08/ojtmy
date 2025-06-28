@@ -18,7 +18,7 @@ use App\Http\Controllers\StepTutorController;
 
 // ✅ Landing Page
 Route::get('/', function () {
-    return view('levelerchat');
+    return view('home');
 });
 
 // // ✅ Tools Hub

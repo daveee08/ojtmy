@@ -138,7 +138,7 @@
           @if(!isset($history) || count($history) === 0)
             <div class="mb-3">
               <label class="form-label">Grade Level</label>
-              <input type="text" class="form-control" name="grade_level" required>
+              <input type="text" class="form-control" name="grade_level">
             </div>
 
             <div class="mb-3">

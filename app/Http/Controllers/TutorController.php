@@ -42,7 +42,7 @@ class TutorController extends Controller
         Log::info('Is AJAX: ' . ($request->ajax() ? 'yes' : 'no'));
 
         $validated = $request->validate([
-            'grade_level' => 'required|string',
+            'grade_level' => 'nullable|string',
             'input_type' => 'required|in:topic,pdf',
             'topic' => 'nullable|string',
             'pdf_file' => 'nullable|file|mimes:pdf|max:5120',
@@ -50,10 +50,24 @@ class TutorController extends Controller
         ]);
 
         // Store grade level in session if not yet stored
-        if (!session()->has('grade_level')) {
-            session(['grade_level' => $validated['grade_level']]);
-        }
+        // if (!session()->has('grade_level')) {
+        //     session(['grade_level' => $validated['grade_level']]);
+        // }
+        // Check the latest sess_grade_level from ConversationHistory
+        $latestGradeLevel = ConversationHistory::where('user_id', Auth::id())
+            ->where('agent', 'tutor')
+            ->whereNotNull('sess_grade_level')
+            ->orderByDesc('created_at')
+            ->value('sess_grade_level');
 
+        // Fallback to validated input or user model if none found
+        $gradeLevel = $validated['grade_level'] ?? $latestGradeLevel ?? Auth::user()->grade_level;
+
+        Log::info('Grade level selected:', ['grade_level' => $gradeLevel]);
+
+        if (!$gradeLevel) {
+            return back()->withErrors(['grade_level' => 'Grade level is missing. Please re-login or provide it.']);
+        }
         // Fetch conversation history
         $history = ConversationHistory::where('user_id', Auth::id())
             ->where('agent', 'tutor')
@@ -80,7 +94,8 @@ class TutorController extends Controller
             'user_id' => Auth::id(),
             'agent' => 'tutor',
             'message' => $newMessage,
-            'sender' => 'user'
+            'sender' => 'user',
+            'sess_grade_level' => $gradeLevel
         ]);
         
 
@@ -109,7 +124,7 @@ class TutorController extends Controller
         Log::info('Mode determined:', ['mode' => $mode]);
 
         $multipartData = [
-            ['name' => 'grade_level', 'contents' => $validated['grade_level']],
+            ['name' => 'grade_level', 'contents' => $gradeLevel],
             ['name' => 'input_type', 'contents' => $validated['input_type']],
             ['name' => 'topic', 'contents' => $finalTopic],
             ['name' => 'add_cont', 'contents' => ''],
@@ -156,7 +171,8 @@ class TutorController extends Controller
             'user_id' => Auth::id(),
             'agent' => 'tutor',
             'message' => $output,
-            'sender' => 'agent'
+            'sender' => 'agent',
+            'sess_grade_level' => $gradeLevel
         ]);
 
         // Reload updated history

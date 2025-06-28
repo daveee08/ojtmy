@@ -107,6 +107,11 @@
             </div>
 
             <div class="form-group">
+                <label for="name">Grade Level</label>
+                <input type="text" id="grade_level" name="grade_level" value="{{ old('grade_level') }}" required>
+            </div>
+
+            <div class="form-group">
                 <label for="password">Password</label>
                 <input type="password" id="password" name="password" required>
             </div>

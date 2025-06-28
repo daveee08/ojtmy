@@ -157,5 +157,5 @@ async def leveler_api(
         return JSONResponse(status_code=500, content={"detail": str(e), "trace": traceback_str})
 
 if __name__ == "__main__":
-    uvicorn.run("leveler_cont:app", host="127.0.0.1", port=5001, reload=True)
+    uvicorn.run("leveler_agent:app", host="127.0.0.1", port=5001, reload=True)
     

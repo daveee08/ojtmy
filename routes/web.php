@@ -10,7 +10,7 @@ use App\Http\Controllers\FiveQuestionsController;
 use App\Http\Controllers\EmailWriterController;
 use App\Http\Controllers\ThankYouNoteController;
 use App\Http\Controllers\RealWorldController;
-====
+use App\Http\Controllers\EmailResponderController;
 use App\Http\Controllers\AuthController;
 /*
 |--------------------------------------------------------------------------
@@ -125,3 +125,7 @@ Route::post('/email-writer', [EmailWriterController::class, 'generate'])->name('
 // Real World Agent
 Route::get('/realworld', [RealWorldController::class, 'showForm'])->name('realworld.form');
 Route::post('/realworld', [RealWorldController::class, 'processForm'])->name('realworld.process');
+
+// Email Responder Tool
+Route::get('/email-responder', [EmailResponderController::class, 'showForm']);
+Route::post('/email-responder', [EmailResponderController::class, 'processEmail']);

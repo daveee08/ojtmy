@@ -26,6 +26,10 @@ Route::get('/', function () {
     return view('home');
 });
 
+Route::get('/tools', function () {
+    return view('tool');
+});
+
 // Authentication Routes
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -34,14 +38,7 @@ Route::middleware('guest')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
 });
 
-Route::get('/tools', function () {
-    return view('tool');
-});
-
-Route::get('/chat', function () {
-    return view('chat');
-});
-
+Route::get('/chat', [ChatconversationController::class, 'showForm']);
 Route::get('/chat/history/{session_id}', [ChatconversationController::class, 'getHistory']);
 Route::post('/chat', [ChatconversationController::class, 'sendMessage']);
 
@@ -110,10 +107,6 @@ Route::post('/coachsportprac/download', 'App\Http\Controllers\CoachSportsPracCon
 // ✅ 5 Questions Tool
 Route::get('/5questions', [FiveQuestionsController::class, 'showForm'])->name('fivequestions.form');
 Route::post('/5questions', [FiveQuestionsController::class, 'processForm'])->name('fivequestions.process');
-
-// ✅ Step Tutor Tool
-Route::get('/step-tutor', [StepTutorController::class, 'showForm']);
-Route::post('/step-tutor', [StepTutorController::class, 'processForm']);
 
 // ✅ Step Tutor
 Route::get('/step-tutor', [StepTutorController::class, 'showForm']);

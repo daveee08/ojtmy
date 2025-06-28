@@ -13,6 +13,21 @@ chat_router = APIRouter()
 HISTORY_DIR = "chat_histories"
 os.makedirs(HISTORY_DIR, exist_ok=True)
 
+# --- Chat Prompt ---
+chat_prompt = ChatPromptTemplate.from_messages([
+    ("system", "You are a helpful assistant. Keep responses clear and concise."),
+    MessagesPlaceholder(variable_name="history"),
+    ("human", "{topic}")
+])
+
+model = Ollama(model="llama3")
+chat_chain = RunnableWithMessageHistory(
+    runnable=chat_prompt | model,
+    get_session_history=get_history_by_session_id,
+    input_messages_key="topic",
+    history_messages_key="history"
+)
+
 # --- Chat History File Store ---
 class FileChatMessageHistory(BaseChatMessageHistory, BaseModel):
     session_id: str
@@ -63,22 +78,6 @@ class FileChatMessageHistory(BaseChatMessageHistory, BaseModel):
 
 def get_history_by_session_id(session_id: str) -> FileChatMessageHistory:
     return FileChatMessageHistory(session_id=session_id)
-
-# --- Chat Prompt ---
-chat_prompt = ChatPromptTemplate.from_messages([
-    ("system", "You are a helpful assistant. Keep responses clear and concise."),
-    MessagesPlaceholder(variable_name="history"),
-    ("human", "{topic}")
-])
-
-model = Ollama(model="llama3")
-
-chat_chain = RunnableWithMessageHistory(
-    runnable=chat_prompt | model,
-    get_session_history=get_history_by_session_id,
-    input_messages_key="topic",
-    history_messages_key="history"
-)
 
 @chat_router.post("/chat")
 async def chat_api(

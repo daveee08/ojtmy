@@ -113,6 +113,10 @@ Route::post('/rewriter', [RewriterController::class, 'processForm']);
 Route::get('/rewriter', 'App\Http\Controllers\RewriterController@showForm');
 Route::post('/rewriter', 'App\Http\Controllers\RewriterController@processForm');
 
+// Routes for CK Book Suggestion Chatbot
+Route::get('/booksuggestion', 'App\Http\Controllers\BookSuggestionController@index');
+Route::post('/suggest', 'App\Http\Controllers\BookSuggestionController@getSuggestions');
+
 // Route::post('/tutor/clear', function () {
 //     Session::forget('chat_history');
 //     Session::forget('grade_level');

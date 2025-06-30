@@ -1,43 +1,77 @@
-from fastapi import APIRouter, Form, HTTPException
+from fastapi import APIRouter, HTTPException, Form, Depends
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel, Field
+from typing import Literal, List
 from langchain_community.llms import Ollama
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_core.messages import HumanMessage, AIMessage, BaseMessage
 from langchain_core.chat_history import BaseChatMessageHistory
 import os, json, traceback
-from pydantic import BaseModel, Field
 
 chat_router = APIRouter()
-
 HISTORY_DIR = "chat_histories"
 os.makedirs(HISTORY_DIR, exist_ok=True)
 
-# --- Chat History File Store ---
+# --- LangChain Model ---
+model = Ollama(model="llama3")
+
+# --- Request Model ---
+class ChatRequestForm(BaseModel):
+    topic: str
+    session_id: str
+
+    @classmethod
+    def as_form(
+        cls,
+        topic: str = Form(...),
+        session_id: str = Form(...)
+    ):
+        return cls(topic=topic, session_id=session_id)
+
+
+# --- Message Item Model ---
+class MessageItem(BaseModel):
+    type: Literal["human", "ai"]
+    content: str
+
+# --- Response Model ---
+class ChatHistoryResponse(BaseModel):
+    session_id: str
+    history: List[MessageItem]
+
+# --- Chat History Store ---
 class FileChatMessageHistory(BaseChatMessageHistory, BaseModel):
     session_id: str
-    messages: list[BaseMessage] = Field(default_factory=list)
-
-    def __init__(self, **data):
-        super().__init__(**data)
-        self._load_from_json()
+    messages: List[BaseMessage] = Field(default_factory=list)
 
     @property
     def filepath(self) -> str:
         return os.path.join(HISTORY_DIR, f"{self.session_id}.json")
 
     def _load_from_json(self):
+        self.messages = []
         if not os.path.exists(self.filepath):
-            self.messages = []
             return
+
         try:
             with open(self.filepath, 'r', encoding='utf-8') as f:
                 data = json.load(f)
-                if isinstance(data, dict) and "conversation" in data:
-                    self.messages = [
-                        HumanMessage(content=msg["content"]) if msg["type"] == "human"
-                        else AIMessage(content=msg["content"]) for msg in data["conversation"]
-                    ]
+
+            if isinstance(data, dict) and "conversation" in data:
+                for msg in data["conversation"]:
+                    msg_type = msg.get("type")
+                    content = msg.get("content")
+
+                    if not content or msg_type not in {"human", "ai"}:
+                        print(f"[Skipped Invalid Message] {msg}")
+                        continue
+
+                    if msg_type == "human":
+                        self.messages.append(HumanMessage(content=content))
+                    elif msg_type == "ai":
+                        self.messages.append(AIMessage(content=content))
+
         except Exception as e:
             print(f"[History Load Error] {e}")
             self.messages = []
@@ -61,17 +95,21 @@ class FileChatMessageHistory(BaseChatMessageHistory, BaseModel):
         self.messages = []
         self._save_to_json()
 
-def get_history_by_session_id(session_id: str) -> FileChatMessageHistory:
-    return FileChatMessageHistory(session_id=session_id)
+    @classmethod
+    def from_session_id(cls, session_id: str):
+        instance = cls(session_id=session_id)
+        instance._load_from_json()
+        return instance
 
-# --- Chat Prompt ---
+def get_history_by_session_id(session_id: str) -> FileChatMessageHistory:
+    return FileChatMessageHistory.from_session_id(session_id)
+
+# --- Chat Prompt Setup ---
 chat_prompt = ChatPromptTemplate.from_messages([
     ("system", "You are a helpful assistant. Keep responses clear and concise."),
     MessagesPlaceholder(variable_name="history"),
     ("human", "{topic}")
 ])
-
-model = Ollama(model="llama3")
 
 chat_chain = RunnableWithMessageHistory(
     runnable=chat_prompt | model,
@@ -80,15 +118,13 @@ chat_chain = RunnableWithMessageHistory(
     history_messages_key="history"
 )
 
+# --- Routes ---
 @chat_router.post("/chat")
-async def chat_api(
-    topic: str = Form(...),
-    session_id: str = Form(...)
-):
+async def chat_api(request: ChatRequestForm = Depends(ChatRequestForm.as_form)):
     try:
         result = chat_chain.invoke(
-            {"topic": topic},
-            config={"configurable": {"session_id": session_id}}
+            {"topic": request.topic},
+            config={"configurable": {"session_id": request.session_id}}
         )
         return JSONResponse(content={"response": result})
     except Exception as e:
@@ -96,16 +132,17 @@ async def chat_api(
         print(f"[Chat Error] {e}\n{traceback_str}")
         raise HTTPException(status_code=500, detail="Chat processing failed.")
 
-@chat_router.get("/chat/history/{session_id}")
+@chat_router.get("/chat/history/{session_id}", response_model=ChatHistoryResponse)
 async def get_chat_history(session_id: str):
     try:
         history = get_history_by_session_id(session_id)
-        # Convert messages to a more easily consumable format if needed
         formatted_messages = [
-            {"type": "human" if isinstance(msg, HumanMessage) else "ai", "content": msg.content}
-            for msg in history.messages
+            MessageItem(
+                type="human" if isinstance(msg, HumanMessage) else "ai",
+                content=msg.content
+            ) for msg in history.messages
         ]
-        return JSONResponse(content={"session_id": session_id, "history": formatted_messages})
+        return ChatHistoryResponse(session_id=session_id, history=formatted_messages)
     except Exception as e:
         traceback_str = traceback.format_exc()
         print(f"[Get History Error] {e}\n{traceback_str}")

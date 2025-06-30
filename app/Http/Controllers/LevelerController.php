@@ -11,7 +11,7 @@ class LevelerController extends Controller
 {
     public function showForm()
     {
-        return view('leveler');
+        return view('Text Leveler.leveler');
     }
 
     public function processForm(Request $request)
@@ -65,6 +65,6 @@ class LevelerController extends Controller
             return back()->withErrors(['error' => 'Python API failed: ' . $response->body()]);
         }
 
-        return view('leveler', ['response' => $response->json()['output'] ?? 'No output']);
+        return view('Text Leveler.leveler', ['response' => $response->json()['output'] ?? 'No output']);
     }
 }

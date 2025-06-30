@@ -5,6 +5,8 @@
     <title>✏️ Sentence Starters Agent</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+    {{------------------ Custom Style --------------}}
     <style>
         body {
             font-family: 'Poppins', sans-serif;
@@ -34,6 +36,7 @@
             <h2 class="text-center text-highlight mb-3">✏️ Sentence Starters Agent</h2>
             <p class="text-muted text-center mb-4">Generate 5 helpful sentence starters based on your topic and grade level.</p>
 
+            {{-- ---------------- Form ---------------- --}}
             <form action="{{ route('sentencestarter.process') }}" method="POST" id="starterForm" onsubmit="showLoading()">
                 @csrf
 
@@ -61,18 +64,22 @@
                     </button>
                 </div>
             </form>
-
+             {{-- ---------------- Output ---------------- --}}   
             @if(isset($output) && count($output))
-                <div class="alert alert-info mt-4">
+                <div class="mt-5">
                     <h5 class="text-highlight">Sentence Starters:</h5>
                     <ul class="mb-0">
                         @foreach($output as $sentence)
-                            <li>{{ $sentence }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
-
+            <div class="d-flex justify-content-between align-items-start bg-light p-3 mb-3 rounded shadow-sm position-relative border border-1">
+                <p class="mb-0 me-3 flex-grow-1" style="word-break: break-word;">{{ $sentence }}</p>
+                <button onclick="copyToClipboard(this)" class="btn btn-sm btn-outline-secondary" title="Copy">
+                    📋
+                </button>
+            </div>
+        @endforeach
+    </div>
+@endif
+            {{-- ---------------- Error ---------------- --}}
             @if($errors->has('error'))
                 <div class="alert alert-danger mt-4">
                     {{ $errors->first('error') }}
@@ -82,7 +89,7 @@
     </div>
 </div>
 
-{{-- Loading Overlay --}}
+{{-- ------------ Loading Overlay ------------ --}}
 <div id="loadingOverlay" class="position-fixed top-0 start-0 w-100 h-100 d-flex d-none justify-content-center align-items-center bg-white bg-opacity-75" style="z-index: 9999;">
     <div class="text-center">
         <div class="spinner-border text-highlight mb-3" role="status" style="width: 3rem; height: 3rem;"></div>
@@ -90,12 +97,21 @@
     </div>
 </div>
 
+ {{-- ------------ Script------------ --}}
 <script>
     function showLoading() {
         document.getElementById('submitBtn').disabled = true;
         document.getElementById('btnText').textContent = 'Generating...';
         document.getElementById('btnSpinner').classList.remove('d-none');
         document.getElementById('loadingOverlay').classList.remove('d-none');
+    }
+    /*    * Copy text to clipboard */
+    function copyToClipboard(btn) {
+        const sentence = btn.parentElement.querySelector('p').innerText;
+        navigator.clipboard.writeText(sentence).then(() => {
+            btn.innerText = '✅';
+            setTimeout(() => btn.innerText = '📋', 1500);
+        });
     }
 </script>
 </body>

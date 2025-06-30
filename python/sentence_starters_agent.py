@@ -44,13 +44,15 @@ Topic: "{topic}"
 Guidelines:
 - Generate exactly 5 sentence starters.
 - Each one should begin naturally, like how a student would start a paragraph.
-- They must be **open-ended** and leave room for the student to complete the idea.
+- Do NOT write full sentences or finish the thought.
+- Starters must be **open-ended** and **not** complete ideas.
 - Avoid repeating phrases like "This topic is about..."
 - Adapt the tone and vocabulary for the grade level: simpler for younger students, more academic for older ones.
-- Label them as "Sentence starter 1:", "Sentence starter 2:", etc.
+- Do not label or number them.
+- Just return each one as a new line.
 - Do not include any bullets, commentary, or explanation.
 
-Now, generate the 5 sentence starters.
+
 """
 
     prompt = ChatPromptTemplate.from_template(prompt_template)
@@ -61,5 +63,4 @@ Now, generate the 5 sentence starters.
 
     # Clean and return top 5 lines only
     lines = [line.strip() for line in result.splitlines() if line.strip()]
-    starters = [line for line in lines if line.lower().startswith("sentence starter")]
-    return starters[:5]
+    return lines[:5]

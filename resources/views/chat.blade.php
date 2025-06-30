@@ -222,7 +222,6 @@
 
     <div id="loading-spinner" class="mt-3 text-center">
         <div class="spinner-border text-pink-500" role="status">
-            <span class="visually-hidden">Loading...</span>
         </div>
     </div>
 

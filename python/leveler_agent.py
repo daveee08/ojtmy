@@ -1,14 +1,16 @@
-from fastapi import FastAPI, HTTPException, UploadFile, Form, File # type: ignore
-from fastapi.responses import JSONResponse # type: ignore
-from pydantic import BaseModel, ValidationError # type: ignore
-from langchain_community.llms import Ollama # type: ignore
-from langchain_core.prompts import ChatPromptTemplate # type: ignore
-from langchain_community.document_loaders.pdf import PyPDFLoader # type: ignore
-import shutil, os, re, tempfile, uvicorn, traceback # type: ignore
+from fastapi import FastAPI, HTTPException, UploadFile, Form, File, Depends
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
+from langchain_community.llms import Ollama
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_community.document_loaders.pdf import PyPDFLoader
+import shutil, os, re, tempfile, uvicorn, traceback
 from typing import Optional
 from uuid import uuid4
-from chat_router import chat_router
+from chat_router import chat_router, get_history_by_session_id
+from langchain_core.messages import HumanMessage, AIMessage
 
+# --- Prompt Templates ---
 manual_topic_template = """
 You are an experienced and friendly virtual tutor who helps students understand academic topics clearly and effectively.
 
@@ -53,17 +55,37 @@ Instructions:
 Respond ONLY with the explanation text (no extra commentary).
 """
 
+# --- LangChain Setup ---
 model = Ollama(model="llama3")
 manual_prompt = ChatPromptTemplate.from_template(manual_topic_template)
 pdf_prompt = ChatPromptTemplate.from_template(pdf_topic_template)
 
-class LevelerInput(BaseModel):
+# --- Pydantic Model for Form Input ---
+class LevelerFormInput(BaseModel):
     input_type: str
-    topic: str = ""
-    pdf_path: str = ""
+    topic: str
     grade_level: str
     learning_speed: str
+    session_id: Optional[str] = None
 
+    @classmethod
+    def as_form(
+        cls,
+        input_type: str = Form(...),
+        topic: str = Form(""),
+        grade_level: str = Form(...),
+        learning_speed: str = Form(...),
+        session_id: Optional[str] = Form(default=None)
+    ):
+        return cls(
+            input_type=input_type,
+            topic=topic,
+            grade_level=grade_level,
+            learning_speed=learning_speed,
+            session_id=session_id
+        )
+
+# --- PDF Loader ---
 def load_pdf_content(pdf_path: str) -> str:
     if not os.path.exists(pdf_path):
         raise FileNotFoundError("PDF file not found.")
@@ -71,13 +93,14 @@ def load_pdf_content(pdf_path: str) -> str:
     documents = loader.load()
     return "\n".join(doc.page_content for doc in documents)
 
-# Function to clean the output from formatting artifacts
+# --- Output Cleaner ---
 def clean_output(text: str) -> str:
     text = re.sub(r"\*\*(.*?)\*\*", r"\1", text)
     text = re.sub(r"\*(.*?)\*", r"\1", text)
     text = re.sub(r"^\s*[\*\-]\s*", "", text, flags=re.MULTILINE)
     return text.strip()
 
+# --- Main Output Generation Function ---
 async def generate_output(
     input_type: str,
     grade_level: str,
@@ -86,76 +109,66 @@ async def generate_output(
     pdf_file: UploadFile = None,
 ):
     if input_type == "pdf":
-        # Save PDF temporarily
+        # Save and load PDF
         with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
             content = await pdf_file.read()
             tmp.write(content)
             tmp_path = tmp.name
 
         topic = load_pdf_content(tmp_path)
-        os.unlink(tmp_path)  # Delete file after use
+        os.unlink(tmp_path)
         prompt = pdf_prompt
     else:
         if not topic.strip():
-            raise ValueError("Text input is required")
+            raise ValueError("Text input is required.")
         prompt = manual_prompt
 
-    # Compose input dict for prompt
     prompt_input = {
-    "topic": topic,
-    "grade_level": grade_level,
-    "learning_speed": learning_speed
+        "topic": topic,
+        "grade_level": grade_level,
+        "learning_speed": learning_speed
     }
-    
+
     chain = prompt | model
     result = chain.invoke(prompt_input)
     return clean_output(result)
 
+# --- FastAPI Setup ---
 app = FastAPI()
 app.include_router(chat_router)
 
 @app.post("/leveler")
 async def leveler_api(
-    input_type: str = Form(...),
-    topic: str = Form(""),
-    pdf_file: UploadFile = File(None),
-    grade_level: str = Form(...),
-    learning_speed: str = Form(...),
-    session_id: Optional[str] = Form(default=None)
+    form_data: LevelerFormInput = Depends(LevelerFormInput.as_form),
+    pdf_file: UploadFile = File(None)
 ):
-    
     try:
-        if input_type == "pdf" and not pdf_file:
+        if form_data.input_type == "pdf" and not pdf_file:
             raise HTTPException(status_code=400, detail="PDF file required for PDF input_type")
 
-        if not session_id:
-            session_id = str(uuid4())
+        session_id = form_data.session_id or str(uuid4())
 
         output = await generate_output(
-            input_type=input_type,
-            topic=topic,
+            input_type=form_data.input_type,
+            topic=form_data.topic,
             pdf_file=pdf_file,
-            grade_level=grade_level,
-            learning_speed=learning_speed,
+            grade_level=form_data.grade_level,
+            learning_speed=form_data.learning_speed,
         )
 
-        # Save the interaction to chat history JSON
-        from chat_router import get_history_by_session_id
-        from langchain_core.messages import HumanMessage, AIMessage
-
         history = get_history_by_session_id(session_id)
-        human_content = topic if topic.strip() else f"Uploaded PDF: {pdf_file.filename}"
+        human_content = form_data.topic.strip() or f"Uploaded PDF: {pdf_file.filename}"
         history.add_messages([
             HumanMessage(content=human_content),
             AIMessage(content=output)
         ])
 
-        return {"output": output}
+        return {"output": output, "session_id": session_id}
     except Exception as e:
         traceback_str = traceback.format_exc()
         print(traceback_str)
         return JSONResponse(status_code=500, content={"detail": str(e), "trace": traceback_str})
 
+# --- Uvicorn entrypoint ---
 if __name__ == "__main__":
     uvicorn.run("leveler_agent:app", host="127.0.0.1", port=5001, reload=True)
-    

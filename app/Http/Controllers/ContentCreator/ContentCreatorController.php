@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\ContentCreator;
 
+use App\Http\Controllers\Controller; // ✅ required
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 
@@ -9,7 +10,7 @@ class ContentCreatorController extends Controller
 {
     public function showForm()
     {
-        return view('contentcreator');
+        return view('ContentCreator.contentcreator'); // ✅ Adjusted to match subfolder if used
     }
 
     public function generate(Request $request)

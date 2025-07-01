@@ -1,16 +1,16 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\SummarizeController;
+use App\Http\Controllers\Summarizer\SummarizeController;
 use App\Http\Controllers\ProofreaderController;
 use App\Http\Controllers\QuizmeController;
 use App\Http\Controllers\RewriterController;
 use App\Http\Controllers\StepTutorController;
 use App\Http\Controllers\FiveQuestionsController;
-use App\Http\Controllers\EmailWriterController;
-use App\Http\Controllers\ThankYouNoteController;
-use App\Http\Controllers\IdeaGeneratorController;
-use App\Http\Controllers\ContentCreatorController;
+use App\Http\Controllers\EmailWriter\EmailWriterController;
+use App\Http\Controllers\ThankYouNote\ThankYouNoteController;
+use App\Http\Controllers\IdeaGenerator\IdeaGeneratorController;
+use App\Http\Controllers\ContentCreator\ContentCreatorController;
 use App\Http\Controllers\RealWorldController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\SentenceStarterController;
@@ -68,8 +68,8 @@ Route::get('/scaffolder', 'App\Http\Controllers\ScaffolderController@showForm');
 Route::post('/scaffolder', 'App\Http\Controllers\ScaffolderController@processForm');
 
 //content creator
-Route::get('/tools/contentcreator', [ContentCreatorController::class, 'showForm'])->name('contentcreator.form');
-Route::post('/tools/contentcreator', [ContentCreatorController::class, 'generate'])->name('contentcreator.generate');
+Route::get('/contentcreator', [ContentCreatorController::class, 'showForm'])->name('contentcreator.form');
+Route::post('/contentcreator', [ContentCreatorController::class, 'generate'])->name('contentcreator.generate');
 //Idea Generator
 Route::get('/idea-generator', [IdeaGeneratorController::class, 'showForm'])->name('idea.show');
 Route::post('/idea-generator', [IdeaGeneratorController::class, 'generate'])->name('idea.generate');

@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\ThankYouNote;
 
+use App\Http\Controllers\Controller; // ✅ Add this line
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 
@@ -12,7 +13,8 @@ class ThankYouNoteController extends Controller
      */
     public function showForm()
     {
-        return view('thankyounote');  // Ensure this Blade file exists in resources/views
+        return view('ThankYouNote.thankyounote'); 
+        // Make sure this exists: resources/views/ThankYouNote/thankyounote.blade.php
     }
 
     /**
@@ -24,12 +26,10 @@ class ThankYouNoteController extends Controller
             'reason' => 'required|string',
         ]);
 
-        // Send the reason to FastAPI endpoint
         $response = Http::asForm()->post('http://127.0.0.1:8001/generate-thankyou', [
             'reason' => $request->reason,
         ]);
 
-        // Handle the response
         if ($response->successful()) {
             return back()->with('thankyou_note', $response->json()['thank_you_note']);
         } else {

@@ -1,30 +1,55 @@
 from fastapi import FastAPI, HTTPException, UploadFile, Form, File 
 from fastapi.responses import JSONResponse 
-from pydantic import BaseModel, ValidationError 
+from pydantic import BaseModel
 from langchain_community.llms import Ollama 
 from langchain_core.prompts import ChatPromptTemplate 
 from langchain_community.document_loaders.pdf import PyPDFLoader 
-import shutil, os, re, tempfile, traceback 
+import os, re, tempfile, traceback 
 import uvicorn
 
 manual_concept_template = """
-You are a knowledgeable and friendly virtual tutor.
+You are a knowledgeable, student-friendly virtual tutor.
 
-The following is an educational explanation about a specific programming concept written for general understanding. Your task is to rewrite it clearly and effectively for a student at the specified grade level.
+Your task is to explain a technical concept clearly and engagingly for the specified grade level. Use structured formatting, plain language, real-life examples, and analogies that match how students actually learn.
 
-Parameters:
-- Concept content: {concept}
-- Grade level: {grade_level}
+<b>Parameters:</b><br>
+- Concept: {concept}<br>
+- Grade Level: {grade_level}<br><br>
 
-Instructions:
-- Retain all technical details and examples unless the grade level suggests otherwise.
-- Break down complex ideas into simpler language if the grade level is below college level.
-- Use analogies only when helpful for clarity.
-- Maintain structure: keep key concepts, examples, and analogies.
-- Output should be well-organized and readable.
-- Do not include phrases like “Here's a version that…” or “To put it simply…” or “In summary…”
+<b>Output Structure:</b><br>
+Use the following clearly labeled sections:<br><br>
 
-Respond ONLY with the rewritten explanation, formatted clearly for the intended grade level.
+<b>Understanding {concept}</b><br><br>
+Give a 2–3 sentence overview using simple, clear language.<br><br>
+
+<b>Key Features or Concepts</b><br><br>
+Break the concept into 3–5 key ideas. For each one:<br>
+- Use a subheading with the name of the feature<br>
+- Provide a short explanation<br>
+- Include a real-life example<br>
+- Include an analogy if helpful<br><br>
+
+<b>Analogies</b><br><br>
+Provide 1–2 analogies to help the student understand the big picture. Use comparisons to everyday life (e.g., cooking, building, sports, school).<br><br>
+
+<b>Why It Matters</b><br><br>
+Explain why this concept is important or useful in the real world.<br><br>
+
+<b>Formatting Requirements (Strict)</b><br>
+- Use only valid HTML — NO asterisks, Markdown, or plaintext<br>
+- All section headings must use this format: <b>Heading</b><br>
+- Add exactly two line breaks after each heading: <br><br>
+- Use <br> or <br><br> for spacing — do not use line breaks or empty lines<br>
+- Include real examples and analogies in every explanation<br><br>
+
+<b>Grade Adaptation:</b><br>
+- <b>Grades 1–3:</b> Very simple words, everyday examples, no code<br>
+- <b>Grades 4–5:</b> Add basic structure, light technical ideas, relatable scenarios<br>
+- <b>Grades 6–8:</b> Use clear logic, basic terms, examples from games/school<br>
+- <b>Grades 9–10:</b> Use technical structure with simplified flow<br>
+- <b>Grades 11–12:</b> Accurate technical flow with real-world patterns<br><br>
+
+Return ONLY the explanation in clean, valid HTML. Do not include notes or formatting labels.
 """
 
 pdf_concept_template = """
@@ -36,14 +61,30 @@ Parameters:
 - Extracted Concept being taught: {concept}
 
 Instructions:
-- Retain all technical details and examples unless the grade level suggests otherwise.
-- Break down complex ideas into simpler language if the grade level is below college level.
-- Use analogies only when helpful for clarity.
-- Maintain structure: keep key concepts, examples, and analogies.
-- Output should be well-organized and readable.
-- Do not include phrases like “Here's a version that…” or “To put it simply…” or “In summary…”
+- Start with a short introductory paragraph that explains the main idea or purpose of the topic.
+- Present key concepts or features using bulleted headings, each followed by a concise explanation.
+- Under each bullet, provide a clearly marked example that shows how the feature works in context.
+- If helpful, add an Analogies section after the main points to reinforce understanding using real-world comparisons.
+- Use the following structure consistently:
+    - Bold bullet titles for features
+    - Plain paragraph explanations
+    - Italicized label for Example: followed by a real use case
+    - Italicized label for Analogy: when included
+- Ensure the output is well-organized, readable, and suitable from Grade 1 to 12, adjusting language complexity as needed
+- Avoid casual transitions or summarizing phrases (e.g., “In short”, “Here's why it matters”)
 
-Respond ONLY with the rewritten explanation, formatted clearly for the intended grade level.
+**Formatting and Tone Guidelines:**
+- Use **bolded section headings** 
+- Use markdown formatting: **bolded headings**, bullet points, and numbered steps.
+- Avoid filler phrases like “Let me explain” or “Here's an example.”
+- Do not label sections with explanation type (e.g., “Analogy explanation”).
+- Maintain a clear, confident, and engaging tone—like a strong textbook or hands-on workshop guide.
+- Build understanding progressively:
+  - What the concept is
+  - How it works
+  - Where it's used
+  - How it connects to things the student already knows
+
 """
 
 model = Ollama(model="llama3")
@@ -64,10 +105,70 @@ def load_pdf_content(pdf_path: str) -> str:
     return "\n".join(doc.page_content for doc in documents)
 
 # Function to clean the output from formatting artifacts
+import re
+
 def clean_output(text: str) -> str:
-    text = re.sub(r"\*\*(.*?)\*\*", r"\1", text)
-    text = re.sub(r"\*(.*?)\*", r"\1", text)
-    text = re.sub(r"^\s*[\*\-]\s*", "", text, flags=re.MULTILINE)
+    import re
+
+    # Convert **bold** or *bold* to <b>
+    text = re.sub(r"\*{1,2}([^\n*]+?)\*{1,2}", r"<b>\1</b>", text)
+    text = re.sub(r"^\*+(.+?)\*+\s*$", r"<b>\1</b>", text, flags=re.MULTILINE)
+
+    # Italic formatting for examples/analogies
+    text = re.sub(r"_(Example|Analogy):", r"<i>\1:</i>", text)
+
+    # Remove code blocks
+    text = re.sub(r"```.*?```", "", text, flags=re.DOTALL)
+
+    # Process lines
+    lines = text.split("\n")
+    html = []
+    in_list = False
+
+    for line in lines:
+        stripped = line.strip()
+
+        if re.match(r"^[•\*\-]\s*", stripped):
+            content = re.sub(r"^[•\*\-]\s*", "", stripped)
+            if not in_list:
+                html.append("<ul>")
+                in_list = True
+            html.append(f"<li>{content}</li>")
+        else:
+            if in_list:
+                html.append("</ul>")
+                in_list = False
+            html.append(stripped)
+
+    if in_list:
+        html.append("</ul>")
+
+    # Join and handle spacing
+    html_output = "<br>".join(html)
+
+    # Ensure <b>Section</b> has <br><br> after it
+    html_output = re.sub(r"</b>(?!<br><br>)", r"</b><br><br>", html_output)
+
+    # Remove <br> directly inside <ul> or <li>
+    html_output = re.sub(r"<ul><br>", "<ul>", html_output)
+    html_output = re.sub(r"<br></ul>", "</ul>", html_output)
+    html_output = re.sub(r"<li>(.*?)<br></li>", r"<li>\1</li>", html_output)
+
+    # Collapse too many breaks
+    html_output = re.sub(r"(<br>\s*){3,}", "<br><br>", html_output)
+
+    return html_output.strip()
+
+
+    # Join with minimal breaks (1 <br> between items, 2 after headings)
+    text = "<br>".join(html_lines)
+
+    # Add 2 breaks after bold headings if not already followed by them
+    text = re.sub(r"(</b>)(?!<br><br>)", r"\1<br><br>", text)
+
+    # Collapse extra <br> (3+ in a row)
+    text = re.sub(r"(<br>\s*){3,}", "<br><br>", text)
+
     return text.strip()
 
 async def generate_output(

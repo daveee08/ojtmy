@@ -7,6 +7,7 @@ use App\Http\Controllers\QuizmeController;
 use App\Http\Controllers\RewriterController;
 use App\Http\Controllers\StepTutorController;
 use App\Http\Controllers\FiveQuestionsController;
+use App\Http\Controllers\ResponderController;
 use App\Http\Controllers\EmailWriterController;
 use App\Http\Controllers\ThankYouNoteController;
 use App\Http\Controllers\RealWorldController;
@@ -26,6 +27,7 @@ use App\Http\Controllers\ChatconversationController;
 
 // Landing Page
 Route::get('/', function () {
+    return view('tool');
     return view('login');
 });
 
@@ -146,3 +148,7 @@ Route::post('/translator', [TranslatorController::class, 'processForm'])->name('
 // Study Habits Agent
 Route::get('/studyhabits', [StudyHabitsController::class, 'showForm'])->name('studyhabits.form');
 Route::post('/studyhabits', [StudyHabitsController::class, 'processForm'])->name('studyhabits.process');
+
+// ✅ Responder Tool
+Route::get('/responder', [ResponderController::class, 'showForm']);
+Route::post('/responder', [ResponderController::class, 'processForm']);

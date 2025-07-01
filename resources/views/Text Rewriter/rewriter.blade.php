@@ -80,11 +80,6 @@
             color: #fff;
         }
 
-        .btn-spinner {
-            margin-left: 10px;
-            vertical-align: middle;
-        }
-
         .hidden {
             display: none !important;
         }

@@ -8,6 +8,7 @@
     @yield('styles')
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
 
     <style>
         :root {
@@ -78,13 +79,29 @@
             overflow: hidden;
         }
 
+        .sidebar a i{
+            margin-right: 10px;
+            font-size: 1.2rem;
+            transition: margin 0.3s ease, font-size 0.3s ease
+        }
+
+        .sidebar.collapsed a i {
+            margin-right: 0;
+            font-size: 1rem;
+        }   
+
         .link-text {
             display: inline;
-            transition: opacity 0.3s ease;
+            transition: opacity 0.3s ease, width 0.3s ease;
+            opacity: 1;
+            width: auto;
+            white-space: nowrap;
+            overflow: hidden;
         }
 
         .sidebar.collapsed .link-text {
-            display: none;
+            opacity: 0;
+            width: 0;
         }
 
         .content {
@@ -105,8 +122,8 @@
             left: 15px;
             z-index: 1100;
             border: none;
-            background: var(--pink);
-            color: white;
+            background: var(--white);
+            color: rgb(90, 89, 89);
             padding: 8px 12px;
             border-radius: 5px;
             font-size: 1rem;
@@ -123,13 +140,22 @@
     <div class="sidebar" id="sidebar">
         <h2>CK AI Tools</h2>
 
-        <a href="#tool-leveler"><span class="link-text">Text Leveler</span></a>
-        <a href="#tool-summary"><span class="link-text">Summarizer</span></a>
-        <a href="#tool-understanding"><span class="link-text">Understanding</span></a>
-        <a href="#tool-rewriter"><span class="link-text">Rewriter</span></a>
-        <a href="#tool-proofreader"><span class="link-text">Proofreader</span></a>
-        <a href="#tool-quizme"><span class="link-text">Quiz Me</span></a>
-
+        <a href="{{url('/tools')}}">
+            <i class="bi bi-tools"></i>
+            <span class="link-text">Tools</span>
+        </a>
+        <a href="{{url('/')}}">
+            <i class="bi bi-house-door"></i>
+            <span class="link-text">Home</span>
+        </a>
+        <a href="#tool-About">
+            <i class="bi bi-people"></i>
+            <span class="link-text">About</span>
+        </a>
+        <a href="#tool-Contact">
+            <i class="bi bi-envelope"></i>
+            <span class="link-text">Contact</span>
+        
         @auth
             <form method="POST" action="{{ url('/logout') }}" style="margin-top: 30px;">
                 @csrf

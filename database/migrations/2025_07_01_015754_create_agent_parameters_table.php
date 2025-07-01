@@ -14,13 +14,14 @@ class CreateAgentParametersTable extends Migration
     public function up()
     {
         Schema::create('agent_parameters', function (Blueprint $table) {
-            $table->bigIncrements('id'); // bigint + identity + primary key
-            $table->unsignedBigInteger('agent_id')->nullable(); // FK to agents.id
-            $table->string('parameter_name')->nullable(); // character varying null
-            $table->timestampTz('created_at')->useCurrent(); // timestamp with time zone default now()
+            $table->bigIncrements('id');
+            $table->unsignedBigInteger('agent_id');
+            $table->string('parameter');
+            $table->string('parameter_value'); // More flexible than enum
+            $table->timestamps();
 
             // Foreign key constraint
-            $table->foreign('agent_id')->references('id')->on('agents')->onDelete('set null');
+            $table->foreign('agent_id')->references('id')->on('agents')->onDelete('cascade');
         });
     }
 

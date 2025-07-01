@@ -15,14 +15,14 @@ class CreateSessionsTable extends Migration
     {
         Schema::create('sessions', function (Blueprint $table) {
             $table->bigIncrements('id'); // Primary key with bigint + identity
-            $table->timestampTz('created_at')->useCurrent(); // Timestamp with time zone default now()
+            $table->unsignedBigInteger('user_id'); // FK to users.id
+            $table->unsignedBigInteger('agent_id'); // FK to agents.id
+            $table->timestamps();
             
-            $table->unsignedBigInteger('user_id')->nullable(); // FK to users.id
-            $table->unsignedBigInteger('agent_id')->nullable(); // FK to agents.id
-
             // Foreign keys
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('set null');
-            $table->foreign('agent_id')->references('id')->on('agents')->onDelete('set null');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('agent_id')->references('id')->on('agents')->onDelete('cascade');
+        
         });
     }
 

@@ -174,6 +174,61 @@
                 <h5><a href="http://127.0.0.1:5001/5questions" target="_blank">Five Questions</a></h5>
                 <p>Use AI to challenge your thinking with 5 custom questions.</p>
             </div>
+
+            <div class="tool-card">
+                <h5><a href="http://127.0.0.1:5001/5questions" target="_blank">Real World Connections</a></h5>
+                <p>Generate real world examples for what you're learning about!.</p>
+            </div>
+
+            <div class="tool-card">
+                <h5><a href="http://127.0.0.1:5001/5questions" target="_blank">Study Habits</a></h5>
+                <p>Get a plan and study tips to prepare for any test, assignment, or project.</p>
+            </div>
+
+            <div class="tool-card">
+                <h5><a href="http://127.0.0.1:5001/5questions" target="_blank">Text Translator</a></h5>
+                <p>Translate any text or uploaded document into any language.</p>
+            </div>
+
+            <div class="tool-card">
+                <h5><a href="http://127.0.0.1:5001/5questions" target="_blank">Sentence Starters</a></h5>
+                <p>Get ideas to help you get started with writing on any topic.</p>
+            </div>
+
+            <div class="tool-card">
+                <h5><a href="http://127.0.0.1:5001/5questions" target="_blank">Assignment Scaffolder</a></h5>
+                <p>Helps break down assignments into easy, step-by-step parts for better planning and progress.</p>
+            </div>
+
+            <div class="tool-card">
+                <h5><a href="http://127.0.0.1:5001/5questions" target="_blank">Coach’s Sports Practice</a></h5>
+                <p>Leads fun drills to build athletic skills and teamwork.</p>
+            </div>
+
+            <div class="tool-card">
+                <h5><a href="http://127.0.0.1:5001/5questions" target="_blank">Email Writer</a></h5>
+                <p>Helps draft clear, professional emails for any occasion or purpose.</p>
+            </div>
+
+             <div class="tool-card">
+                <h5><a href="http://127.0.0.1:5001/5questions" target="_blank">Multiple Explanations Generator</a></h5>
+                <p>Provides different ways to explain the same concept great for clearing up confusion and supporting diverse learning styles..</p>
+            </div>
+
+             <div class="tool-card">
+                <h5><a href="http://127.0.0.1:5001/5questions" target="_blank">Teacher Jokes</a></h5>
+                <p>Generates classroom-friendly jokes to lighten the mood and bring smiles to learning.</p>
+            </div>
+
+             <div class="tool-card">
+                <h5><a href="http://127.0.0.1:5001/5questions" target="_blank">Thank You Note</a></h5>
+                <p>Crafts short, heartfelt messages to show appreciation for any occasion.</p>
+            </div>
+
+             <div class="tool-card">
+                <h5><a href="http://127.0.0.1:5001/5questions" target="_blank">Tongue Twister</a></h5>
+                <p>Creates fun and tricky phrases to challenge speech and boost pronunciation skills.</p>
+            </div>
         </div>
     </div>
 

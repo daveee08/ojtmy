@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\EmailWriter;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 
@@ -9,7 +10,7 @@ class EmailWriterController extends Controller
 {
     public function show()
     {
-        return view('email-writer');
+        return view('EmailWriter.email-writer');
     }
 
     public function generate(Request $request)

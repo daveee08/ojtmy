@@ -55,7 +55,7 @@ async def step_tutor_endpoint(data: StepTutorInput):
 
 @app.post("/summarize-history")
 async def summarize_history_endpoint(data: HistoryRequest):
-    from summarizer_agent import summarize_conversation
+    from ojtmy.python.Summarizer.summarizer_agent import summarize_conversation
     print("Received history for summarization:", data.history[:100])
     return {"summary": await summarize_conversation(data.history)}
 

@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateChatHistoriesTable extends Migration
+class CreateAgentsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,11 +13,9 @@ class CreateChatHistoriesTable extends Migration
      */
     public function up()
     {
-        Schema::create('chat_histories', function (Blueprint $table) {
-            $table->id();
-            $table->string('session_id'); // Store session ID
-            $table->enum('role', ['user', 'assistant']); // User or assistant
-            $table->text('message'); // The message content
+        Schema::create('agents', function (Blueprint $table) {
+            $table->bigIncrements('id'); // bigint + identity + primary key
+            $table->string('agent'); // character varying null
             $table->timestamps();
         });
     }
@@ -29,6 +27,6 @@ class CreateChatHistoriesTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('chat_histories');
+        Schema::dropIfExists('agents');
     }
 }

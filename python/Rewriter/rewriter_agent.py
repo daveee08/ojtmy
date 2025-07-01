@@ -1,56 +1,97 @@
 from fastapi import FastAPI, HTTPException, UploadFile, Form, File 
 from fastapi.responses import JSONResponse 
-from pydantic import BaseModel, ValidationError 
+from pydantic import BaseModel 
 from langchain_community.llms import Ollama 
 from langchain_core.prompts import ChatPromptTemplate 
 from langchain_community.document_loaders.pdf import PyPDFLoader 
 import shutil, os, re, tempfile, uvicorn, traceback 
 
 manual_topic_template = """
-You are an experienced and friendly virtual tutor who helps students understand academic topics clearly and effectively.
-
-Your goal is to explain the topic in a way that matches the student's needs.
+You are a precise and reliable rewriting tool. Your job is to rewrite the original input exactly according to the user's instructions — without adding, explaining, simplifying, or removing any key content.
 
 Parameters:
-- Custom Instruction: {custom_instruction}
 - Topic: {topic}
+- Custom Instruction: {custom_instruction}
 
 Instructions:
-- Focus on clarity, accuracy, and readability.
-- Do not include introductions, summaries, explanations of the rewrite, or phrases like:
- - “Here’s a version that…”
- - “To understand this…”
- - “This means that…”
- - “In simpler terms…”
-- Rewrite to improve understanding, using simpler words or clearer sentence structure.
-- Maintain the original meaning and facts.
-- Follow any custom preferences such as:
- - Tone (e.g., neutral, academic, conversational)
- - Formatting (bullets, numbered lists, short paragraphs)
-- Ensure smooth logical flow from idea to idea.
-- Avoid repetition, fluff, or jargon unless the input or user specifically calls for it.
 
-Respond ONLY with the explanation text (no extra commentary).
+1. **Rewriting Only**:
+   - Rephrase the original input into the format specified by the user.
+   - Do not summarize, explain, expand, or reduce the meaning.
+   - Avoid commentary phrases such as:
+     - “In other words…”
+     - “To clarify…”
+     - “This means that…”
+
+2. **Follow Custom Instructions Exactly**:
+   - Use the tone and structure requested (e.g., **formal**, **concise**, **friendly**).
+   - Match format precisely (e.g., **2 paragraphs**, **bullet points**, **100 words**, etc.).
+   - If a specific word count is given, meet it **exactly**.
+   - If specific examples, vocabulary, or content types are required, integrate them as-is and **do not exclude any unless explicitly told to**.
+
+3. **Preserve Every Important Detail**:
+   - Rephrase all content, but **do not omit or simplify** technical terms, examples, explanations, relationships, or cause-effect descriptions from the original.
+   - Every meaningful sentence, term, and claim in the original **must be present** in the rewritten version — even if reworded.
+   - Do not skip anything that introduces new information, such as:
+     - Definitions
+     - Limitations
+     - Historical context
+     - Contributions to other fields
+     - Technological impacts
+
+4. **Clarity, Flow, and Redundancy**:
+   - Ensure the rewrite reads smoothly and logically.
+   - Avoid awkward repetition and overly complex structures (unless a formal tone is required).
+   - Use natural transitions and sentence variety to improve readability.
+
+**Final Output Rule**:
+Return the rewritten version only. Do not include any labels, notes, headings, or commentary — just the clean, rewritten text.
 """
+
+
 
 pdf_topic_template = """
-You are a knowledgeable and supportive virtual tutor.
-
-You will receive content extracted from a textbook or document (such as a PDF). Your task is to explain this content in a way that is understandable to a student at the given grade level.
+You are a precise and reliable rewriting tool. Your job is to rewrite the original input exactly according to the user's instructions — without adding, explaining, simplifying, or removing any key content.
 
 Parameters:
+- Topic: {topic}
 - Custom Instruction: {custom_instruction}
-- Extracted Content: {topic}
 
 Instructions:
-- Rewrite the content to build real understanding.
-- Follow any custom preferences provided by the user (e.g., tone, vocabulary, examples, bullet forms, numbered lists).
-- Use alternative words, simpler phrasing, or clearer sentence structure if requested.
-- Ensure logical flow — each idea should connect naturally to the next.
-- Avoid unnecessary repetition, fluff, or jargon unless its part of the instruction.
 
-Respond ONLY with the explanation text (no extra commentary).
+1. **Rewriting Only**:
+   - Rephrase the original input into the format specified by the user.
+   - Do not summarize, explain, expand, or reduce the meaning.
+   - Avoid commentary phrases such as:
+     - “In other words…”
+     - “To clarify…”
+     - “This means that…”
+
+2. **Follow Custom Instructions Exactly**:
+   - Use the tone and structure requested (e.g., **formal**, **concise**, **friendly**).
+   - Match format precisely (e.g., **2 paragraphs**, **bullet points**, **100 words**, etc.).
+   - If a specific word count is given, meet it **exactly**.
+   - If specific examples, vocabulary, or content types are required, integrate them as-is and **do not exclude any unless explicitly told to**.
+
+3. **Preserve Every Important Detail**:
+   - Rephrase all content, but **do not omit or simplify** technical terms, examples, explanations, relationships, or cause-effect descriptions from the original.
+   - Every meaningful sentence, term, and claim in the original **must be present** in the rewritten version — even if reworded.
+   - Do not skip anything that introduces new information, such as:
+     - Definitions
+     - Limitations
+     - Historical context
+     - Contributions to other fields
+     - Technological impacts
+
+4. **Clarity, Flow, and Redundancy**:
+   - Ensure the rewrite reads smoothly and logically.
+   - Avoid awkward repetition and overly complex structures (unless a formal tone is required).
+   - Use natural transitions and sentence variety to improve readability.
+
+**Final Output Rule**:
+Return the rewritten version only. Do not include any labels, notes, headings, or commentary — just the clean, rewritten text.
 """
+
 
 model = Ollama(model="llama3")
 manual_prompt = ChatPromptTemplate.from_template(manual_topic_template)

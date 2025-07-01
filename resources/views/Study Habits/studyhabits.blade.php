@@ -44,6 +44,7 @@
                     <label for="grade_level" class="form-label">Grade level:</label>
                     <select class="form-select" name="grade_level" id="grade_level" required>
                         <option value="">-- Select --</option>
+                        <option value="kindergarten" {{ old('grade_level') == 'kindergarten' ? 'selected' : '' }}>Kindergarten</option>
                         <option value="elementary" {{ old('grade_level') == 'elementary' ? 'selected' : '' }}>Elementary</option>
                         <option value="junior high" {{ old('grade_level') == 'junior high' ? 'selected' : '' }}>Junior High</option>
                         <option value="senior high" {{ old('grade_level') == 'senior high' ? 'selected' : '' }}>Senior High</option>

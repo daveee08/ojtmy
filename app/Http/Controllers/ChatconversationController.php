@@ -7,6 +7,11 @@ use Illuminate\Support\Facades\Http;
 
 class ChatconversationController extends Controller
 {
+    public function showForm()
+    {
+        return view('chat');
+    }
+
     public function getHistory($session_id)
     {
         $response = Http::get("http://192.168.50.144:5001/chat/history/{$session_id}");

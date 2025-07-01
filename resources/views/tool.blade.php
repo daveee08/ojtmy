@@ -1,5 +1,6 @@
 @extends('layouts.header')
 @extends('layouts.navbar')
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 @section('title', 'Home - CK AI Tools')
 
@@ -71,6 +72,10 @@
             border-radius: 8px;
             padding: 16px;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
+            height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
 
         .tool-card:hover {
@@ -96,6 +101,12 @@
             font-size: 0.9rem;
             color: #555;
             margin: 0;
+            
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical; 
         }
 
         @media (max-width: 992px) {
@@ -281,6 +292,15 @@
             <p>Creates fun and tricky phrases to challenge speech and boost pronunciation skills.</p>
         </div>
     </a>
+
+    <a href="http://127.0.0.1:5001/5questions" target="_blank" class="tool-card-link">
+        <div class="tool-card">
+            <h5>Quote of the Day</h5>
+            <p>Generate an inspiring or thoughtful quote to spark reflection and motivation.</p>
+        </div>
+    </a>
+
+    
 </div>
 
     </div>

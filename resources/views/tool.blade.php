@@ -286,23 +286,13 @@
     </div>
 
     <script>
-.tool-card-link {
-    text-decoration: none;
-    color: inherit;
-    display: block;
-}
-
-.tool-card-link:hover .tool-card {
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-    transform: translateY(-4px);
-}
 
         document.getElementById('toolSearch').addEventListener('input', function() {
             const query = this.value.toLowerCase();
-            const cards = document.querySelectorAll('.tool-card');
-            cards.forEach(card => {
-                const text = card.innerText.toLowerCase();
-                card.style.display = text.includes(query) ? 'block' : 'none';
+            const cards = document.querySelectorAll('.tool-card-link');
+            cards.forEach(link => {
+                const text = link.innerText.toLowerCase();
+                link.style.display = text.includes(query) ? 'block' : 'none';
             });
         });
     </script>

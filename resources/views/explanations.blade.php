@@ -8,7 +8,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" />
     <style>
         body {
-            background: linear-gradient(to right, #e8f0fe, #ffffff);
+            background: linear-gradient(to right, #ffe6ec, #ffffff);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             color: #191919;
             padding: 4rem 1rem;
@@ -26,7 +26,7 @@
             font-weight: 800;
             font-size: 2rem;
             text-align: center;
-            color: #3366cc;
+            color: #EC298B;
             margin-bottom: 0.5rem;
         }
 
@@ -39,22 +39,24 @@
 
         label {
             font-weight: 600;
+            color: #191919;
         }
 
         .form-control,
         .form-select {
             border-radius: 10px;
             font-size: 1rem;
+            color: #191919;
         }
 
         .form-control:focus,
         .form-select:focus {
-            border-color: #3366cc;
-            box-shadow: 0 0 0 0.1rem rgba(51, 102, 204, 0.25);
+            border-color: #555;
+            box-shadow: 0 0 0 0.1rem rgba(48, 48, 48, 0.25);
         }
 
-        .btn-blue {
-            background-color: #3366cc;
+        .btn-pink {
+            background-color: #EC298B;
             color: #fff;
             font-weight: 600;
             font-size: 1.1rem;
@@ -62,13 +64,14 @@
             border-radius: 8px;
             border: none;
             transition: 0.3s;
+            min-width: 130px;
         }
 
-        .btn-blue:hover {
-            background-color: #254a99;
+        .btn-pink:hover {
+            background-color: #d81b60;
         }
 
-        .spinner-border.text-blue {
+        .spinner-border.text-pink {
             color: #fff;
         }
 
@@ -79,6 +82,12 @@
         textarea[readonly] {
             background-color: #ffffff;
             color: #191919;
+        }
+
+        #output b {
+            display: block;
+            margin-top: 1rem;
+            font-size: 1.1rem;
         }
     </style>
 </head>
@@ -94,7 +103,7 @@
             </div>
         @endif
 
-        <form method="POST" action="/explanations" onsubmit="handleGenerateSubmit()">
+        <form method="POST" action="/explanations" onsubmit="handleGenerateSubmit()" enctype="multipart/form-data">
             @csrf
 
             <!-- Grade Level -->
@@ -127,15 +136,15 @@
 
             <!-- PDF Upload Field -->
             <div class="mb-4" id="pdf_input_group" style="display: none;">
-                <label for="pdf" class="form-label">Upload PDF</label>
+                <label for="pdf_file" class="form-label">Upload PDF</label>
                 <input type="file" class="form-control" id="pdf_file" name="pdf_file" accept="application/pdf" />
             </div>
 
             <!-- Submit Button -->
             <div class="mb-4 text-center">
-                <button type="submit" class="btn btn-blue" id="submitButton">
+                <button type="submit" class="btn btn-pink" id="submitButton">
                     <span id="btnText">Generate</span>
-                    <span id="btnSpinner" class="spinner-border spinner-border-sm hidden" role="status"
+                    <span id="btnSpinner" class="spinner-border spinner-border-sm text-pink hidden" role="status"
                         aria-hidden="true"></span>
                 </button>
             </div>
@@ -148,35 +157,35 @@
 
         <!-- Output -->
         <div class="mb-4">
-            <label for="output" class="form-label">Concept Being Taught</label>
-            <textarea id="output" class="form-control" name="output" rows="10" readonly>{{ $response ?? '' }}</textarea>
+            <label for="output" class="form-label">Generated Explanation</label>
+            <div id="output" class="form-control" style="min-height: 300px; white-space: pre-wrap;">
+                {!! $response ?? '' !!}
+            </div>
         </div>
-    </div>
 
-    <script>
-        function toggleInputFields() {
-            const mode = document.getElementById('input_type').value;
-            const textGroup = document.getElementById('text_input_group');
-            const pdfGroup = document.getElementById('pdf_input_group');
-            const instructionGroup = document.getElementById('custom_instruction_group');
 
-            textGroup.style.display = mode === 'topic' ? 'block' : 'none';
-            pdfGroup.style.display = mode === 'pdf' ? 'block' : 'none';
-            instructionGroup.style.display = mode ? 'block' : 'none';
-        }
+        <script>
+            function toggleInputFields() {
+                const mode = document.getElementById('input_type').value;
+                const textGroup = document.getElementById('text_input_group');
+                const pdfGroup = document.getElementById('pdf_input_group');
 
-        function handleRewriteSubmit() {
-            const btn = document.getElementById("submitButton");
-            const text = document.getElementById("btnText");
-            const spinner = document.getElementById("btnSpinner");
-            const message = document.getElementById("loadingMessage");
+                textGroup.style.display = mode === 'topic' ? 'block' : 'none';
+                pdfGroup.style.display = mode === 'pdf' ? 'block' : 'none';
+            }
 
-            btn.disabled = true;
-            text.classList.add("hidden");
-            spinner.classList.remove("hidden");
-            message.classList.remove("hidden");
-        }
-    </script>
+            function handleGenerateSubmit() {
+                const btn = document.getElementById("submitButton");
+                const text = document.getElementById("btnText");
+                const spinner = document.getElementById("btnSpinner");
+                const message = document.getElementById("loadingMessage");
+
+                btn.disabled = true;
+                text.classList.add("hidden");
+                spinner.classList.remove("hidden");
+                message.classList.remove("hidden");
+            }
+        </script>
 </body>
 
 </html>

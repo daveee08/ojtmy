@@ -7,6 +7,7 @@ use App\Http\Controllers\QuizmeController;
 use App\Http\Controllers\RewriterController;
 use App\Http\Controllers\StepTutorController;
 use App\Http\Controllers\FiveQuestionsController;
+use App\Http\Controllers\ResponderController;
 
 /*
 |--------------------------------------------------------------------------
@@ -18,7 +19,7 @@ use App\Http\Controllers\FiveQuestionsController;
 
 // ✅ Landing Page
 Route::get('/', function () {
-    return view('home');
+    return view('tool');
 });
 
 // ✅ Summarizer Tool
@@ -67,3 +68,7 @@ Route::post('/step-tutor', [StepTutorController::class, 'processForm']);
 // ✅ Explanations Tool
 Route::get('/explanations', 'App\Http\Controllers\ExplanationsController@showForm');
 Route::post('/explanations', 'App\Http\Controllers\ExplanationsController@processForm');
+
+// ✅ Responder Tool
+Route::get('/responder', [ResponderController::class, 'showForm']);
+Route::post('/responder', [ResponderController::class, 'processForm']);

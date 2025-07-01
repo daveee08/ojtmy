@@ -10,7 +10,7 @@ from langchain_ollama import OllamaLLM
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_core.messages import HumanMessage, AIMessage
-from chat_router import chat_router
+from chat_router_feb import chat_router
 from typing import Optional
 
 # ===================== App Initialization =====================

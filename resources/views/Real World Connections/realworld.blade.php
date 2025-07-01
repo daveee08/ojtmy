@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Real World Connections</title>
+    <title>🌍 Real World Connections</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 
@@ -44,6 +44,7 @@
                     <label for="grade_level" class="form-label">Grade Level:</label>
                     <select class="form-select" name="grade_level" id="grade_level" required>
                         <option value="">-- Select Grade --</option>
+                        <option value="kindergarten" {{ old('grade_level', $old['grade_level'] ?? '') === 'kindergarten' ? 'selected' : '' }}>Kindergarten</option>
                         <option value="elementary" {{ old('grade_level', $old['grade_level'] ?? '') === 'elementary' ? 'selected' : '' }}>Elementary</option>
                         <option value="junior high" {{ old('grade_level', $old['grade_level'] ?? '') === 'junior high' ? 'selected' : '' }}>Junior High</option>
                         <option value="senior high" {{ old('grade_level', $old['grade_level'] ?? '') === 'senior high' ? 'selected' : '' }}>Senior High</option>
@@ -85,6 +86,7 @@
                 <div class="alert alert-danger mt-4">
                     {{ $errors->first('error') }}
                 </div>
+                
             @endif
         </div>
     </div>

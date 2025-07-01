@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>5 Questions Agent</title>
+    <title>🧠 5 Questions Agent</title>
 
     {{-- Bootstrap --}}
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -47,6 +47,7 @@
                         <label for="grade_level" class="form-label">Select Grade Level:</label>
                         <select class="form-select" name="grade_level" id="grade_level" required>
                             <option value="">-- Choose --</option>
+                            <option value ="kindergarten" {{ old('grade_level') == 'kindergarten' ? 'selected' : '' }}>Kindergarten</option>
                             <option value="elementary" {{ old('grade_level') == 'elementary' ? 'selected' : '' }}>Elementary</option>
                             <option value="junior_high" {{ old('grade_level') == 'junior_high' ? 'selected' : '' }}>Junior High</option>
                             <option value="senior_high" {{ old('grade_level') == 'senior_high' ? 'selected' : '' }}>Senior High</option>

@@ -15,8 +15,8 @@ class CreateAgentsTable extends Migration
     {
         Schema::create('agents', function (Blueprint $table) {
             $table->bigIncrements('id'); // bigint + identity + primary key
-            $table->string('name')->nullable(); // character varying null
-            $table->timestampTz('created_at')->useCurrent(); // timestamp with time zone default now()
+            $table->string('agent'); // character varying null
+            $table->timestamps();
         });
     }
 

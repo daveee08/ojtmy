@@ -15,13 +15,15 @@ class CreateMessagesTable extends Migration
     {
         Schema::create('messages', function (Blueprint $table) {
             $table->bigIncrements('id'); // bigint + identity + primary key
-            $table->unsignedBigInteger('session_id'); // FK to sessions.id
+            $table->unsignedBigInteger('agent_id');
+            $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('parameter_inputs');
             $table->enum('sender', ['ai', 'human']);
             $table->text('topic');
             $table->timestamps();
 
-            $table->foreign('session_id')->references('id')->on('sessions')->onDelete('cascade');
+            $table->foreign('agent_id')->references('id')->on('agents')->onDelete('cascade');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('parameter_inputs')->references('id')->on('parameter_inputs')->onDelete('cascade');
         });
     }

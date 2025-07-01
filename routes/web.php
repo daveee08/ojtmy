@@ -10,7 +10,7 @@ use App\Http\Controllers\FiveQuestionsController;
 use App\Http\Controllers\EmailWriterController;
 use App\Http\Controllers\ThankYouNoteController;
 use App\Http\Controllers\IdeaGeneratorController;
-
+use App\Http\Controllers\ContentCreatorController;
 use App\Http\Controllers\RealWorldController;
 use App\Http\Controllers\AuthController;
 /*
@@ -50,6 +50,7 @@ Route::middleware('auth')->group(function () {
 Route::get('/summarize', [SummarizeController::class, 'index']);
 Route::post('/summarize', [SummarizeController::class, 'summarize']);
 
+// thank you note
 Route::get('/thankyou-note', [ThankYouNoteController::class, 'showForm'])->name('thankyou.show');
 Route::post('/thankyou-note', [ThankYouNoteController::class, 'generate'])->name('thankyou.generate');
 
@@ -57,6 +58,9 @@ Route::post('/thankyou-note', [ThankYouNoteController::class, 'generate'])->name
 Route::get('/scaffolder', 'App\Http\Controllers\ScaffolderController@showForm');
 Route::post('/scaffolder', 'App\Http\Controllers\ScaffolderController@processForm');
 
+//content creator
+Route::get('/tools/contentcreator', [ContentCreatorController::class, 'showForm'])->name('contentcreator.form');
+Route::post('/tools/contentcreator', [ContentCreatorController::class, 'generate'])->name('contentcreator.generate');
 //Idea Generator
 Route::get('/idea-generator', [IdeaGeneratorController::class, 'showForm'])->name('idea.show');
 Route::post('/idea-generator', [IdeaGeneratorController::class, 'generate'])->name('idea.generate');

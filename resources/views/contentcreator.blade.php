@@ -28,44 +28,29 @@
         .ck-btn:hover {
             background-color: #d32078;
         }
-        .ck-title {
-            font-size: 1.8rem;
-            font-weight: 600;
-            text-align: center;
-            margin-bottom: 10px;
-        }
-        .ck-sub {
-            text-align: center;
-            margin-bottom: 25px;
-            color: #666;
-        }
-        select, textarea {
+        select, textarea, input {
             border-radius: 8px;
         }
     </style>
 </head>
 <body>
-
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-lg-8">
             <div class="ck-card">
-                <h2 class="ck-title">Content Creator</h2>
-                <p class="ck-sub">Use AI to write content and a matching social media caption.</p>
+                <h2 class="text-center fw-bold">Content Creator</h2>
+                <p class="text-center text-muted mb-4">Generate content with an optional caption.</p>
 
-                <form method="POST" action="{{ route('content.generate') }}">
+                <form method="POST" action="{{ route('contentcreator.generate') }}">
                     @csrf
-
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Grade level: <span class="text-danger">*</span></label>
+                        <label class="form-label fw-bold">Grade level</label>
                         <select class="form-select" name="grade_level" required>
-                            <option disabled selected>Select a grade level</option>
+                            <option disabled selected>Select grade level</option>
                             @foreach([
                                 'Pre-K', 'Kindergarten',
                                 'Grade 1','Grade 2','Grade 3','Grade 4','Grade 5','Grade 6',
                                 'Grade 7','Grade 8','Grade 9','Grade 10','Grade 11','Grade 12',
-                                'Year 1','Year 2','Year 3','Year 4','Year 5','Year 6','Year 7',
-                                'Year 8','Year 9','Year 10','Year 11','Year 12','Year 13',
                                 'University','Professional Staff'
                             ] as $level)
                                 <option value="{{ $level }}" {{ old('grade_level') == $level ? 'selected' : '' }}>{{ $level }}</option>
@@ -74,36 +59,38 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Text Length: <span class="text-danger">*</span></label>
-                        <select class="form-select" name="text_length" required>
-                            <option disabled selected>Select a length</option>
-                            <option value="1 paragraph">1 paragraph</option>
-                            <option value="2 paragraphs">2 paragraphs</option>
-                            <option value="3 paragraphs">3 paragraphs</option>
-                            <option value="1 page">1 page</option>
-                            <option value="2 pages">2 pages</option>
+                        <label class="form-label fw-bold">Length</label>
+                        <select class="form-select" name="length" required>
+                            @foreach(['1 paragraph', '2 paragraphs', '3 paragraphs', '1 page', '2 pages'] as $opt)
+                                <option value="{{ $opt }}" {{ old('length') == $opt ? 'selected' : '' }}>{{ $opt }}</option>
+                            @endforeach
                         </select>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label fw-bold">What content do you want? <span class="text-danger">*</span></label>
-                        <textarea class="form-control" name="prompt" rows="4" placeholder="E.g. Write an article about digital minimalism, or an inspiring bio for a female scientist…" required>{{ old('prompt') }}</textarea>
+                        <label class="form-label fw-bold">What should it be about?</label>
+                        <textarea class="form-control" name="prompt" rows="3" required>{{ old('prompt') }}</textarea>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Additional criteria (optional):</label>
-                        <textarea class="form-control" name="additional_criteria" rows="3" placeholder="E.g. Must include 3 tips, or must sound funny, or align with science week theme…">{{ old('additional_criteria') }}</textarea>
+                        <label class="form-label">Additional instructions (optional)</label>
+                        <input type="text" name="extra" class="form-control" value="{{ old('extra') }}">
                     </div>
 
                     <div class="text-center mt-4">
-                        <button type="submit" class="ck-btn w-100">Generate Content</button>
+                        <button type="submit" class="ck-btn w-100">Generate</button>
                     </div>
                 </form>
 
-                @if(session('generated_content'))
+                @if(session('content'))
                     <hr class="my-4">
-                    <h5 class="fw-bold" style="color:#EC298B;">Generated Output:</h5>
-                    <pre class="mt-3">{{ session('generated_content') }}</pre>
+                    <h5 class="fw-bold text-success">Generated Content:</h5>
+                    <pre class="mt-3">{{ session('content') }}</pre>
+
+                    @if(session('caption'))
+                        <h6 class="fw-bold mt-4" style="color:#EC298B;">Suggested Caption:</h6>
+                        <p>{{ session('caption') }}</p>
+                    @endif
                 @endif
 
                 @if(session('error'))
@@ -113,8 +100,5 @@
         </div>
     </div>
 </div>
-
 </body>
 </html>
-
-

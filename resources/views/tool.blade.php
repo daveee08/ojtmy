@@ -173,7 +173,7 @@
     <a href="http://127.0.0.1:5001/generate-quiz" target="_blank" class="tool-card-link">
         <div class="tool-card">
             <h5>Quiz Me!</h5>
-            <p>Quiz yourself on any topic or test type.</p>
+            <p>Asks questions to test knowledge and boost learning in a fun way.</p>
         </div>
     </a>
 
@@ -257,7 +257,7 @@
     <a href="http://127.0.0.1:5001/5questions" target="_blank" class="tool-card-link">
         <div class="tool-card">
             <h5>Multiple Explanations Generator</h5>
-            <p>Provides different ways to explain the same concept — great for clearing up confusion and supporting diverse learning styles.</p>
+            <p>Provides different ways to explain and supporting diverse learning styles.</p>
         </div>
     </a>
 

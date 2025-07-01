@@ -13,6 +13,7 @@ return new class extends Migration {
             $table->string('agent')->default('tutor');
             $table->text('message');
             $table->enum('sender', ['user', 'agent']);
+            $table->text('sess_grade_level')->nullable(); // Added grade_level column
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');

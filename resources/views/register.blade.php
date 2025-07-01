@@ -97,7 +97,7 @@
         <form method="POST" action="{{ url('/register') }}">
             @csrf
             <div class="form-group">
-                <label for="name">Name</label>
+                <label for="username">Name</label>
                 <input type="text" id="name" name="name" value="{{ old('name') }}" required autofocus>
             </div>
 

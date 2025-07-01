@@ -102,7 +102,7 @@ From now on, please respond speaking in the first person.
 """
 
 # ===================== LangChain Setup =====================
-model = OllamaLLM(model="gemma3:1b")
+model = OllamaLLM(model="gemma:2b")
 manual_prompt = ChatPromptTemplate.from_template(manual_topic_template)
 pdf_prompt = ChatPromptTemplate.from_template(pdf_topic_template)
 chat_history_prompt = ChatPromptTemplate.from_template(chat_history_template)

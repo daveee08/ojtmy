@@ -37,12 +37,12 @@
             <img src="https://ckgroup.ph/wp-content/uploads/2020/05/CK-Logo-Rectangle-300x95.png" alt="CK Logo" height="44">
         </a>
         <ul class="navbar-nav flex-row align-items-center ms-auto me-3">
-            <li class="nav-item">
-                <a class="nav-link {{ request()->is('home') ? 'active' : '' }}" href="{{ url('/') }}">Home</a>
+            {{-- <li class="nav-item">
+                <a class="nav-link {{ request()->is('home') ? 'active' : '' }}" href="{{ url('/') }}"></a>
             </li>
             <li class="nav-item">
-                <a class="nav-link {{ request()->is('/') ? 'active' : '' }}" href="{{ url('/tools') }}">Tools</a>
-            </li>
+                <a class="nav-link {{ request()->is('/') ? 'active' : '' }}" href="{{ url('/tools') }}"></a>
+            </li> --}}
             @auth
             <li class="nav-item">
                 <form method="POST" action="{{ url('/logout') }}" style="display:inline;">

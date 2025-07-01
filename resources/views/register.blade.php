@@ -98,7 +98,7 @@
             @csrf
             <div class="form-group">
                 <label for="username">Name</label>
-                <input type="text" id="name" name="name" value="{{ old('name') }}" required autofocus>
+                <input type="text" id="username" name="username" value="{{ old('username') }}" required autofocus>
             </div>
 
             <div class="form-group">

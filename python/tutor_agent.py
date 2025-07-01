@@ -1,21 +1,55 @@
-from fastapi import FastAPI, UploadFile, Form, HTTPException, Request
+from fastapi import FastAPI, UploadFile, Form, HTTPException, Request, Depends
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 import traceback, os, re, tempfile
-# from langchain_core.messages import ChatMessageHistory
 import json
 import httpx
 
+from typing import Optional
 from langchain_ollama import OllamaLLM
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_core.messages import HumanMessage, AIMessage
 from chat_router_feb import chat_router
-from typing import Optional
-
 # ===================== App Initialization =====================
 app = FastAPI()
 app.include_router(chat_router)
+
+
+
+# ===================== Pydantic Model =====================
+from pydantic import BaseModel
+from fastapi import Form, Depends
+
+class TutorRequest(BaseModel):
+    user_id: int
+    grade_level: str
+    input_type: str
+    topic: str = ""
+    add_cont: str = ""
+    mode: str = "manual"
+    history: str = "[]"
+
+    @classmethod
+    def as_form(
+        cls,
+        user_id: int = Form(...),
+        grade_level: str = Form(...),
+        input_type: str = Form(...),
+        topic: str = Form(""),
+        add_cont: str = Form(""),
+        mode: str = Form("manual"),
+        history: str = Form("[]")
+    ):
+        return cls(
+            user_id=user_id,
+            grade_level=grade_level,
+            input_type=input_type,
+            topic=topic,
+            add_cont=add_cont,
+            mode=mode,
+            history=history
+        )
 
 # ===================== Prompt Templates =====================
 
@@ -108,7 +142,6 @@ pdf_prompt = ChatPromptTemplate.from_template(pdf_topic_template)
 chat_history_prompt = ChatPromptTemplate.from_template(chat_history_template)
 
 # ===================== Helper Functions =====================
-
 def extract_text_from_pdf(path: str) -> str:
     loader = PyPDFLoader(path)
     pages = loader.load()
@@ -155,30 +188,20 @@ async def generate_output_with_file(grade_level, input_type, topic="", add_cont=
     result = chain.invoke(user_input)
     return clean_output(result)
 
-
-
-# ===================== Routes =====================
-
+# ===================== Route =====================
 @app.post("/tutor")
 async def tutor_endpoint(
-    user_id: int = Form(...),
-    grade_level: str = Form(...),
-    input_type: str = Form(...),
-    topic: str = Form(""),
-    add_cont: str = Form(""),
-    mode: str = Form("manual"),
-    history: str = Form("[]"),
-    pdf_file: UploadFile = None,
+    data: TutorRequest = Depends(TutorRequest.as_form),
+    pdf_file: Optional[UploadFile] = None,
     request: Request = None
 ):
     try:
-        if mode == "chat":
-            # Send to chat_with_history only for chat mode
+        if data.mode == "chat":
             async with httpx.AsyncClient() as client:
                 form_data = {
-                    "topic": topic,
-                    "history": history,
-                    "user_id": str(user_id)
+                    "topic": data.topic,
+                    "history": data.history,
+                    "user_id": str(data.user_id)
                 }
                 chat_url = "http://127.0.0.1:5001/chat_with_history"
                 resp = await client.post(chat_url, data=form_data)
@@ -186,23 +209,19 @@ async def tutor_endpoint(
                 result = resp.json()
                 output = result.get("response", "No output")
         else:
-            # Use manual or PDF logic
             output = await generate_output_with_file(
-                grade_level=grade_level,
-                input_type=input_type,
-                topic=topic,
-                add_cont=add_cont,
+                grade_level=data.grade_level,
+                input_type=data.input_type,
+                topic=data.topic,
+                add_cont=data.add_cont,
                 pdf_file=pdf_file,
-                mode=mode
+                mode=data.mode
             )
 
         return {"output": output}
     except Exception as e:
         traceback_str = traceback.format_exc()
-        print(traceback_str)
         return JSONResponse(status_code=500, content={"detail": str(e), "trace": traceback_str})
-
-
 
 # ===================== Models =====================
 

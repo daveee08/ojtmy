@@ -107,6 +107,25 @@
     flex-direction: column;
   }
 </style>
+
+<div class="row">
+        <div class="col-md-3">
+          <h5 class="fw-bold mb-3">Threads</h5>
+          <ul class="list-group">
+            @foreach($threads as $thread)
+              <li class="list-group-item {{ $thread->id == $activeThread ? 'active' : '' }}">
+                <a href="{{ url('/tutor?thread_id=' . $thread->id) }}" class="text-decoration-none text-dark">
+                  {{ \Illuminate\Support\Str::limit($thread->topic, 50) }}
+                </a>
+              </li>
+            @endforeach
+          </ul>
+        </div>
+        <div class="col-md-9">
+          <!-- existing tutor form and chat box go here -->
+        </div>
+      </div>
+      
 <div class="container py-5">
   <div class="row justify-content-center">
     <div class="col-lg-8">
@@ -130,6 +149,10 @@
             @endforeach
           </div>
         @endif
+        
+
+
+        
 
         <!-- Tutor Form -->
         <form id="tutor-form" action="{{ url('/tutor') }}" method="POST" enctype="multipart/form-data">
@@ -167,6 +190,9 @@
             <input type="hidden" name="grade_level" value="{{ isset($history) && count($history) > 0 ? $history[0]['grade_level'] ?? '' : '' }}">
             <input type="hidden" name="input_type" value="topic">
             <input type="hidden" name="add_cont" value="">
+            @if(isset($activeThread))
+              <input type="hidden" name="message_id" value="{{ $activeThread }}">
+            @endif
             <div class="mb-3">
               <label class="form-label">Follow Up Message</label>
               <input type="text" class="form-control" name="topic" placeholder="Continue the conversation..." required>
@@ -195,6 +221,9 @@
     </div>
   </div>
 </div>
+
+
+
 
 <script>
   // Toggle topic and PDF inputs based on selected input type

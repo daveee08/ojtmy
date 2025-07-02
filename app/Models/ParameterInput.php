@@ -9,6 +9,7 @@ class ParameterInput extends Model
     protected $fillable = [
         'input',
         'parameter_id',
+        'agent_id',
     ];
 
     public function parameter()

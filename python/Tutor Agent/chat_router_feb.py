@@ -92,15 +92,15 @@ class DBChatHistory(BaseChatMessageHistory):
         conn = self._connect()
         cursor = conn.cursor(dictionary=True)
         cursor.execute("""
-            SELECT sender, message FROM conversation_histories
-            WHERE user_id = %s AND agent = %s
+            SELECT sender, topic FROM messages
+            WHERE user_id = %s
             ORDER BY created_at
-        """, (self.user_id, self.agent))
+        """, (self.user_id,))
         for row in cursor.fetchall():
-            if row["sender"] == "user":
-                self._messages.append(HumanMessage(content=row["message"]))
-            elif row["sender"] == "agent":
-                self._messages.append(AIMessage(content=row["message"]))
+            if row["sender"] == "human":
+                self._messages.append(HumanMessage(content=row["topic"]))
+            elif row["sender"] == "ai":
+                self._messages.append(AIMessage(content=row["topic"]))
         cursor.close()
         conn.close()
 
@@ -110,19 +110,26 @@ class DBChatHistory(BaseChatMessageHistory):
 
     def add_user_message(self, message: str) -> None:
         self._messages.append(HumanMessage(content=message))
-        self._save_message(message, "user")
+        self._save_message(message, "human")
 
     def add_ai_message(self, message: str) -> None:
         self._messages.append(AIMessage(content=message))
-        self._save_message(message, "agent")
+        self._save_message(message, "ai")
 
     def _save_message(self, message: str, sender: str) -> None:
         conn = self._connect()
         cursor = conn.cursor()
         cursor.execute("""
-            INSERT INTO conversation_histories (user_id, agent, message, sender)
-            VALUES (%s, %s, %s, %s)
-        """, (self.user_id, self.agent, message, sender))
+            INSERT INTO messages (agent_id, user_id, parameter_inputs, sender, message_id, topic, created_at, updated_at)
+            VALUES (%s, %s, %s, %s, %s, %s, NOW(), NOW())
+        """, (
+            1,  # agent_id placeholder
+            self.user_id,
+            1,  # parameter_inputs placeholder
+            sender,
+            1,  # message_id placeholder for threading
+            message
+        ))
         conn.commit()
         cursor.close()
         conn.close()
@@ -131,9 +138,9 @@ class DBChatHistory(BaseChatMessageHistory):
         conn = self._connect()
         cursor = conn.cursor()
         cursor.execute("""
-            DELETE FROM conversation_histories
-            WHERE user_id = %s AND agent = %s
-        """, (self.user_id, self.agent))
+            DELETE FROM messages
+            WHERE user_id = %s
+        """, (self.user_id,))
         conn.commit()
         cursor.close()
         conn.close()

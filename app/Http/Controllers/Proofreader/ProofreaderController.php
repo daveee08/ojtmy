@@ -1,15 +1,16 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Proofreader;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use App\Http\Controllers\Controller;
 
 class ProofreaderController extends Controller
 {
     public function showForm()
     {
-        return view('proofreader');
+        return view('Text Proofreader.proofreader');
     }
 
     public function processForm(Request $request)
@@ -58,7 +59,7 @@ class ProofreaderController extends Controller
                          ->withInput();
         }
 
-        return view('proofreader', [
+        return view('Text Proofreader.proofreader', [
             'response' => $response->json(),
             'old' => [
                 'profile' => $validated['profile'],

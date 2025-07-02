@@ -117,12 +117,12 @@
         @if(isset($history) && count($history) > 0)
           <div class="chat-box" style="background:#f8f9fb;">
             @foreach ($history as $entry)
-              <div class="message d-flex {{ $entry['role'] === 'user' ? 'justify-content-end' : 'justify-content-start' }}">
+              <div class="message d-flex {{ $entry['role'] === 'human' ? 'justify-content-end' : 'justify-content-start' }}">
                 <div class="w-75">
-                  <div class="fw-bold mb-1 {{ $entry['role'] === 'user' ? 'text-end text-primary' : 'text-start text-pink' }}">
-                    {{ $entry['role'] === 'user' ? 'You' : 'Tutor' }}
+                  <div class="fw-bold mb-1 {{ $entry['role'] === 'human' ? 'text-end text-primary' : 'text-start text-pink' }}">
+                    {{ $entry['role'] === 'human' ? 'You' : 'Tutor' }}
                   </div>
-                  <div class="message-content p-3 mb-2 {{ $entry['role'] === 'user' ? 'bg-white border border-primary' : 'bg-light border border-pink' }}" style="border-radius:12px;">
+                  <div class="message-content p-3 mb-2 {{ $entry['role'] === 'human' ? 'bg-white border border-primary' : 'bg-light border border-pink' }}" style="border-radius:12px;">
                     {{ $entry['content'] }}
                   </div>
                 </div>

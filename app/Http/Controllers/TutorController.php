@@ -7,7 +7,8 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
 use App\Models\ChatHistory;
-use App\Models\ConversationHistory;
+// use App\Models\ConversationHistory;
+use App\Models\Message;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
@@ -15,19 +16,24 @@ class TutorController extends Controller
 {
     public function showForm()
     {
-        $history = ConversationHistory::where('user_id', Auth::id())
-            ->where('agent', 'tutor')
+
+        $history = Message::where('user_id', Auth::id())
+            ->where('message_id', 1) // Only top-level messages
             ->orderBy('created_at')
             ->get();
+
+        Log::info('Loading chat history for user:', ['user_id' => Auth::id(), 'count' => $history->count()]);
 
         $chatHistory = $history->map(function ($item) {
             return [
                 'role' => $item->sender,
-                'content' => $item->message
+                'content' => $item->topic
             ];
         })->toArray();
 
-        return view('tutor', [
+        Log::info('Chat history loaded:', ['count' => count($chatHistory)]);
+
+        return view('Conceptual Understanding.tutor', [
             'history' => $chatHistory
         ]);
     }

@@ -113,7 +113,7 @@
             </div>
         @endif
 
-        <form id="chatwithdocsForm" method="POST" action="/chat-with-docs" enctype="multipart/form-data">
+        <form id="chatwithdocsForm" method="POST" action="/chatwithdocs" enctype="multipart/form-data">
             @csrf
 
             <div class="mb-4">
@@ -143,6 +143,7 @@
                     {{-- Corrected values to match the IDs of the input groups --}}
                     <option value="topic_1">Text</option>
                     <option value="pdf_1">PDF</option>
+                    <option value="cancel">Cancel</option>
                 </select>
             </div>
 

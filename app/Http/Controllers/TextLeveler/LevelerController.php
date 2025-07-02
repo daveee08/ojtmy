@@ -1,17 +1,18 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\TextLeveler; # added
 
 use Illuminate\Http\Request;
 use Symfony\Component\Process\Process;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
+use App\Http\Controllers\Controller; # added
 
 class LevelerController extends Controller
 {
     public function showForm()
     {
-        return view('Text Leveler.leveler');
+        return view('Text Leveler.leveler'); # added
     }
 
     public function processForm(Request $request)
@@ -64,7 +65,7 @@ class LevelerController extends Controller
         if ($response->failed()) {
             return back()->withErrors(['error' => 'Python API failed: ' . $response->body()]);
         }
-
-        return view('Text Leveler.leveler', ['response' => $response->json()['output'] ?? 'No output']);
+ 
+        return view('Text Leveler.leveler', ['response' => $response->json()['output'] ?? 'No output']); # added
     }
 }

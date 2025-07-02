@@ -146,3 +146,10 @@ Route::post('/translator', [TranslatorController::class, 'processForm'])->name('
 // Study Habits Agent
 Route::get('/studyhabits', [StudyHabitsController::class, 'showForm'])->name('studyhabits.form');
 Route::post('/studyhabits', [StudyHabitsController::class, 'processForm'])->name('studyhabits.process');
+
+Route::get('/chat-with-docs', function () {
+    return view('Chat with Docs.chat-with-docs');
+});
+
+// Route::get('/chat-with-docs', 'App\Http\Controllers\ChatWithDocsController@showForm');
+// Route::post('/chat-with-docs', 'App\Http\Controllers\ChatWithDocsController@processForm');

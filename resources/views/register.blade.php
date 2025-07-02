@@ -97,13 +97,18 @@
         <form method="POST" action="{{ url('/register') }}">
             @csrf
             <div class="form-group">
-                <label for="name">Name</label>
-                <input type="text" id="name" name="name" value="{{ old('name') }}" required autofocus>
+                <label for="username">Name</label>
+                <input type="text" id="username" name="username" value="{{ old('username') }}" required autofocus>
             </div>
 
             <div class="form-group">
                 <label for="email">Email</label>
                 <input type="email" id="email" name="email" value="{{ old('email') }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="name">Grade Level</label>
+                <input type="text" id="grade_level" name="grade_level" value="{{ old('grade_level') }}" required>
             </div>
 
             <div class="form-group">

@@ -23,6 +23,10 @@ class AuthController extends Controller
 
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
+
+            // ✅ Store grade_level in session
+            session(['grade_level' => Auth::user()->grade_level]);
+
             return redirect()->intended('/');
         }
 
@@ -39,14 +43,16 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'username' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
+            'grade_level' => 'required|string|max:100', // ✅ Add validation
             'password' => 'required|string|min:8|confirmed',
         ]);
 
         $user = User::create([
-            'name' => $validated['name'],
+            'username' => $validated['username'],
             'email' => $validated['email'],
+            'grade_level' => $validated['grade_level'], // ✅ Save it
             'password' => Hash::make($validated['password']),
         ]);
 
@@ -54,6 +60,7 @@ class AuthController extends Controller
 
         return redirect('/');
     }
+
 
     public function logout(Request $request)
     {

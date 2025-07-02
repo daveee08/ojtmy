@@ -1,18 +1,26 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\ThankYouNote;
 
+use App\Http\Controllers\Controller; // ✅ Add this line
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 
 class ThankYouNoteController extends Controller
 {
+    /**
+     * Show the form for the Thank You Note
+     */
     public function showForm()
     {
-        return view('thankyounote'); // Make sure this Blade file exists in resources/views
+        return view('ThankYouNote.thankyounote'); 
+        // Make sure this exists: resources/views/ThankYouNote/thankyounote.blade.php
     }
 
-    public function processForm(Request $request)
+    /**
+     * Generate the Thank You Note
+     */
+    public function generate(Request $request)
     {
         $request->validate([
             'reason' => 'required|string',

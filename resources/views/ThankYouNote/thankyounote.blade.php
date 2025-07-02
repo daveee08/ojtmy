@@ -9,6 +9,7 @@
             background-color: #f4f7fb;
             font-family: 'Poppins', sans-serif;
         }
+
         .ck-card {
             background-color: #fff;
             border-radius: 12px;
@@ -16,6 +17,7 @@
             padding: 40px;
             border: 1px solid #e4e8f0;
         }
+
         .ck-btn {
             background-color: #EC298B;
             color: #fff;
@@ -25,15 +27,18 @@
             font-weight: 600;
             font-size: 16px;
         }
+
         .ck-btn:hover {
             background-color: #d32078;
         }
+
         .ck-title {
             font-size: 2rem;
             font-weight: 600;
             color: #EC298B;
             margin-bottom: 30px;
         }
+
         pre {
             white-space: pre-wrap;
             background-color: #f0f4f8;
@@ -42,6 +47,7 @@
             border: 1px solid #dce3ed;
             font-family: 'Courier New', monospace;
         }
+
         #loading-overlay {
             display: none;
             position: fixed;
@@ -55,10 +61,16 @@
             justify-content: center;
             flex-direction: column;
         }
+
+        /* Loading spinner */
+        .spinner-border.text-pink {
+            color: #EC298B;
+        }
     </style>
 </head>
 <body>
 
+<!-- Loading Spinner -->
 <div id="loading-overlay">
     <div class="spinner-border text-pink" role="status" style="width: 3rem; height: 3rem;">
         <span class="visually-hidden">Loading...</span>
@@ -72,7 +84,7 @@
             <div class="ck-card">
                 <h2 class="ck-title text-center">Thank You Note Generator</h2>
 
-                <form id="thankyou-form" method="POST" action="{{ route('thankyou.generate') }}">
+                <form method="POST" action="{{ route('thankyou.generate') }}" id="thankyou-form">
                     @csrf
                     <div class="mb-3">
                         <label class="form-label">What are you thankful for?</label>
@@ -99,6 +111,7 @@
 </div>
 
 <script>
+    // Show the loading spinner when the form is submitted
     document.getElementById('thankyou-form').addEventListener('submit', function () {
         document.getElementById('loading-overlay').style.display = 'flex';
     });

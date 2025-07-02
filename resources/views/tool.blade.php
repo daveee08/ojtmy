@@ -274,7 +274,7 @@
         <div class="tool-card">
             <div class="tool-card-content">
                 <div class="tool-card-icon">
-                    <img src="{{ asset('icons/t.png') }}" alt="Text Scaffolder Icon"> {{-- Image src left blank for you to fill --}}
+                    <img src="{{ asset('icons/text scaff.png') }}" alt="Text Scaffolder Icon"> {{-- Image src left blank for you to fill --}}
                 </div>
                 <div class="tool-card-text">
                     <h5>Text Scaffolder</h5>
@@ -288,7 +288,7 @@
         <div class="tool-card">
             <div class="tool-card-content">
                 <div class="tool-card-icon">
-                    <img src="" alt="Informational Text Icon"> {{-- Image src left blank for you to fill --}}
+                    <img src="{{ asset('icons/infotext.png') }}" alt="Informational Text Icon"> {{-- Image src left blank for you to fill --}}
                 </div>
                 <div class="tool-card-text">
                     <h5>Informational Text</h5>

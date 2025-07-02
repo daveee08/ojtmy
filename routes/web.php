@@ -2,21 +2,21 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Summarizer\SummarizeController;
-use App\Http\Controllers\ProofreaderController;
+use App\Http\Controllers\Proofreader\ProofreaderController;
 use App\Http\Controllers\QuizmeController;
 use App\Http\Controllers\RewriterController;
 use App\Http\Controllers\StepTutorController;
-use App\Http\Controllers\FiveQuestionsController;
+use App\Http\Controllers\FiveQuestion\FiveQuestionsController;
 use App\Http\Controllers\ResponderController;
 use App\Http\Controllers\EmailWriter\EmailWriterController;
 use App\Http\Controllers\ThankYouNote\ThankYouNoteController;
 use App\Http\Controllers\IdeaGenerator\IdeaGeneratorController;
 use App\Http\Controllers\ContentCreator\ContentCreatorController;
-use App\Http\Controllers\RealWorldController;
+use App\Http\Controllers\RealWorld\RealWorldController;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\SentenceStarterController;
-use App\Http\Controllers\TranslatorController;
-use App\Http\Controllers\StudyHabitsController;
+use App\Http\Controllers\SentenceStarters\SentenceStarterController;
+use App\Http\Controllers\Translator\TranslatorController;
+use App\Http\Controllers\StudyHabits\StudyHabitsController;
 use App\Http\Controllers\ChatconversationController;
 use App\Http\Controllers\TextLeveler\LevelerController;
 use App\Http\Controllers\InformationalTexts\InformationalController;

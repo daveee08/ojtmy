@@ -27,7 +27,6 @@ use App\Http\Controllers\ChatconversationController;
 
 // Landing Page
 Route::get('/', function () {
-    return view('tool');
     return view('login');
 });
 

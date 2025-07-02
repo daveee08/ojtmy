@@ -1,29 +1,29 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\TextRewriter;
 
 use Illuminate\Http\Request;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
+use App\Http\Controllers\Controller;
 
-class ExplanationsController extends Controller
+class RewriterController extends Controller
 {
     public function showForm()
     {
-        return view('explanations');
+        return view('Text Rewriter.rewriter');
     }
 
     public function processForm(Request $request)
     {
         set_time_limit(0);
 
-        // Corrected field names
         $validated = $request->validate([
             'input_type' => 'required|in:topic,pdf',
-            'grade_level' => 'required|string',
-            'concept' => 'nullable|string',
+            'custom_instruction' => 'required|string',
+            'topic' => 'nullable|string',
             'pdf_file' => 'nullable|file|mimes:pdf|max:5120',
         ]);
 
@@ -33,12 +33,12 @@ class ExplanationsController extends Controller
                 'contents' => $validated['input_type']
             ],
             [
-                'name' => 'grade_level',
-                'contents' => $validated['grade_level']
+                'name' => 'custom_instruction',
+                'contents' => $validated['custom_instruction']
             ],
             [
-                'name' => 'concept',
-                'contents' => $request->input('concept', '')
+                'name' => 'topic',
+                'contents' => $validated['topic'] ?? ''
             ],
         ];
 
@@ -49,20 +49,19 @@ class ExplanationsController extends Controller
                 'contents' => fopen($pdf->getPathname(), 'r'),
                 'filename' => $pdf->getClientOriginalName(),
                 'headers'  => [
-                    'Content-Type' => $pdf->getMimeType()
+                    'compContent-Type' => $pdf->getMimeType()
                 ],
             ];
         }
 
-        // Replace with your actual backend API URL
         $response = Http::timeout(0)
             ->asMultipart()
-            ->post('http://192.168.50.123:5001/explanations', $multipartData);
+            ->post('http://192.168.50.123:5001/rewriter', $multipartData);
 
         if ($response->failed()) {
             return back()->withErrors(['error' => 'Python API failed: ' . $response->body()]);
         }
 
-        return view('explanations', ['response' => $response->json()['output'] ?? 'No output']);
+        return view('Text Rewriter.rewriter', ['response' => $response->json()['output'] ?? 'No output']);
     }
 }

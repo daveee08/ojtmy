@@ -19,15 +19,15 @@ model = Ollama(model="llama3")
 # --- Request Model ---
 class ChatRequestForm(BaseModel):
     topic: str
-    message_id: str
+    session_id: str
 
     @classmethod
     def as_form(
         cls,
         topic: str = Form(...),
-        message_id: str = Form(...)
+        session_id: str = Form(...)
     ):
-        return cls(topic=topic, message_id=message_id)
+        return cls(topic=topic, session_id=session_id)
 
 
 # --- Message Item Model ---
@@ -37,17 +37,17 @@ class MessageItem(BaseModel):
 
 # --- Response Model ---
 class ChatHistoryResponse(BaseModel):
-    message_id: str
+    session_id: str
     history: List[MessageItem]
 
 # --- Chat History Store ---
 class FileChatMessageHistory(BaseChatMessageHistory, BaseModel):
-    message_id: str
+    session_id: str
     messages: List[BaseMessage] = Field(default_factory=list)
 
     @property
     def filepath(self) -> str:
-        return os.path.join(HISTORY_DIR, f"{self.message_id}.json")
+        return os.path.join(HISTORY_DIR, f"{self.session_id}.json")
 
     def _load_from_json(self):
         self.messages = []
@@ -82,7 +82,7 @@ class FileChatMessageHistory(BaseChatMessageHistory, BaseModel):
 
     def _save_to_json(self):
         data = {
-            "message_id": self.message_id,
+            "session_id": self.session_id,
             "conversation": [
                 {"type": "human" if isinstance(msg, HumanMessage) else "ai", "content": msg.content}
                 for msg in self.messages
@@ -96,13 +96,13 @@ class FileChatMessageHistory(BaseChatMessageHistory, BaseModel):
         self._save_to_json()
 
     @classmethod
-    def from_message_id(cls, message_id: str):
-        instance = cls(message_id=message_id)
+    def from_session_id(cls, session_id: str):
+        instance = cls(session_id=session_id)
         instance._load_from_json()
         return instance
 
-def get_history_by_message_id(message_id: str) -> FileChatMessageHistory:
-    return FileChatMessageHistory.from_message_id(message_id)
+def get_history_by_session_id(session_id: str) -> FileChatMessageHistory:
+    return FileChatMessageHistory.from_session_id(session_id)
 
 # --- Chat Prompt Setup ---
 chat_prompt = ChatPromptTemplate.from_messages([
@@ -113,7 +113,7 @@ chat_prompt = ChatPromptTemplate.from_messages([
 
 chat_chain = RunnableWithMessageHistory(
     runnable=chat_prompt | model,
-    get_session_history=get_history_by_message_id,
+    get_session_history=get_history_by_session_id,
     input_messages_key="topic",
     history_messages_key="history"
 )
@@ -124,7 +124,7 @@ async def chat_api(request: ChatRequestForm = Depends(ChatRequestForm.as_form)):
     try:
         result = chat_chain.invoke(
             {"topic": request.topic},
-            config={"configurable": {"message_id": request.message_id}}
+            config={"configurable": {"session_id": request.session_id}}
         )
         return JSONResponse(content={"response": result})
     except Exception as e:
@@ -132,17 +132,17 @@ async def chat_api(request: ChatRequestForm = Depends(ChatRequestForm.as_form)):
         print(f"[Chat Error] {e}\n{traceback_str}")
         raise HTTPException(status_code=500, detail="Chat processing failed.")
 
-@chat_router.get("/chat/history/{message_id}", response_model=ChatHistoryResponse)
-async def get_chat_history(message_id: str):
+@chat_router.get("/chat/history/{session_id}", response_model=ChatHistoryResponse)
+async def get_chat_history(session_id: str):
     try:
-        history = get_history_by_message_id(message_id)
+        history = get_history_by_session_id(session_id)
         formatted_messages = [
             MessageItem(
                 type="human" if isinstance(msg, HumanMessage) else "ai",
                 content=msg.content
             ) for msg in history.messages
         ]
-        return ChatHistoryResponse(message_id=message_id, history=formatted_messages)
+        return ChatHistoryResponse(session_id=session_id, history=formatted_messages)
     except Exception as e:
         traceback_str = traceback.format_exc()
         print(f"[Get History Error] {e}\n{traceback_str}")

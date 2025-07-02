@@ -68,7 +68,7 @@ chat_prompt = ChatPromptTemplate.from_messages([
     ("human", "{topic}")
 ])
 
-model = Ollama(model="llama3")
+model = Ollama(model="gemma3:1b")
 chat_chain: Runnable = chat_prompt | model
 
 # ====================== DB Message History ======================
@@ -108,31 +108,31 @@ class DBChatHistory(BaseChatMessageHistory):
     def messages(self) -> list[BaseMessage]:
         return self._messages
 
-    def add_user_message(self, message: str) -> None:
-        self._messages.append(HumanMessage(content=message))
-        self._save_message(message, "human")
+    # def add_user_message(self, message: str) -> None:
+    #     self._messages.append(HumanMessage(content=message))
+    #     self._save_message(message, "human")
 
-    def add_ai_message(self, message: str) -> None:
-        self._messages.append(AIMessage(content=message))
-        self._save_message(message, "ai")
+    # def add_ai_message(self, message: str) -> None:
+    #     self._messages.append(AIMessage(content=message))
+    #     self._save_message(message, "ai")
 
-    def _save_message(self, message: str, sender: str) -> None:
-        conn = self._connect()
-        cursor = conn.cursor()
-        cursor.execute("""
-            INSERT INTO messages (agent_id, user_id, parameter_inputs, sender, message_id, topic, created_at, updated_at)
-            VALUES (%s, %s, %s, %s, %s, %s, NOW(), NOW())
-        """, (
-            1,  # agent_id placeholder
-            self.user_id,
-            1,  # parameter_inputs placeholder
-            sender,
-            1,  # message_id placeholder for threading
-            message
-        ))
-        conn.commit()
-        cursor.close()
-        conn.close()
+    # def _save_message(self, message: str, sender: str) -> None:
+    #     conn = self._connect()
+    #     cursor = conn.cursor()
+    #     cursor.execute("""
+    #         INSERT INTO messages (agent_id, user_id, parameter_inputs, sender, message_id, topic, created_at, updated_at)
+    #         VALUES (%s, %s, %s, %s, %s, %s, NOW(), NOW())
+    #     """, (
+    #         1,  # agent_id placeholder
+    #         self.user_id,
+    #         1,  # parameter_inputs placeholder
+    #         sender,
+    #         1,  # message_id placeholder for threading
+    #         message
+    #     ))
+    #     conn.commit()
+    #     cursor.close()
+    #     conn.close()
 
     def clear(self) -> None:
         conn = self._connect()

@@ -7,7 +7,7 @@ from langchain_community.document_loaders.pdf import PyPDFLoader
 import shutil, os, re, tempfile, uvicorn, traceback
 from typing import Optional
 from uuid import uuid4
-from chat_router import chat_router, get_history_by_session_id
+from chat_router import chat_router, get_history_by_message_id
 from langchain_core.messages import HumanMessage, AIMessage
 
 # --- Prompt Templates ---
@@ -66,7 +66,7 @@ class LevelerFormInput(BaseModel):
     topic: str
     grade_level: str
     learning_speed: str
-    session_id: Optional[str] = None
+    message_id: Optional[str] = None
 
     @classmethod
     def as_form(
@@ -75,14 +75,14 @@ class LevelerFormInput(BaseModel):
         topic: str = Form(""),
         grade_level: str = Form(...),
         learning_speed: str = Form(...),
-        session_id: Optional[str] = Form(default=None)
+        message_id: Optional[str] = Form(default=None)
     ):
         return cls(
             input_type=input_type,
             topic=topic,
             grade_level=grade_level,
             learning_speed=learning_speed,
-            session_id=session_id
+            message_id=message_id
         )
 
 # --- PDF Loader ---
@@ -146,7 +146,7 @@ async def leveler_api(
         if form_data.input_type == "pdf" and not pdf_file:
             raise HTTPException(status_code=400, detail="PDF file required for PDF input_type")
 
-        session_id = form_data.session_id or str(uuid4())
+        message_id = form_data.message_id or str(uuid4())
 
         output = await generate_output(
             input_type=form_data.input_type,
@@ -156,14 +156,14 @@ async def leveler_api(
             learning_speed=form_data.learning_speed,
         )
 
-        history = get_history_by_session_id(session_id)
+        history = get_history_by_message_id(message_id)
         human_content = form_data.topic.strip() or f"Uploaded PDF: {pdf_file.filename}"
         history.add_messages([
             HumanMessage(content=human_content),
             AIMessage(content=output)
         ])
 
-        return {"output": output, "session_id": session_id}
+        return {"output": output, "message_id": message_id}
     except Exception as e:
         traceback_str = traceback.format_exc()
         print(traceback_str)

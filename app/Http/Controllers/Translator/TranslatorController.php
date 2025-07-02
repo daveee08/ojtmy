@@ -1,15 +1,15 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Translator;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
-
+use App\Http\Controllers\Controller;
 class TranslatorController extends Controller
 {
     public function showForm()
     {
-        return view('translator');
+        return view('Text Translator.translator');
     }
 
     public function processForm(Request $request)
@@ -32,7 +32,7 @@ class TranslatorController extends Controller
 
         $data = $response->json();
 
-        return view('translator', [
+        return view('Text Translator.translator', [
             'translation' => $data['translation'] ?? 'No translation returned.',
             'old' => $validated,
         ]);

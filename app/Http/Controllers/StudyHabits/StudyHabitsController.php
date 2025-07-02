@@ -1,15 +1,15 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\StudyHabits;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
-
+use App\Http\Controllers\Controller;
 class StudyHabitsController extends Controller
 {
     public function showForm()
     {
-        return view('studyhabits');
+        return view('Study Habits.studyhabits');
     }
 
     public function processForm(Request $request)
@@ -30,7 +30,7 @@ class StudyHabitsController extends Controller
             return back()->withErrors(['error' => 'Agent failed. Try again.'])->withInput();
         }
 
-        return view('studyhabits', [
+        return view('Study Habits.studyhabits', [
             'plan' => $response['plan'] ?? 'No response generated.',
         ]);
     }

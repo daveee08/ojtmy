@@ -114,7 +114,6 @@ class TutorController extends Controller
             $human->save();
         }
 
-
         // Build context summary
         $priorMessages = Message::where('message_id', $human->message_id)
             ->orderBy('created_at')

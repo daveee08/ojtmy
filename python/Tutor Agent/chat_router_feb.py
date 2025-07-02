@@ -68,7 +68,7 @@ chat_prompt = ChatPromptTemplate.from_messages([
     ("human", "{topic}")
 ])
 
-model = Ollama(model="gemma3:1b")
+model = Ollama(model="llama3")
 chat_chain: Runnable = chat_prompt | model
 
 # ====================== DB Message History ======================

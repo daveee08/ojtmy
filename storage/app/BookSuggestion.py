@@ -491,4 +491,4 @@ async def suggest_book(
     return {"suggestion": final_response}
 
 if __name__ == "__main__":
-    uvicorn.run("CkBookSuggestion:app", host="127.0.0.1", port=5001, reload=False) 
+    uvicorn.run("BookSuggestion:app", host="127.0.0.1", port=5005, reload=False) 

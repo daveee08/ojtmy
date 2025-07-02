@@ -25,7 +25,7 @@ class BookSuggestionController extends Controller
     
         try {
             $client = new \GuzzleHttp\Client();
-            $response = $client->post('http://127.0.0.1:5001/suggest', [
+            $response = $client->post('http://127.0.0.1:5005/suggest', [
                 'json' => [
                     'interests' => $interests,
                     'grade_level' => $gradeLevel ?: null

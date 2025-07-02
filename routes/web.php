@@ -12,6 +12,16 @@ use App\Http\Controllers\ThankYouNoteController;
 use App\Http\Controllers\RealWorldController;
 use App\Http\Controllers\EmailResponderController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ScaffolderController;
+use App\Http\Controllers\TutorController;
+use App\Http\Controllers\LevelerController;
+use App\Http\Controllers\InformationalController;
+use App\Http\Controllers\ExplanationsController;
+use App\Http\Controllers\QOTDController;
+use App\Http\Controllers\TongueTwistController;
+use App\Http\Controllers\TeacherJokesController;
+use App\Http\Controllers\CoachSportsPracController;
+use App\Http\Controllers\BookSuggestionController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -78,22 +88,22 @@ Route::post('/quizme/evaluate-answer', 'App\Http\Controllers\QuizmeController@ev
 Route::post('/quizme/chat', 'App\Http\Controllers\QuizmeController@chat');
 
 // ✅ Qoutes of the Day
-Route::get('/qotd', 'App\\Http\\Controllers\\QOTDController@showForm');
-Route::post('/qotd', 'App\\Http\\Controllers\\QOTDController@generateQuote');
-Route::post('/qotd/download', 'App\\Http\\Controllers\\QOTDController@downloadQuote')->name('qotd.download');
+Route::get('/qotd', [QOTDController::class, 'showForm']);
+Route::post('/qotd', [QOTDController::class, 'generateQuote']);
+Route::post('/qotd/download', [QOTDController::class, 'downloadQuote'])->name('qotd.download');
 
 // ✅ Tongue Twister
-Route::get('/tonguetwister', 'App\Http\Controllers\TongueTwistController@showForm');
-Route::post('/tonguetwister', 'App\\Http\\Controllers\\TongueTwistController@generateTongueTwister');
+Route::get('/tonguetwister', [TongueTwistController::class, 'showForm']);
+Route::post('/tonguetwister', [TongueTwistController::class, 'generateTongueTwister']);
 
 // ✅ Teacher Jokes
-Route::get('/teacherjokes', 'App\\Http\\Controllers\\TeacherJokesController@showForm');
-Route::post('/teacherjokes', 'App\\Http\\Controllers\\TeacherJokesController@generateJoke');
+Route::get('/teacherjokes', [TeacherJokesController::class, 'showForm']);
+Route::post('/teacherjokes', [TeacherJokesController::class, 'generateJoke']);
 
 // ✅ Coach Sports Practice
-Route::get('/coachsportprac', 'App\\Http\\Controllers\\CoachSportsPracController@showForm');
-Route::post('/coachsportprac', 'App\\Http\\Controllers\\CoachSportsPracController@generatePracticePlan');
-Route::post('/coachsportprac/download', 'App\Http\Controllers\CoachSportsPracController@downloadPracticePlan')->name('coachsportprac.download');
+Route::get('/coachsportprac', [CoachSportsPracController::class, 'showForm']);
+Route::post('/coachsportprac', [CoachSportsPracController::class, 'generatePracticePlan']);
+Route::post('/coachsportprac/download', [CoachSportsPracController::class, 'downloadPracticePlan'])->name('coachsportprac.download');
 
 // ✅ 5 Questions Agent
 Route::get('/5questions', [FiveQuestionsController::class, 'showForm'])->name('fivequestions.form');
@@ -114,14 +124,9 @@ Route::get('/rewriter', 'App\Http\Controllers\RewriterController@showForm');
 Route::post('/rewriter', 'App\Http\Controllers\RewriterController@processForm');
 
 // Routes for Book Suggestion Chatbot
-Route::get('/booksuggestion', 'App\Http\Controllers\BookSuggestionController@index');
-Route::post('/suggest', 'App\Http\Controllers\BookSuggestionController@getSuggestions');
+Route::get('/booksuggestion', [BookSuggestionController::class, 'index']);
+Route::post('/suggest', [BookSuggestionController::class, 'getSuggestions']);
 
-// Route::post('/tutor/clear', function () {
-//     Session::forget('chat_history');
-//     Session::forget('grade_level');
-//     return redirect('/tutor');
-// });
 //email writer
 Route::get('/email-writer', [EmailWriterController::class, 'show'])->name('email.writer.show');
 Route::post('/email-writer', [EmailWriterController::class, 'generate'])->name('email.writer.generate');

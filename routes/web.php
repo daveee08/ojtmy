@@ -1,21 +1,26 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\SummarizeController;
+use App\Http\Controllers\Summarizer\SummarizeController;
 use App\Http\Controllers\ProofreaderController;
 use App\Http\Controllers\QuizmeController;
 use App\Http\Controllers\RewriterController;
 use App\Http\Controllers\StepTutorController;
 use App\Http\Controllers\FiveQuestionsController;
 use App\Http\Controllers\ResponderController;
-use App\Http\Controllers\EmailWriterController;
-use App\Http\Controllers\ThankYouNoteController;
+use App\Http\Controllers\EmailWriter\EmailWriterController;
+use App\Http\Controllers\ThankYouNote\ThankYouNoteController;
+use App\Http\Controllers\IdeaGenerator\IdeaGeneratorController;
+use App\Http\Controllers\ContentCreator\ContentCreatorController;
 use App\Http\Controllers\RealWorldController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\SentenceStarterController;
 use App\Http\Controllers\TranslatorController;
 use App\Http\Controllers\StudyHabitsController;
 use App\Http\Controllers\ChatconversationController;
+use App\Http\Controllers\TextLeveler\LevelerController;
+use App\Http\Controllers\InformationalTexts\InformationalController;
+use App\Http\Controllers\ChatWithDocs\ChatWithDocsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -58,9 +63,21 @@ Route::middleware('auth')->group(function () {
 Route::get('/summarize', [SummarizeController::class, 'index']);
 Route::post('/summarize', [SummarizeController::class, 'summarize']);
 
+// thank you note
+Route::get('/thankyou-note', [ThankYouNoteController::class, 'showForm'])->name('thankyou.show');
+Route::post('/thankyou-note', [ThankYouNoteController::class, 'generate'])->name('thankyou.generate');
+
 // ✅ Scaffolder Tool
 Route::get('/scaffolder', 'App\Http\Controllers\ScaffolderController@showForm');
 Route::post('/scaffolder', 'App\Http\Controllers\ScaffolderController@processForm');
+
+//content creator
+Route::get('/contentcreator', [ContentCreatorController::class, 'showForm'])->name('contentcreator.form');
+Route::post('/contentcreator', [ContentCreatorController::class, 'generate'])->name('contentcreator.generate');
+
+//Idea Generator
+Route::get('/idea-generator', [IdeaGeneratorController::class, 'showForm'])->name('idea.show');
+Route::post('/idea-generator', [IdeaGeneratorController::class, 'generate'])->name('idea.generate');
 
 // ✅ Tutor Tool
 Route::get('/tutor', 'App\Http\Controllers\TutorController@showForm');
@@ -68,12 +85,16 @@ Route::post('/tutor', 'App\Http\Controllers\TutorController@processForm');
 Route::post('/tutor/clear', [App\Http\Controllers\TutorController::class, 'clearHistory'])->middleware('auth');
 
 // ✅ Leveler Tool
-Route::get('/leveler', 'App\Http\Controllers\LevelerController@showForm');
-Route::post('/leveler', 'App\Http\Controllers\LevelerController@processForm');
+Route::get('/leveler', [LevelerController::class, 'showForm'])->name('leveler.form');
+Route::post('/leveler', [LevelerController::class, 'processForm'])->name('leveler.process');
 
 // ✅ Informational Tool
-Route::get('/informational', 'App\Http\Controllers\InformationalController@showForm');
-Route::post('/informational', 'App\Http\Controllers\InformationalController@processForm');
+Route::get('/informational', [InformationalController::class, 'showForm'])->name('informational.form');
+Route::post('/informational', [InformationalController::class, 'processForm'])->name('informational.process');
+
+// ✅ Chat with Docs Tool
+Route::get('/chatwithdocs', [ChatWithDocsController::class, 'showForm'])->name('chatwithdocs.form');
+Route::post('/chatwithdocs', [ChatWithDocsController::class, 'processForm'])->name('chatwithdocs.process');
 
 // ✅ Proofreader Tool
 Route::get('/proofreader', [ProofreaderController::class, 'showForm'])->name('proofreader.form');
@@ -151,3 +172,7 @@ Route::post('/studyhabits', [StudyHabitsController::class, 'processForm'])->name
 // ✅ Responder Tool
 Route::get('/responder', [ResponderController::class, 'showForm']);
 Route::post('/responder', [ResponderController::class, 'processForm']);
+
+Route::get('/chat-with-docs', function () {
+    return view('Chat with Docs.chat-with-docs');
+});

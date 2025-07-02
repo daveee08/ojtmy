@@ -19,6 +19,7 @@ class CreateMessagesTable extends Migration
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('parameter_inputs');
             $table->enum('sender', ['ai', 'human']);
+            $table->unsignedBigInteger('message_id'); // For threaded messages
             $table->text('topic');
             $table->timestamps();
 

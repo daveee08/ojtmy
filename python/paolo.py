@@ -5,10 +5,10 @@ from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
 from five_question_agent import FiveQuestionInput, generate_questions
-from proofreader import ProofreaderInput as ProofreadInput, run_proofread
+from ojtmy.python.Proofreader.proofreader import ProofreaderInput as ProofreadInput, run_proofread
 from real_world_agent import RealWorldInput, generate_real_world_examples
 from sentence_starters_agent import SentenceStarterInput, generate_sentence_starters
-from translator_agent import TranslationInput, translate_text
+from ojtmy.python.Translator.translator_agent import TranslationInput, translate_text
 from study_habits_agent import StudyPlanInput, generate_study_plan
 
 app = FastAPI()

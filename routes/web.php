@@ -165,3 +165,7 @@ Route::post('/studyhabits', [StudyHabitsController::class, 'processForm'])->name
 // ✅ Responder Tool
 Route::get('/responder', [ResponderController::class, 'showForm']);
 Route::post('/responder', [ResponderController::class, 'processForm']);
+
+Route::get('/chat-with-docs', function () {
+    return view('Chat with Docs.chat-with-docs');
+});

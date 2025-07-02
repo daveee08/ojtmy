@@ -39,6 +39,10 @@ Route::get('/tools', function () {
     return view('tool');
 });
 
+Route::get('/home', function () {
+    return view('home');
+});
+
 // Authentication Routes
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');

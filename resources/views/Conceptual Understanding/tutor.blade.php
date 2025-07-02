@@ -304,29 +304,39 @@
 
       // 🔄 Replace form with follow-up version if it's still initial
       if (form.querySelector('select[name="input_type"]')) {
-        const gradeLevel = formData.get('grade_level') || 'Not set';
+      const gradeLevel = formData.get('grade_level') || 'Not set';
+      const csrfToken = document.querySelector('input[name="_token"]')?.value || '';
+      const messageId = data.message_id; // ✅ This comes from server response
 
-        const csrfToken = document.querySelector('input[name="_token"]')?.value || '';
+      form.innerHTML = `
+        <input type="hidden" name="_token" value="${csrfToken}">
+        <input type="hidden" name="grade_level" value="${gradeLevel}">
+        <input type="hidden" name="input_type" value="topic">
+        <input type="hidden" name="add_cont" value="">
+        <input type="hidden" name="message_id" value="${messageId}"> <!-- ✅ persist -->
+        <div class="mb-3">
+          <label class="form-label">Follow Up Message</label>
+          <input type="text" class="form-control" name="topic" placeholder="Continue the conversation..." required>
+        </div>
+        <div class="text-center mt-4">
+          <button type="submit" class="ck-btn">Send</button>
+        </div>
+      `;
+    }
+    else {
+      const topicInput = form.querySelector('[name="topic"]');
+      if (topicInput) topicInput.value = '';
 
-        form.innerHTML = `
-          <input type="hidden" name="_token" value="${csrfToken}">
-          <input type="hidden" name="grade_level" value="${gradeLevel}">
-          <input type="hidden" name="input_type" value="topic">
-          <input type="hidden" name="add_cont" value="">
-          <div class="mb-3">
-            <label class="form-label">Follow Up Message</label>
-            <input type="text" class="form-control" name="topic" placeholder="Continue the conversation..." required>
-          </div>
-          <div class="text-center mt-4">
-            <button type="submit" class="ck-btn">Send</button>
-          </div>
-        `;
-
-      } else {
-        // Just reset follow-up input
-        const topicInput = form.querySelector('[name="topic"]');
-        if (topicInput) topicInput.value = '';
+      // 🧠 Reuse the message_id if already present
+      const existingMessageId = form.querySelector('[name="message_id"]');
+      if (!existingMessageId && data.message_id) {
+        const hiddenField = document.createElement('input');
+        hiddenField.setAttribute('type', 'hidden');
+        hiddenField.setAttribute('name', 'message_id');
+        hiddenField.setAttribute('value', data.message_id);
+        form.appendChild(hiddenField);
       }
+    }
     })
     .catch(async (error) => {
       loadingOverlay.style.display = 'none';

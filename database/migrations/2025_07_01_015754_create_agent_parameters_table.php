@@ -17,7 +17,7 @@ class CreateAgentParametersTable extends Migration
             $table->bigIncrements('id');
             $table->unsignedBigInteger('agent_id');
             $table->string('parameter');
-            $table->string('parameter_value'); // More flexible than enum
+            $table->string('parameter_value')-> nullable(); // More flexible than enum
             $table->timestamps();
 
             // Foreign key constraint

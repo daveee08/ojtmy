@@ -8,17 +8,47 @@ use Illuminate\Support\Facades\Session;
 use App\Models\ConversationHistory;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use App\Models\Message;
+use App\Models\ParameterInput;
+
+
 
 
 class StepTutorController extends Controller
 {
+
     public function showForm()
     {
-        $history = ConversationHistory::where('user_id', Auth::id())
-            ->where('agent', 'step-tutor')
-            ->orderBy('created_at')
+        // Fetch conversation history for the authenticated user
+        $selectedThread = $request->query('thread_id');
+
+        // Get all top-level threads (where id == message_id)
+        $threads = Message::where('user_id', Auth::id())
+            ->whereColumn('id', 'message_id')
+            ->where('agent', '') // Ensure we only get threads for this agent
+            ->orderByDesc('created_at')
             ->get();
 
+        $history = collect();
+
+        if ($selectedThread) {
+            $history = Message::where('message_id', $selectedThread)
+                ->orderBy('created_at')
+                ->get()
+                ->map(fn($m) => [
+                    'role' => $m->sender,
+                    'content' => $m->topic,
+                    'id' => $m->id
+                ]);
+        }
+
+        return view('Conceptual Understanding.tutor', [
+            'history' => $history,
+            'threads' => $threads,
+            'activeThread' => $selectedThread
+        ]);
+
+        // Map history to the format expected by the view
         $chatHistory = $history->map(function ($item) {
             return [
                 'role' => $item->sender,
@@ -30,6 +60,24 @@ class StepTutorController extends Controller
             'history' => $chatHistory
         ]);
     }
+    // public function showForm()
+    // {
+    //     $history = ConversationHistory::where('user_id', Auth::id())
+    //         ->where('agent', 'step-tutor')
+    //         ->orderBy('created_at')
+    //         ->get();
+
+    //     $chatHistory = $history->map(function ($item) {
+    //         return [
+    //             'role' => $item->sender,
+    //             'content' => $item->message
+    //         ];
+    //     })->toArray();
+
+    //     return view('step-tutor', [
+    //         'history' => $chatHistory
+    //     ]);
+    // }
 
     // Add at top
 

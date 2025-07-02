@@ -1,25 +1,33 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Summarizer\SummarizeController;
-use App\Http\Controllers\Proofreader\ProofreaderController;
+use App\Http\Controllers\SummarizeController;
+use App\Http\Controllers\ProofreaderController;
 use App\Http\Controllers\QuizmeController;
 use App\Http\Controllers\RewriterController;
 use App\Http\Controllers\StepTutorController;
 use App\Http\Controllers\FiveQuestion\FiveQuestionsController;
-use App\Http\Controllers\ResponderController;
 use App\Http\Controllers\EmailWriter\EmailWriterController;
 use App\Http\Controllers\ThankYouNote\ThankYouNoteController;
+use App\Http\Controllers\RealWorld\RealWorldController;
+use App\Http\Controllers\ResponderController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ScaffolderController;
+use App\Http\Controllers\TutorController;
+use App\Http\Controllers\TextLeveler\LevelerController;
+use App\Http\Controllers\InformationalTexts\InformationalController;
+use App\Http\Controllers\ExplanationsController;
+use App\Http\Controllers\QOTDController;
+use App\Http\Controllers\TongueTwistController;
+use App\Http\Controllers\TeacherJokesController;
+use App\Http\Controllers\CoachSportsPracController;
+use App\Http\Controllers\BookSuggestionController;
 use App\Http\Controllers\IdeaGenerator\IdeaGeneratorController;
 use App\Http\Controllers\ContentCreator\ContentCreatorController;
-use App\Http\Controllers\RealWorld\RealWorldController;
-use App\Http\Controllers\AuthController;
 use App\Http\Controllers\SentenceStarters\SentenceStarterController;
 use App\Http\Controllers\Translator\TranslatorController;
 use App\Http\Controllers\StudyHabits\StudyHabitsController;
 use App\Http\Controllers\ChatconversationController;
-use App\Http\Controllers\TextLeveler\LevelerController;
-use App\Http\Controllers\InformationalTexts\InformationalController;
 use App\Http\Controllers\ChatWithDocs\ChatWithDocsController;
 
 /*
@@ -116,22 +124,22 @@ Route::post('/quizme/evaluate-answer', 'App\Http\Controllers\QuizmeController@ev
 Route::post('/quizme/chat', 'App\Http\Controllers\QuizmeController@chat');
 
 // ✅ Qoutes of the Day
-Route::get('/qotd', 'App\\Http\\Controllers\\QOTDController@showForm');
-Route::post('/qotd', 'App\\Http\\Controllers\\QOTDController@generateQuote');
-Route::post('/qotd/download', 'App\\Http\\Controllers\\QOTDController@downloadQuote')->name('qotd.download');
+Route::get('/qotd', [QOTDController::class, 'showForm']);
+Route::post('/qotd', [QOTDController::class, 'generateQuote']);
+Route::post('/qotd/download', [QOTDController::class, 'downloadQuote'])->name('qotd.download');
 
 // ✅ Tongue Twister
-Route::get('/tonguetwister', 'App\Http\Controllers\TongueTwistController@showForm');
-Route::post('/tonguetwister', 'App\\Http\\Controllers\\TongueTwistController@generateTongueTwister');
+Route::get('/tonguetwister', [TongueTwistController::class, 'showForm']);
+Route::post('/tonguetwister', [TongueTwistController::class, 'generateTongueTwister']);
 
 // ✅ Teacher Jokes
-Route::get('/teacherjokes', 'App\\Http\\Controllers\\TeacherJokesController@showForm');
-Route::post('/teacherjokes', 'App\\Http\\Controllers\\TeacherJokesController@generateJoke');
+Route::get('/teacherjokes', [TeacherJokesController::class, 'showForm']);
+Route::post('/teacherjokes', [TeacherJokesController::class, 'generateJoke']);
 
 // ✅ Coach Sports Practice
-Route::get('/coachsportprac', 'App\\Http\\Controllers\\CoachSportsPracController@showForm');
-Route::post('/coachsportprac', 'App\\Http\\Controllers\\CoachSportsPracController@generatePracticePlan');
-Route::post('/coachsportprac/download', 'App\Http\Controllers\CoachSportsPracController@downloadPracticePlan')->name('coachsportprac.download');
+Route::get('/coachsportprac', [CoachSportsPracController::class, 'showForm']);
+Route::post('/coachsportprac', [CoachSportsPracController::class, 'generatePracticePlan']);
+Route::post('/coachsportprac/download', [CoachSportsPracController::class, 'downloadPracticePlan'])->name('coachsportprac.download');
 
 // ✅ 5 Questions Tool
 Route::get('/5questions', [FiveQuestionsController::class, 'showForm'])->name('fivequestions.form');
@@ -147,11 +155,23 @@ Route::post('/step-tutor/clear', [App\Http\Controllers\StepTutorController::clas
 Route::get('/explanations', 'App\Http\Controllers\ExplanationsController@showForm');
 Route::post('/explanations', 'App\Http\Controllers\ExplanationsController@processForm');
 
+<<<<<<< HEAD
+// Rewriter Tool
+Route::get('/rewriter', [RewriterController::class, 'showForm']);
+Route::post('/rewriter', [RewriterController::class, 'processForm']);
+Route::get('/rewriter', 'App\Http\Controllers\RewriterController@showForm');
+Route::post('/rewriter', 'App\Http\Controllers\RewriterController@processForm');
+
+// Routes for Book Suggestion Chatbot
+Route::get('/booksuggestion', [BookSuggestionController::class, 'index']);
+Route::post('/suggest', [BookSuggestionController::class, 'getSuggestions']);
+=======
 // Route::post('/tutor/clear', function () {
 //     Session::forget('chat_history');
 //     Session::forget('grade_level');
 //     return redirect('/tutor');
 // });
+>>>>>>> 95bc6b23b3d0945f0e09d6e1a9906d239cbd33dd
 
 //email writer
 Route::get('/email-writer', [EmailWriterController::class, 'show'])->name('email.writer.show');

@@ -4,7 +4,7 @@ from langchain_ollama import OllamaLLM
 from langchain.prompts import PromptTemplate
 from fpdf import FPDF
 from io import BytesIO
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, JSONResponse
 
 app = FastAPI()
 
@@ -57,7 +57,7 @@ async def generate_practice_plan_api(request: PracticePlanRequest):
 
         return {"practice_plan": practice_plan}
     except Exception as e:
-        return {"error": str(e)}
+        return JSONResponse(status_code=500, content={"error": str(e)})
 
 @app.post("/generate-pdf")
 async def generate_pdf(request: PdfRequest):
@@ -75,4 +75,4 @@ async def generate_pdf(request: PdfRequest):
             "Content-Disposition": f"attachment; filename={request.filename}.pdf"
         })
     except Exception as e:
-        return {"error": str(e)}
+        return JSONResponse(status_code=500, content={"error": str(e)})

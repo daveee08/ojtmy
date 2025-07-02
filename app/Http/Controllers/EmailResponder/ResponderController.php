@@ -1,17 +1,19 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\EmailResponder;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Illuminate\Support\Facades\Storage;
+use App\Http\Controllers\Controller;
+
 class ResponderController extends Controller
 {
     public function showForm()
     {
-        return view('responder');
+        return view('Email Responder.responder');
     }
 
     public function processForm(Request $request)
@@ -53,6 +55,6 @@ class ResponderController extends Controller
             return back()->withErrors(['error' => 'Python API failed: ' . $response->body()]);
         }
 
-        return view('responder', ['response' => $response->body()]);
+        return view('Email Responder.responder', ['response' => $response->body()]);
     }
 }

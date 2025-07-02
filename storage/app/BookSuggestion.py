@@ -10,6 +10,7 @@ from langchain_core.output_parsers import StrOutputParser
 import re
 import collections
 from langchain_community.tools import DuckDuckGoSearchRun
+from fastapi.responses import JSONResponse
 
 app = FastAPI(
     title="Book Suggestion Chatbot API",
@@ -477,18 +478,22 @@ async def suggest_book(
     print(f"INFO: Invoking LLM chain with Interests param: '{original_user_interests}', Grade Level: '{canonical_grade_level}'")
     print(f"DEBUG: LLM input: interests='{original_user_interests}', grade_level='{canonical_grade_level}', context='{search_context[:100]}...'")
     
-    raw_ai_output = chain.invoke({
-        "interests": original_user_interests,
-        "grade_level": canonical_grade_level,
-        "context": search_context
-    })
-    
-    print(f"DEBUG: Raw AI output from chain.invoke:\n{raw_ai_output}")
+    try:
+        raw_ai_output = chain.invoke({
+            "interests": original_user_interests,
+            "grade_level": canonical_grade_level,
+            "context": search_context
+        })
+        
+        print(f"DEBUG: Raw AI output from chain.invoke:\n{raw_ai_output}")
 
-    final_response = post_process_ai_output(raw_ai_output, original_user_interests, canonical_grade_level, search_context)
+        final_response = post_process_ai_output(raw_ai_output, original_user_interests, canonical_grade_level, search_context)
 
-    print(f"INFO: Final response:\n{final_response}")
-    return {"suggestion": final_response}
+        print(f"INFO: Final response:\n{final_response}")
+        return {"suggestion": final_response}
+    except Exception as e:
+        print(f"ERROR: Error in suggest_book: {e}")
+        return JSONResponse(status_code=500, content={"detail": str(e)})
 
 if __name__ == "__main__":
     uvicorn.run("BookSuggestion:app", host="127.0.0.1", port=5005, reload=False) 

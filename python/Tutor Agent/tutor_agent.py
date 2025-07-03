@@ -207,7 +207,7 @@ async def tutor_endpoint(
                     "user_id": str(data.user_id),
                     "db_message_id": int(data.message_id),
                 }
-                chat_url = "http://192.168.50.10:8000/chat_with_history"
+                chat_url = "http://192.168.50.10:8002/chat_with_history"
                 try:
                     print("[DEBUG] Sending chat request:", form_data, flush=True)
                     resp = await client.post(chat_url, data=form_data)

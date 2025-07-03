@@ -165,7 +165,7 @@ Important:
 """
 
     prompt = PromptTemplate.from_template(prompt_template)
-    llm = Ollama(model="gemma3:4b")
+    llm = Ollama(model="gemma3:1b")
     chain = prompt | llm
     result = chain.invoke({"content": content.strip()})
     return {"email": result.strip()}
@@ -195,7 +195,7 @@ Important:
 Now generate the summary below:
 """
     prompt = PromptTemplate.from_template(prompt_template)
-    llm = Ollama(model="gemma3:4b")
+    llm = Ollama(model="gemma3:1b") 
     chain = prompt | llm
     result = chain.invoke({"text": clean_text, "conditions": conditions})
     return result.strip()

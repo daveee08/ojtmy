@@ -12,7 +12,7 @@ class ExplanationsController extends Controller
 {
     public function showForm()
     {
-        return view('explanations');
+        return view('Explanations.explanations');
     }
 
     public function processForm(Request $request)
@@ -63,6 +63,6 @@ class ExplanationsController extends Controller
             return back()->withErrors(['error' => 'Python API failed: ' . $response->body()]);
         }
 
-        return view('explanations', ['response' => $response->json()['output'] ?? 'No output']);
+        return view('Explanations.explanations', ['response' => $response->json()['output'] ?? 'No output']);
     }
 }

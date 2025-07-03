@@ -1,15 +1,16 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\FiveQuestion;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use App\Http\Controllers\Controller;
 
 class FiveQuestionsController extends Controller
 {
     public function showForm()
     {
-        return view('fivequestions');
+        return view('Five Question.fivequestions');
     }
     public function processForm(Request $request)
 {
@@ -36,7 +37,7 @@ class FiveQuestionsController extends Controller
 
     $data = $response->json();
 
-    return view('fivequestions', [
+    return view('Five Questions.fivequestions', [
         'questions' => collect($data['questions'] ?? [])
             ->filter(function ($q) {
                 // Remove non-question intros

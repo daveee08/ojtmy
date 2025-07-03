@@ -1,15 +1,16 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\SentenceStarters;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use App\Http\Controllers\Controller;
 
 class SentenceStarterController extends Controller
 {
     public function showForm()
     {
-        return view('sentencestarter');
+        return view('Sentence Starter.sentencestarter');
     }
 
     public function processForm(Request $request)
@@ -32,7 +33,7 @@ class SentenceStarterController extends Controller
 
         $data = $response->json();
 
-        return view('sentencestarter', [
+        return view('Sentence Starter.sentencestarter', [
             'output' => $data['starters'] ?? [],
             'old' => $validated,
         ]);

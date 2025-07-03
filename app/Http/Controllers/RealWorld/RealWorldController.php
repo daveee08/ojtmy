@@ -1,9 +1,10 @@
 <?php
-
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\RealWorld;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use App\Http\Controllers\Controller;
+
 
 class RealWorldController extends Controller
 {
@@ -36,7 +37,7 @@ class RealWorldController extends Controller
         return preg_replace('/\*\*(.*?)\*\*/', '<strong>$1</strong>', $item);
     }, $data['examples'] ?? []);
 
-    return view('realworld', [
+    return view('Real World Connections.realworld', [
         'output' => $examples,
         'old' => $validated,
     ]);

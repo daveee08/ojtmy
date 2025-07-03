@@ -233,7 +233,7 @@
         const spinner = document.getElementById('loading-spinner');
 
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-        let sessionId = '';
+        let messageID = '';
 
         function appendMessage(message, type) {
             const msgDiv = document.createElement('div');
@@ -245,7 +245,7 @@
 
         async function sendMessage() {
             const message = userInput.value.trim();
-            if (!message || !sessionId) {
+            if (!message || !messageID) {
                 // Instead of alert, could display a temporary message in UI
                 console.warn("Message or session ID is empty.");
                 return;
@@ -259,7 +259,7 @@
             try {
                 const formData = new FormData();
                 formData.append('topic', message);
-                formData.append('session_id', sessionId);
+                formData.append('message_id', messageID);
 
                 const response = await fetch('/chat', {
                     method: 'POST',
@@ -286,8 +286,8 @@
         }
 
         async function loadSession() {
-            sessionId = sessionInput.value.trim();
-            if (!sessionId) {
+            messageID = sessionInput.value.trim();
+            if (!messageID) {
                 // Replaced alert with a console warning and a temporary UI message
                 console.warn("Please enter a session ID.");
                 chatBody.innerHTML = '<div class="message ai-message">Please enter a session ID to load history.</div>';
@@ -298,7 +298,7 @@
             spinner.style.display = 'block';
 
             try {
-                const response = await fetch(`/chat/history/${sessionId}`);
+                const response = await fetch(`/chat/history/${messageID}`);
 
                 if (!response.ok) {
                     const errorText = await response.text();

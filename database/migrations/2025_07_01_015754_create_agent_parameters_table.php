@@ -16,8 +16,8 @@ class CreateAgentParametersTable extends Migration
         Schema::create('agent_parameters', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->unsignedBigInteger('agent_id');
-            $table->string('parameter');
-            $table->string('parameter_value')-> nullable(); // More flexible than enum
+            $table->string('parameter'); #(e.g. grade_level,learning_pace)
+            $table->string('parameter_value')-> nullable(); #(e.g. grade 10,fast_learner)
             $table->timestamps();
 
             // Foreign key constraint

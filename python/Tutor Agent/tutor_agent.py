@@ -12,7 +12,7 @@ from langchain_community.document_loaders import PyPDFLoader
 from langchain_core.messages import HumanMessage, AIMessage
 from chat_router_feb import chat_router
 # ===================== App Initialization =====================
-app = FastAPI()
+app = FastAPI(debug=True)
 app.include_router(chat_router)
 
 

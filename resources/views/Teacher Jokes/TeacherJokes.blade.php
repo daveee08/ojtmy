@@ -34,6 +34,7 @@
         border-radius:30px;
         flex:3;
         padding: 10px 20px; /* Added padding for better appearance */
+        cursor: pointer;
     }
     .form-control-tj {
         border-color: #ddd; /* Subtle border for form controls */
@@ -47,12 +48,53 @@
         font-size:1.2em;
         color:#333;
     }
+    /* Infinity Loader CSS (reused from Tongue Twister) */
+    .loading-tj {
+        text-align: center;
+        margin-top: 20px;
+    }
+    .infinity-loader {
+        display: inline-block;
+        position: relative;
+        width: 80px;
+        height: 80px;
+        transform: rotate(45deg);
+    }
+    .infinity-loader div {
+        box-sizing: border-box;
+        display: block;
+        position: absolute;
+        width: 64px;
+        height: 64px;
+        margin: 8px;
+        border: 8px solid #e91e63;
+        border-radius: 50%;
+        animation: infinity-loader 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+        border-color: #e91e63 transparent transparent transparent;
+    }
+    .infinity-loader div:nth-child(1) {
+        animation-delay: -0.45s;
+    }
+    .infinity-loader div:nth-child(2) {
+        animation-delay: -0.3s;
+    }
+    .infinity-loader div:nth-child(3) {
+        animation-delay: -0.15s;
+    }
+    @keyframes infinity-loader {
+        0% {
+            transform: rotate(0deg);
+        }
+        100% {
+            transform: rotate(360deg);
+        }
+    }
 </style>
 
 <div class="container-tj">
     <h2 class="h2-tj">Teacher Jokes</h2>
     <p class="p-tj">Generate jokes for your class based on any topic.</p>
-    <form method="POST" action="/teacherjokes">
+    <form id="joke-form">
         @csrf
         <div style="margin-bottom: 18px;">
             <label for="grade" style="font-weight:500;">Grade level: <span style="color:red">*</span></label>
@@ -85,14 +127,110 @@
             <textarea id="customization" name="customization" class="form-control form-control-tj" rows="2" placeholder="Make it about mitosis" >{{ old('customization', $customization ?? '') }}</textarea>
         </div>
         <div style="display:flex; gap:16px; align-items:center; margin-bottom: 24px;">
-            <button type="submit" class="btn btn-primary-tj">Generate</button>
+            <button type="submit" id="generate-button-tj" class="btn btn-primary-tj">Generate</button>
         </div>
     </form>
-    @if(isset($joke))
-        <div class="joke-display-tj">
-            <strong>Joke:</strong><br>
+
+    <div id="loading-indicator-tj" class="loading-tj" style="display:none;">
+        <div class="infinity-loader"><div></div><div></div><div></div><div></div></div>
+    </div>
+
+    @if(isset($joke) && $joke)
+        <div id="joke-output-tj" class="joke-display-tj">
+            <p style="font-weight: 600;">Joke for {{ $grade ?? 'N/A' }} Grade Level:</p>
+            @if($customization)
+                <p style="font-weight: 600; margin-top: 5px;">Customization: {{ $customization }}</p>
+            @endif
+            <br>
             <em>{{ $joke }}</em>
+        </div>
+    @else
+        <div id="joke-output-tj" class="joke-display-tj" style="display:none;">
+            <p style="font-weight: 600;"></p>
+            <p style="font-weight: 600; margin-top: 5px;"></p>
+            <br>
+            <em></em>
         </div>
     @endif
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('joke-form');
+        const generateButton = document.getElementById('generate-button-tj');
+        const loadingIndicator = document.getElementById('loading-indicator-tj');
+        const jokeOutputDiv = document.getElementById('joke-output-tj');
+        const outputHeading = jokeOutputDiv.querySelector('p:nth-child(1)'); // Select first paragraph for Grade
+        const outputCustomization = jokeOutputDiv.querySelector('p:nth-child(2)'); // Select second paragraph for Customization
+        const outputContent = jokeOutputDiv.querySelector('em');
+
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault(); // Prevent default form submission
+
+            // Get form data
+            const grade = document.getElementById('grade').value;
+            const customization = document.getElementById('customization').value;
+            const csrfToken = document.querySelector('input[name="_token"]').value;
+
+            // Show loading indicator, hide previous output
+            loadingIndicator.style.display = 'block';
+            jokeOutputDiv.style.display = 'none';
+            outputHeading.textContent = '';
+            outputCustomization.textContent = ''; // Clear customization text
+            outputContent.textContent = '';
+            generateButton.disabled = true; // Disable button during loading
+            generateButton.textContent = ''; // Make the text disappear
+
+            try {
+                const response = await fetch('/teacherjokes', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
+                    },
+                    body: JSON.stringify({ grade: grade, customization: customization })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Update output div with new data
+                    outputHeading.textContent = `Joke for ${grade} Grade Level:`;
+                    if (customization) {
+                        outputCustomization.textContent = `Customization: ${customization}`;
+                    } else {
+                        outputCustomization.textContent = ''; // Clear if no customization
+                    }
+                    outputContent.textContent = data.joke; // assuming the key is 'joke'
+                    jokeOutputDiv.style.display = 'block';
+                } else {
+                    // Handle server-side errors
+                    let errorMessage = 'An unknown error occurred.';
+                    if (data && data.message) {
+                        errorMessage = data.message;
+                    } else if (data && data.error) {
+                        errorMessage = data.error;
+                    }
+                    outputHeading.textContent = 'Error:';
+                    outputCustomization.textContent = ''; // Clear customization on error
+                    outputContent.textContent = errorMessage;
+                    jokeOutputDiv.style.display = 'block';
+                }
+
+            } catch (error) {
+                // Handle network or parsing errors
+                outputHeading.textContent = 'Network Error:';
+                outputCustomization.textContent = ''; // Clear customization on error
+                outputContent.textContent = 'Could not connect to the server or parse response. Please check your connection and try again.';
+                jokeOutputDiv.style.display = 'block';
+                console.error('Fetch error:', error);
+            } finally {
+                loadingIndicator.style.display = 'none';
+                generateButton.disabled = false; // Re-enable button
+                generateButton.textContent = 'Generate'; // Restore button text
+            }
+        });
+    });
+</script>
+
 @endsection

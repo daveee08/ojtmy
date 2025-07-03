@@ -66,3 +66,6 @@ class Uvicorn extends Command
     }
 }
 
+//all api need to be here
+// This command will run the FastAPI server using Uvicorn
+

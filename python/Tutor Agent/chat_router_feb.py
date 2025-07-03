@@ -164,6 +164,7 @@ async def chat_with_history_api(
         traceback_str = traceback.format_exc()
         print(f"[Chat Error] {e}\n{traceback_str}")
         raise HTTPException(status_code=500, detail="Chat processing failed.")
+    
 
 
 

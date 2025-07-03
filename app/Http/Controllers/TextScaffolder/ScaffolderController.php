@@ -1,15 +1,18 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\TextScaffolder;
 
 use Illuminate\Http\Request;
+use Symfony\Component\Process\Process;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
+use App\Http\Controllers\Controller;
 
 class ScaffolderController extends Controller
 {
     public function showForm()
     {
-        return view('scaffolder');
+        return view('Text Scaffolder.scaffolder');
     }
 
     public function processForm(Request $request)
@@ -54,7 +57,7 @@ class ScaffolderController extends Controller
                 return back()->withErrors(['error' => 'Python API failed: ' . $response->body()]);
             }
 
-            return view('scaffolder', ['response' => $response->json()['output'] ?? 'No output']);
+            return view('Text Scaffolder.scaffolder', ['response' => $response->json()['output'] ?? 'No output']);
         } catch (\Exception $e) {
             return back()->withErrors(['error' => 'Request error: ' . $e->getMessage()]);
         }

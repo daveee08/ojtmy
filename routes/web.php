@@ -11,6 +11,7 @@ use App\Http\Controllers\ThankYouNote\ThankYouNoteController;
 use App\Http\Controllers\RealWorld\RealWorldController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\TutorController;
+use App\Http\Controllers\ChatconversationController;
 use App\Http\Controllers\TextLeveler\LevelerController;
 use App\Http\Controllers\InformationalTexts\InformationalController;
 use App\Http\Controllers\QOTDController;
@@ -184,7 +185,7 @@ Route::post('/rewriter', [RewriterController::class, 'processForm'])->name('rewr
 // Text Scaffolder Tool
 Route::get('/scaffolder', [ScaffolderController::class, 'showForm'])->name('scaffolder.form');
 Route::post('/scaffolder', [ScaffolderController::class, 'processForm'])->name('scaffolder.process');
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 // ✅ Explanations Tool
 Route::get('/explanations', [ExplanationsController::class, 'showForm'])->name('explanations.form');
 Route::post('/explanations', [ExplanationsController::class, 'processForm'])->name('explanations.process');

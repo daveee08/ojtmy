@@ -42,9 +42,24 @@ concept_template = ChatPromptTemplate.from_template(template)
 
 # Clean output from formatting artifacts
 def clean_output(text: str) -> str:
-    text = re.sub(r'^\t*Subject:', 'Subject:', text, flags=re.MULTILINE)
+    import re
+
+    text = text.strip()
+
+    # Normalize Subject line: extract and rewrap
+    match = re.match(r"^Subject:\s*(.+)", text)
+    if match:
+        subject = match.group(0)
+        remaining = text[len(subject):].lstrip()
+        text = f"<p>{subject}</p><br>{remaining}"
+    else:
+        # If no clear Subject line, keep the original
+        text = text
+
+    # Remove markdown artifacts
     text = re.sub(r"\*\*(.*?)\*\*", r"\1", text)  # bold markdown
     text = re.sub(r"\*(.*?)\*", r"\1", text)      # italic markdown
+
     return text.strip()
 
 # Email generation logic

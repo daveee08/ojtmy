@@ -302,7 +302,7 @@
         <div class="tool-card">
             <div class="tool-card-content">
                 <div class="tool-card-icon">
-                    <img src="" alt="Step by Step Icon"> {{-- Image src left blank for you to fill --}}
+                    <img src="{{ asset('icons/stepbystep.png') }}" alt="Step by Step Icon"> {{-- Image src left blank for you to fill --}}
                 </div>
                 <div class="tool-card-text">
                     <h5>Step by Step</h5>
@@ -316,7 +316,7 @@
         <div class="tool-card">
             <div class="tool-card-content">
                 <div class="tool-card-icon">
-                    <img src="" alt="Five Questions Icon"> {{-- Image src left blank for you to fill --}}
+                    <img src="{{ asset('icons/five.png') }}" alt="Five Questions Icon"> {{-- Image src left blank for you to fill --}}
                 </div>
                 <div class="tool-card-text">
                     <h5>Five Questions</h5>
@@ -372,7 +372,7 @@
         <div class="tool-card">
             <div class="tool-card-content">
                 <div class="tool-card-icon">
-                    <img src="" alt="Sentence Starters Icon"> {{-- Image src left blank for you to fill --}}
+                    <img src="{{ asset('icons/sentencestarter.png') }}" alt="Sentence Starters Icon"> {{-- Image src left blank for you to fill --}}
                 </div>
                 <div class="tool-card-text">
                     <h5>Sentence Starters</h5>
@@ -386,7 +386,7 @@
         <div class="tool-card">
             <div class="tool-card-content">
                 <div class="tool-card-icon">
-                    <img src="" alt="Assignment Scaffolder Icon"> {{-- Image src left blank for you to fill --}}
+                    <img src="{{ asset('icons/scaff.png') }}" alt="Assignment Scaffolder Icon"> {{-- Image src left blank for you to fill --}}
                 </div>
                 <div class="tool-card-text">
                     <h5>Assignment Scaffolder</h5>
@@ -428,7 +428,7 @@
         <div class="tool-card">
             <div class="tool-card-content">
                 <div class="tool-card-icon">
-                    <img src="" alt="Multiple Explanations Icon"> {{-- Image src left blank for you to fill --}}
+                    <img src="{{ asset('icons/multiple.png') }}" alt="Multiple Explanations Icon"> {{-- Image src left blank for you to fill --}}
                 </div>
                 <div class="tool-card-text">
                     <h5>Multiple Explanations Generator</h5>

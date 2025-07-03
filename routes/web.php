@@ -189,7 +189,3 @@ Route::post('/scaffolder', [ScaffolderController::class, 'processForm'])->name('
 // ✅ Explanations Tool
 Route::get('/explanations', [ExplanationsController::class, 'showForm'])->name('explanations.form');
 Route::post('/explanations', [ExplanationsController::class, 'processForm'])->name('explanations.process');
-
-// ✅ Assignment Scaffolder Tool
-// Route::get('/assignmentscaffolder', [AssignmentScaffolderController::class, 'showForm'])->name('assignmentscaffolder.form');
-// Route::post('/assignmentscaffolder', [AssignmentScaffolderController::class, 'processForm'])->name('assignmentscaffolder.process');

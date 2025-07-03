@@ -285,7 +285,7 @@ Only return the list of ideas using the specified format.
     return {"idea": result.strip()}
 
 # ------------------- Content Creator -------------------
-@app.post("/generate-contentcreator")
+@app.post("/contentcreator")
 async def generate_contentcreator(
     grade_level: str = Form(...),
     length: str = Form(...),
@@ -293,40 +293,33 @@ async def generate_contentcreator(
     extra: str = Form("")
 ):
     full_prompt = f"""
-You are a creative and helpful content assistant.
+You are a helpful educational content writer.
 
-Generate educational or engaging content based on the user's request. The content should match this grade level: {grade_level}
+Your task is to write general content for a user who is in {grade_level}.
+Make sure the tone and language matches the cognitive understanding of that grade level.
 
-Prompt:
+Topic:
 {prompt}
 
-Additional Instruction:
+Additional Instructions:
 {extra}
 
-Length requested: {length}
+Content Length:
+{length}
 
-Guidelines:
-- Keep the tone clear, human, and helpful.
-- Match the length closely (e.g., 1 paragraph, 2 paragraphs, 1 page, etc.)
-- At the end, also write a catchy social media caption based on the generated content.
-
-Output format:
-CONTENT:
-[full content here]
-
-CAPTION:
-[social media caption here]
+Write clearly and accurately.
 """
-    llm = Ollama(model="gemma3:4b")
-    prompt_template = PromptTemplate.from_template(full_prompt)
-    chain = prompt_template | llm
-    result = chain.invoke({})
 
-    sections = result.strip().split("CAPTION:")
-    content = sections[0].replace("CONTENT:", "").strip()
-    caption = sections[1].strip() if len(sections) > 1 else ""
+    try:
+        llm = Ollama(model="gemma3:4b")
+        prompt_template = PromptTemplate.from_template(full_prompt)
+        chain = prompt_template | llm
+        result = chain.invoke({})
 
-    return {
-        "content": content,
-        "caption": caption
-    }
+        return {
+            "content": result.strip()
+        }
+    except Exception as e:
+        return {
+            "error": f"Generation failed: {str(e)}"
+        }

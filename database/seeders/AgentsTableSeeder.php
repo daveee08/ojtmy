@@ -13,6 +13,13 @@ class AgentsTableSeeder extends Seeder
             ['agent' => 'tutor', 'created_at' => now(), 'updated_at' => now()],
             ['agent' => 'step-tutor', 'created_at' => now(), 'updated_at' => now()],
             ['agent' => 'summarizer', 'created_at' => now(), 'updated_at' => now()],
+            ['agent' => 'leveler', 'created_at' => now(), 'updated_at' => now()],
+            ['agent' => 'informational', 'created_at' => now(), 'updated_at' => now()],
+            ['agent' => 'chatwithdocs', 'created_at' => now(), 'updated_at' => now()],
+            ['agent' => 'rewriter', 'created_at' => now(), 'updated_at' => now()],
+            ['agent' => 'scaffolder', 'created_at' => now(), 'updated_at' => now()],
+            ['agent' => 'explanations', 'created_at' => now(), 'updated_at' => now()],
+            ['agent' => 'responder', 'created_at' => now(), 'updated_at' => now()],
         ]);
     }
 }

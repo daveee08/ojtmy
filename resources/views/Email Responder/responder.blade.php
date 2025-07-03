@@ -154,7 +154,7 @@
             <label for="output" class="form-label">Generated Email Response</label>
             @if (isset($response))
                 <div class="border rounded p-3 bg-light" style="white-space: pre-wrap;">
-                    {{ json_decode($response, true)['output'] ?? $response }}
+                    {!! json_decode($response, true)['output'] ?? $response !!}
                 </div>
             @endif
         </div>

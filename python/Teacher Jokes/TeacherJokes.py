@@ -3,6 +3,7 @@ from pydantic import BaseModel, ConfigDict
 from langchain_ollama import OllamaLLM
 from langchain.prompts import PromptTemplate
 import re
+from fastapi.responses import JSONResponse
 
 app = FastAPI()
 
@@ -69,4 +70,4 @@ async def generate_joke_api(request: JokeRequest):
 
         return {"joke": joke}
     except Exception as e:
-        return {"error": str(e)}
+        return JSONResponse(status_code=500, content={"error": str(e)})

@@ -14,7 +14,8 @@ class TutorController extends Controller
 
         $threads = Message::where('user_id', Auth::id())
             ->whereColumn('id', 'message_id')
-            ->latest()
+            // ->where('agent', 'tutor') // Ensure we only get threads for this agent
+            ->orderByDesc('created_at')
             ->get();
 
         $history = $selectedThread
@@ -45,16 +46,34 @@ class TutorController extends Controller
             'message_id' => 'nullable|integer',
         ]);
 
+        // --- Get agent and parameter dynamically ---
+        $agent = DB::table('agents')->where('agent', 'tutor')->first();
+
+        if (!$agent) {
+            return response()->json(['error' => 'Agent not found'], 404);
+        }
+
+        $parameter = DB::table('agent_parameters')
+            ->where('agent_id', $agent->id)
+            ->where('parameter', 'grade_level')
+            ->first();
+
+        if (!$parameter) {
+            return response()->json(['error' => 'Parameter not found'], 404);
+        }
+
+        // --- Fallback to latest input or user's stored grade_level ---
         $gradeLevel = $validated['grade_level']
-            ?? ParameterInput::where('parameter_id', 1)->where('agent_id', 1)->whereNotNull('input')->latest()->value('input')
+            ?? ParameterInput::where('parameter_id', $parameter->id)->where('agent_id', $agent->id)->whereNotNull('input')->latest()->value('input')
             ?? Auth::user()->grade_level;
-            
-        //add logic for how many inputs in parameter_inputs table
+
+        // --- Dynamically resolve ParameterInput ---
         $parameterInput = ParameterInput::firstOrCreate([
             'input' => $gradeLevel,
-            'agent_id' => 1,
-            'parameter_id' => 1
+            'agent_id' => $agent->id,
+            'parameter_id' => $parameter->id
         ]);
+
 
         $newMessage = $validated['topic'] ?? '[PDF Upload]';
         if (!empty($validated['add_cont'])) {
@@ -89,7 +108,7 @@ class TutorController extends Controller
             ['name' => 'input_type', 'contents' => $validated['input_type']],
             ['name' => 'topic', 'contents' => $finalTopic],
             ['name' => 'add_cont', 'contents' => ''],
-            ['name' => 'mode', 'contents' => $mode],
+            ['name' => 'mode', 'contents' => $mode], // refer to the tutor_agent.py para giunsa pag gamit sa mode na gi pass dani
             ['name' => 'user_id', 'contents' => Auth::id()],
             ['name' => 'history', 'contents' => json_encode([])],
         ];
@@ -105,6 +124,19 @@ class TutorController extends Controller
         }
 
         $response = Http::timeout(0)->asMultipart()->post('http://127.0.0.1:5001/tutor', $multipartData);
+
+        Log::info('API Request', [
+            'grade_level' => $gradeLevel,
+            'input_type' => $validated['input_type'],
+            'topic' => $finalTopic,
+            'mode' => $mode,
+            'user_id' => Auth::id(),
+        ]);
+
+        Log::info('API Response', [
+            'status' => $response->status(),
+            'body' => $response->body(),
+        ]);
 
         if ($response->failed()) {
             DB::rollBack();

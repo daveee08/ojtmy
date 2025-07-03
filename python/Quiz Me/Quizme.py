@@ -5,7 +5,7 @@ from langchain.prompts import PromptTemplate
 # from langchain.chains import LLMChain # Commenting out for RunnableSequence
 from fpdf import FPDF
 from io import BytesIO
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, JSONResponse
 from langchain_community.tools import DuckDuckGoSearchRun
 from langchain.agents import initialize_agent, AgentType
 import logging
@@ -188,7 +188,7 @@ async def generate_quiz(request: QuizRequest):
     except Exception as e:
         logging.error(f"Error generating quiz: {e}")
         logging.error(f"Raw LLM output that failed to parse:\n{quiz_output_raw}")
-        return {"error": str(e)}
+        return JSONResponse(status_code=500, content={"error": str(e)})
 
 def parse_quiz_text(quiz_text: str) -> list[Question]:
     questions = []
@@ -260,7 +260,7 @@ async def evaluate_answer(request: AnswerEvaluationRequest):
         return {"feedback": evaluation_output}
     except Exception as e:
         logging.error(f"Error evaluating answer: {e}")
-        return {"error": str(e)}
+        return JSONResponse(status_code=500, content={"error": str(e)})
 
 @app.post("/chat")
 async def chat_with_ai(request: ChatRequest):
@@ -306,7 +306,7 @@ async def chat_with_ai(request: ChatRequest):
         return {"response": chat_output}
     except Exception as e:
         logging.error(f"Error during chat: {e}")
-        return {"error": str(e)}
+        return JSONResponse(status_code=500, content={"error": str(e)})
 
 @app.post("/generate-pdf")
 async def generate_pdf(request: PdfRequest):
@@ -327,4 +327,4 @@ async def generate_pdf(request: PdfRequest):
         })
     except Exception as e:
         logging.error(f"Error generating PDF: {e}")
-        return {"error": str(e)}
+        return JSONResponse(status_code=500, content={"error": str(e)})

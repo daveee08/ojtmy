@@ -23,7 +23,7 @@ class QOTDController extends Controller
         $grade = $request->input('grade');
 
         try {
-            $response = Http::post('http://127.0.0.1:5001/generate-quote', [
+            $response = Http::post('http://127.0.0.1:5006/generate-quote', [
                 'topic' => $topic,
                 'grade_level' => $grade,
             ]);
@@ -66,7 +66,7 @@ class QOTDController extends Controller
                 ->header('Content-Disposition', 'attachment; filename="' . $filename . '.txt"');
         } elseif ($format === 'pdf') {
             try {
-                $response = Http::post('http://127.0.0.1:5001/generate-pdf', [
+                $response = Http::post('http://127.0.0.1:5006/generate-pdf', [
                     'content' => $content,
                     'filename' => $filename,
                 ]);

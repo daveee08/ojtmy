@@ -11,13 +11,14 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_core.messages import HumanMessage, AIMessage
 from chat_router_feb import chat_router
+
 # ===================== App Initialization =====================
-app = FastAPI()
+
+app = FastAPI(debug=True)
 app.include_router(chat_router)
 
-
-
 # ===================== Pydantic Model =====================
+
 from pydantic import BaseModel
 from fastapi import Form, Depends
 
@@ -136,12 +137,14 @@ From now on, please respond speaking in the first person.
 """
 
 # ===================== LangChain Setup =====================
-model = OllamaLLM(model="gemma:2b")
+
+model = OllamaLLM(model="gemma3:1b")
 manual_prompt = ChatPromptTemplate.from_template(manual_topic_template)
 pdf_prompt = ChatPromptTemplate.from_template(pdf_topic_template)
 chat_history_prompt = ChatPromptTemplate.from_template(chat_history_template)
 
 # ===================== Helper Functions =====================
+
 def extract_text_from_pdf(path: str) -> str:
     loader = PyPDFLoader(path)
     pages = loader.load()
@@ -189,6 +192,7 @@ async def generate_output_with_file(grade_level, input_type, topic="", add_cont=
     return clean_output(result)
 
 # ===================== Route =====================
+
 @app.post("/tutor")
 async def tutor_endpoint(
     data: TutorRequest = Depends(TutorRequest.as_form),
@@ -222,80 +226,3 @@ async def tutor_endpoint(
     except Exception as e:
         traceback_str = traceback.format_exc()
         return JSONResponse(status_code=500, content={"detail": str(e), "trace": traceback_str})
-
-# ===================== Models =====================
-
-class HistoryRequest(BaseModel):
-    history: str
-
-from step_tutor_agent import StepTutorInput, explain_topic_step_by_step
-
-
-@app.post("/step-tutor")
-async def step_tutor_endpoint(
-    user_id: int = Form(...),
-    grade_level: Optional[str] = Form(None),
-    topic: str = Form(""),
-    mode: str = Form("chat"),
-    history: str = Form("[]"),
-):
-    try:
-        if mode == "chat":
-            # Send to chat_with_history only for chat mode
-            async with httpx.AsyncClient() as client:
-                form_data = {
-                    "topic": topic,
-                    "history": history,
-                    "user_id": str(user_id)
-                }
-                chat_url = "http://127.0.0.1:5001/chat_with_history"
-                resp = await client.post(chat_url, data=form_data)
-                resp.raise_for_status()
-                result = resp.json()
-                output = result.get("response", "No output")
-        else:
-            # Use manual or PDF logic
-            output = await explain_topic_step_by_step(
-                grade_level=grade_level,
-                topic=topic,
-                # mode=mode
-            )
-
-        return {"output": output}
-    except Exception as e:
-        traceback_str = traceback.format_exc()
-        print(traceback_str)
-        return JSONResponse(status_code=500, content={"detail": str(e), "trace": traceback_str})
-    
-# async def step_tutor_endpoint(data: StepTutorInput):
-#     try:
-#         output = await explain_topic_step_by_step(
-#             grade_level=data.grade_level,
-#             topic=data.topic
-#         )
-#         return {"response": output}
-#     except Exception as e:
-#         return {"error": str(e)}
-
-
-# @app.post("/step-tutor")
-
-# async def step_tutor_endpoint(data: StepTutorInput):
-#     try:
-#         output = await explain_topic_step_by_step(
-#             grade_level=data.grade_level,
-#             topic=data.topic
-#         )
-#         return {"response": output}
-#     except Exception as e:
-#         return {"error": str(e)}
-
-
-@app.post("/summarize-history")
-async def summarize_history_endpoint(data: HistoryRequest):
-    try:
-        # Placeholder: Replace with actual summarization function
-        summary = f"Summary of conversation: {data.history[:100]}..."
-        return {"summary": summary}
-    except Exception as e:
-        return {"error": str(e)}

@@ -107,6 +107,25 @@
     flex-direction: column;
   }
 </style>
+
+<div class="row">
+        <div class="col-md-3">
+          <h5 class="fw-bold mb-3">Threads</h5>
+          <ul class="list-group">
+            @foreach($threads as $thread)
+              <li class="list-group-item {{ $thread->id == $activeThread ? 'active' : '' }}">
+                <a href="{{ url('/tutor?thread_id=' . $thread->id) }}" class="text-decoration-none text-dark">
+                  {{ \Illuminate\Support\Str::limit($thread->topic, 50) }}
+                </a>
+              </li>
+            @endforeach
+          </ul>
+        </div>
+        <div class="col-md-9">
+          <!-- existing tutor form and chat box go here -->
+        </div>
+      </div>
+      
 <div class="container py-5">
   <div class="row justify-content-center">
     <div class="col-lg-8">
@@ -117,12 +136,12 @@
         @if(isset($history) && count($history) > 0)
           <div class="chat-box" style="background:#f8f9fb;">
             @foreach ($history as $entry)
-              <div class="message d-flex {{ $entry['role'] === 'user' ? 'justify-content-end' : 'justify-content-start' }}">
+              <div class="message d-flex {{ $entry['role'] === 'human' ? 'justify-content-end' : 'justify-content-start' }}">
                 <div class="w-75">
-                  <div class="fw-bold mb-1 {{ $entry['role'] === 'user' ? 'text-end text-primary' : 'text-start text-pink' }}">
-                    {{ $entry['role'] === 'user' ? 'You' : 'Tutor' }}
+                  <div class="fw-bold mb-1 {{ $entry['role'] === 'human' ? 'text-end text-primary' : 'text-start text-pink' }}">
+                    {{ $entry['role'] === 'human' ? 'You' : 'Tutor' }}
                   </div>
-                  <div class="message-content p-3 mb-2 {{ $entry['role'] === 'user' ? 'bg-white border border-primary' : 'bg-light border border-pink' }}" style="border-radius:12px;">
+                  <div class="message-content p-3 mb-2 {{ $entry['role'] === 'human' ? 'bg-white border border-primary' : 'bg-light border border-pink' }}" style="border-radius:12px;">
                     {{ $entry['content'] }}
                   </div>
                 </div>
@@ -130,6 +149,10 @@
             @endforeach
           </div>
         @endif
+        
+
+
+        
 
         <!-- Tutor Form -->
         <form id="tutor-form" action="{{ url('/tutor') }}" method="POST" enctype="multipart/form-data">
@@ -167,6 +190,9 @@
             <input type="hidden" name="grade_level" value="{{ isset($history) && count($history) > 0 ? $history[0]['grade_level'] ?? '' : '' }}">
             <input type="hidden" name="input_type" value="topic">
             <input type="hidden" name="add_cont" value="">
+            @if(isset($activeThread))
+              <input type="hidden" name="message_id" value="{{ $activeThread }}">
+            @endif
             <div class="mb-3">
               <label class="form-label">Follow Up Message</label>
               <input type="text" class="form-control" name="topic" placeholder="Continue the conversation..." required>
@@ -195,6 +221,9 @@
     </div>
   </div>
 </div>
+
+
+
 
 <script>
   // Toggle topic and PDF inputs based on selected input type
@@ -275,29 +304,39 @@
 
       // 🔄 Replace form with follow-up version if it's still initial
       if (form.querySelector('select[name="input_type"]')) {
-        const gradeLevel = formData.get('grade_level') || 'Not set';
+      const gradeLevel = formData.get('grade_level') || 'Not set';
+      const csrfToken = document.querySelector('input[name="_token"]')?.value || '';
+      const messageId = data.message_id; // ✅ This comes from server response
 
-        const csrfToken = document.querySelector('input[name="_token"]')?.value || '';
+      form.innerHTML = `
+        <input type="hidden" name="_token" value="${csrfToken}">
+        <input type="hidden" name="grade_level" value="${gradeLevel}">
+        <input type="hidden" name="input_type" value="topic">
+        <input type="hidden" name="add_cont" value="">
+        <input type="hidden" name="message_id" value="${messageId}"> <!-- ✅ persist -->
+        <div class="mb-3">
+          <label class="form-label">Follow Up Message</label>
+          <input type="text" class="form-control" name="topic" placeholder="Continue the conversation..." required>
+        </div>
+        <div class="text-center mt-4">
+          <button type="submit" class="ck-btn">Send</button>
+        </div>
+      `;
+    }
+    else {
+      const topicInput = form.querySelector('[name="topic"]');
+      if (topicInput) topicInput.value = '';
 
-        form.innerHTML = `
-          <input type="hidden" name="_token" value="${csrfToken}">
-          <input type="hidden" name="grade_level" value="${gradeLevel}">
-          <input type="hidden" name="input_type" value="topic">
-          <input type="hidden" name="add_cont" value="">
-          <div class="mb-3">
-            <label class="form-label">Follow Up Message</label>
-            <input type="text" class="form-control" name="topic" placeholder="Continue the conversation..." required>
-          </div>
-          <div class="text-center mt-4">
-            <button type="submit" class="ck-btn">Send</button>
-          </div>
-        `;
-
-      } else {
-        // Just reset follow-up input
-        const topicInput = form.querySelector('[name="topic"]');
-        if (topicInput) topicInput.value = '';
+      // 🧠 Reuse the message_id if already present
+      const existingMessageId = form.querySelector('[name="message_id"]');
+      if (!existingMessageId && data.message_id) {
+        const hiddenField = document.createElement('input');
+        hiddenField.setAttribute('type', 'hidden');
+        hiddenField.setAttribute('name', 'message_id');
+        hiddenField.setAttribute('value', data.message_id);
+        form.appendChild(hiddenField);
       }
+    }
     })
     .catch(async (error) => {
       loadingOverlay.style.display = 'none';

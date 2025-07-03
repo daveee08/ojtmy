@@ -18,7 +18,9 @@ class CreateParameterInputsTable extends Migration
             $table->string('input');
             $table->unsignedBigInteger('parameter_id');
             $table->timestamps();
-
+            $table->unsignedBigInteger('agent_id');
+            
+            $table->foreign('agent_id')->references('id')->on('agents')->onDelete('cascade');
             $table->foreign('parameter_id')->references('id')->on('agent_parameters')->onDelete('cascade');
         });
     }

@@ -19,11 +19,11 @@ class CreateUsersTable extends Migration
             $table->string('username')->nullable();
             $table->string('password')->nullable();
             $table->string('backup_password')->nullable();
-            // $table->timestampTz('created_at')->useCurrent(); // with timezone and default now()
+          
             $table->boolean('is_admin')->nullable()->default(false);
             $table->string('grade_level')->nullable();
 
-
+  // $table->timestampTz('created_at')->useCurrent(); // with timezone and default now()
             // If you want to keep Laravel's default timestamps:
             // $table->timestampsTz(); // creates created_at and updated_at with timezone
 

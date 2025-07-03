@@ -104,6 +104,10 @@
             width: 0;
         }
 
+        .sidebar:not(.collapsed) a[data-bs-toggle="tooltip"] .link-text {
+            pointer-events: none;
+        }
+
         .content {
             margin-left: 240px;
             padding: 50px 30px;
@@ -140,19 +144,19 @@
     <div class="sidebar" id="sidebar">
         <h2>CK AI Tools</h2>
 
-        <a href="{{url('/tools')}}">
+        <a href="{{url('/tools')}}" data-bs-toggle="tooltip" title="Tools">
             <i class="bi bi-tools"></i>
             <span class="link-text">Tools</span>
         </a>
-        <a href="{{url('/')}}">
+        <a href="{{url('/')}}" data-bs-toggle="tooltip" title="Home">
             <i class="bi bi-house-door"></i>
             <span class="link-text">Home</span>
         </a>
-        <a href="#tool-About">
+        <a href="#tool-About" data-bs-toggle="tooltip" title="About">
             <i class="bi bi-people"></i>
             <span class="link-text">About</span>
         </a>
-        <a href="#tool-Contact">
+        <a href="#tool-Contact" data-bs-toggle="tooltip" title="Contact">
             <i class="bi bi-envelope"></i>
             <span class="link-text">Contact</span>
         
@@ -188,6 +192,12 @@
             sidebar.classList.toggle("collapsed");
             content.classList.toggle("expanded");
         });
+
+        const tooltipTriggerlist = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerlist.forEach(el =>{
+            new bootstrap.Tooltip(el, {
+            });
+        })
     </script>
 
 </body>

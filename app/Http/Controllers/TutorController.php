@@ -3,43 +3,39 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Facades\Storage;
-use App\Models\ChatHistory;
-use App\Models\ConversationHistory;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\{Http, Log, Auth, DB};
+use App\Models\{Message, ParameterInput};
 
 class TutorController extends Controller
 {
-    public function showForm()
+    public function showForm(Request $request)
     {
-        $history = ConversationHistory::where('user_id', Auth::id())
-            ->where('agent', 'tutor')
-            ->orderBy('created_at')
+        $selectedThread = $request->query('thread_id');
+
+        $threads = Message::where('user_id', Auth::id())
+            ->whereColumn('id', 'message_id')
+            // ->where('agent', 'tutor') // Ensure we only get threads for this agent
+            ->orderByDesc('created_at')
             ->get();
 
-        $chatHistory = $history->map(function ($item) {
-            return [
-                'role' => $item->sender,
-                'content' => $item->message
-            ];
-        })->toArray();
+        $history = $selectedThread
+            ? Message::where('message_id', $selectedThread)->orderBy('created_at')->get()->map(fn($m) => [
+                'role' => $m->sender,
+                'content' => $m->topic,
+                'id' => $m->id
+            ])
+            : collect();
 
-        return view('tutor', [
-            'history' => $chatHistory
+        return view('Conceptual Understanding.tutor', [
+            'history' => $history,
+            'threads' => $threads,
+            'activeThread' => $selectedThread
         ]);
     }
-
 
     public function processForm(Request $request)
     {
         set_time_limit(0);
-
-        // Log headers to debug AJAX issue
-        Log::info('Headers:', $request->headers->all());
-        Log::info('Is AJAX: ' . ($request->ajax() ? 'yes' : 'no'));
 
         $validated = $request->validate([
             'grade_level' => 'nullable|string',
@@ -47,90 +43,74 @@ class TutorController extends Controller
             'topic' => 'nullable|string',
             'pdf_file' => 'nullable|file|mimes:pdf|max:5120',
             'add_cont' => 'nullable|string',
+            'message_id' => 'nullable|integer',
         ]);
 
-        // Store grade level in session if not yet stored
-        // if (!session()->has('grade_level')) {
-        //     session(['grade_level' => $validated['grade_level']]);
-        // }
-        // Check the latest sess_grade_level from ConversationHistory
-        $latestGradeLevel = ConversationHistory::where('user_id', Auth::id())
-            ->where('agent', 'tutor')
-            ->whereNotNull('sess_grade_level')
-            ->orderByDesc('created_at')
-            ->value('sess_grade_level');
+        // --- Get agent and parameter dynamically ---
+        $agent = DB::table('agents')->where('agent', 'tutor')->first();
 
-        // Fallback to validated input or user model if none found
-        $gradeLevel = $validated['grade_level'] ?? $latestGradeLevel ?? Auth::user()->grade_level;
-
-        Log::info('Grade level selected:', ['grade_level' => $gradeLevel]);
-
-        if (!$gradeLevel) {
-            return back()->withErrors(['grade_level' => 'Grade level is missing. Please re-login or provide it.']);
+        if (!$agent) {
+            return response()->json(['error' => 'Agent not found'], 404);
         }
-        // Fetch conversation history
-        $history = ConversationHistory::where('user_id', Auth::id())
-            ->where('agent', 'tutor')
-            ->orderBy('created_at')
-            ->get();
 
-        $chatHistory = $history->map(function ($item) {
-            return [
-                'role' => $item->sender,
-                'content' => $item->message
-            ];
-        })->toArray();
+        $parameter = DB::table('agent_parameters')
+            ->where('agent_id', $agent->id)
+            ->where('parameter', 'grade_level')
+            ->first();
 
-        $mode = count($chatHistory) >= 1 ? 'chat' : 'manual';
-        // New user message
+        if (!$parameter) {
+            return response()->json(['error' => 'Parameter not found'], 404);
+        }
+
+        // --- Fallback to latest input or user's stored grade_level ---
+        $gradeLevel = $validated['grade_level']
+            ?? ParameterInput::where('parameter_id', $parameter->id)->where('agent_id', $agent->id)->whereNotNull('input')->latest()->value('input')
+            ?? Auth::user()->grade_level;
+
+        // --- Dynamically resolve ParameterInput ---
+        $parameterInput = ParameterInput::firstOrCreate([
+            'input' => $gradeLevel,
+            'agent_id' => $agent->id,
+            'parameter_id' => $parameter->id
+        ]);
+
+
         $newMessage = $validated['topic'] ?? '[PDF Upload]';
         if (!empty($validated['add_cont'])) {
             $newMessage .= "\n\nAdditional Context:\n" . $validated['add_cont'];
         }
-        $chatHistory[] = ['role' => 'user', 'content' => $newMessage];
 
-        // Store user message
-        ConversationHistory::create([
+        DB::beginTransaction();
+
+        $human = Message::create([
+            'agent_id' => 1,
             'user_id' => Auth::id(),
-            'agent' => 'tutor',
-            'message' => $newMessage,
-            'sender' => 'user',
-            'sess_grade_level' => $gradeLevel
+            'sender' => 'human',
+            'topic' => $newMessage,
+            'grade_level' => $gradeLevel,
+            'parameter_inputs' => $parameterInput->id,
+            'message_id' => 0,
         ]);
-        
 
-        // Build context from history
-        $priorMessages = array_slice($chatHistory, 0, -1);
-        $historyText = collect($priorMessages)->pluck('content')->implode("\n");
+        $human->update(['message_id' => $validated['message_id'] ?? $human->id]);
 
-        // Optional summary
-        $contextSummary = $historyText;
-        if (str_word_count($historyText) > 24000) {
-            $summaryResponse = Http::timeout(10)->post('http://127.0.0.1:5001/summarize-history', [
-                'history' => $historyText,
-            ]);
-            if ($summaryResponse->successful()) {
-                $contextSummary = $summaryResponse->json()['summary'] ?? $historyText;
-            }
-        }
+        $priorMessages = Message::where('message_id', $human->message_id)
+            ->orderBy('created_at')
+            ->pluck('topic')
+            ->implode("\n");
 
-        if (!empty($validated['add_cont'])) {
-            $contextSummary .= "\n" . $validated['add_cont'];
-        }
+        $finalTopic = "Prior Conversation Summary:\n{$priorMessages}\n\nStudent's Follow-up:\n{$newMessage}";
 
-        $finalTopic = "Prior Conversation Summary:\n" . $contextSummary . "\n\nStudent’s Follow-up:\n" . $newMessage;
-
-        // $mode = count($chatHistory) === 1 ? 'chat' : 'manual';
-        Log::info('Mode determined:', ['mode' => $mode]);
+        $mode = Message::where('message_id', $validated['message_id'] ?? 0)->exists() ? 'chat' : 'manual';
 
         $multipartData = [
             ['name' => 'grade_level', 'contents' => $gradeLevel],
             ['name' => 'input_type', 'contents' => $validated['input_type']],
             ['name' => 'topic', 'contents' => $finalTopic],
             ['name' => 'add_cont', 'contents' => ''],
-            ['name' => 'mode', 'contents' => $mode],
+            ['name' => 'mode', 'contents' => $mode], // refer to the tutor_agent.py para giunsa pag gamit sa mode na gi pass dani
             ['name' => 'user_id', 'contents' => Auth::id()],
-            ['name' => 'history', 'contents' => json_encode($chatHistory)],
+            ['name' => 'history', 'contents' => json_encode([])],
         ];
 
         if ($request->hasFile('pdf_file')) {
@@ -139,77 +119,58 @@ class TutorController extends Controller
                 'name'     => 'pdf_file',
                 'contents' => fopen($pdf->getPathname(), 'r'),
                 'filename' => $pdf->getClientOriginalName(),
-                'headers'  => [
-                    'Content-Type' => $pdf->getMimeType()
-                ],
+                'headers'  => ['Content-Type' => $pdf->getMimeType()],
             ];
         }
 
-        $response = Http::timeout(0)
-            ->asMultipart()
-            ->post('http://127.0.0.1:5001/tutor', $multipartData);
+        $response = Http::timeout(0)->asMultipart()->post('http://127.0.0.1:5001/tutor', $multipartData);
 
-        // Handle failure
+        Log::info('API Request', [
+            'grade_level' => $gradeLevel,
+            'input_type' => $validated['input_type'],
+            'topic' => $finalTopic,
+            'mode' => $mode,
+            'user_id' => Auth::id(),
+        ]);
+
+        Log::info('API Response', [
+            'status' => $response->status(),
+            'body' => $response->body(),
+        ]);
+
         if ($response->failed()) {
-            $errorMessage = 'Python API failed: ' . $response->body();
-            Log::error($errorMessage);
-
-            if ($request->ajax() || $request->wantsJson()) {
-                return response()->json([
-                    'error' => 'Python API failed',
-                    'details' => $response->body()
-                ], 500);
-            }
-
-            return back()->withErrors(['error' => $errorMessage]);
+            DB::rollBack();
+            Log::error('Python API call failed', [
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
+            return response()->json(['error' => 'Python API failed'], 500);
         }
 
         $output = $response->json()['output'] ?? 'No output';
 
-        // Store agent response
-        ConversationHistory::create([
+        Message::create([
             'user_id' => Auth::id(),
-            'agent' => 'tutor',
-            'message' => $output,
-            'sender' => 'agent',
-            'sess_grade_level' => $gradeLevel
+            'agent_id' => 1,
+            'sender' => 'ai',
+            'topic' => $output,
+            'grade_level' => $gradeLevel,
+            'parameter_inputs' => $parameterInput->id,
+            'message_id' => $human->message_id,
         ]);
 
-        // Reload updated history
-        $latestHistory = ConversationHistory::where('user_id', Auth::id())
-            ->where('agent', 'tutor')
-            ->orderBy('created_at')
-            ->get();
+        DB::commit();
 
-        $chatHistory = $latestHistory->map(function ($item) {
-            return [
-                'role' => $item->sender,
-                'content' => $item->message
-            ];
-        })->toArray();
-
-        // Return JSON if requested
-        if ($request->ajax() || $request->wantsJson()) {
-            return response()->json([
-                'message' => $output,
-                'history' => $chatHistory
-            ]);
-        }
-
-        return view('tutor', [
-            'response' => $output,
-            'history' => $chatHistory
+        return response()->json([
+            'message' => $output,
+            'message_id' => $human->message_id
         ]);
     }
 
     public function clearHistory(Request $request)
     {
-        ConversationHistory::where('user_id', Auth::id())
-            ->where('agent', 'tutor')
-            ->delete();
-
+        Message::where('user_id', Auth::id())->delete();
         session()->forget('grade_level');
-
         return redirect()->back()->with('status', 'Conversation history cleared.');
     }
 }

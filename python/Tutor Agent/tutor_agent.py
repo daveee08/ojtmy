@@ -13,7 +13,7 @@ from langchain_core.messages import HumanMessage, AIMessage
 from chat_router_feb import chat_router
 # ===================== App Initialization =====================
 app = FastAPI(debug=True)
-app.include_router(chat_router)
+# app.include_router(chat_router)
 
 
 
@@ -29,6 +29,7 @@ class TutorRequest(BaseModel):
     add_cont: str = ""
     mode: str = "manual"
     history: str = "[]"
+    message_id: int
 
     @classmethod
     def as_form(
@@ -39,7 +40,8 @@ class TutorRequest(BaseModel):
         topic: str = Form(""),
         add_cont: str = Form(""),
         mode: str = Form("manual"),
-        history: str = Form("[]")
+        history: str = Form("[]"),
+        message_id: int = Form(...)
     ):
         return cls(
             user_id=user_id,
@@ -48,7 +50,8 @@ class TutorRequest(BaseModel):
             topic=topic,
             add_cont=add_cont,
             mode=mode,
-            history=history
+            history=history, 
+            message_id=message_id
         )
 
 # ===================== Prompt Templates =====================
@@ -197,14 +200,26 @@ async def tutor_endpoint(
 ):
     try:
         if data.mode == "chat":
-            async with httpx.AsyncClient() as client:
+            async with httpx.AsyncClient(timeout=None) as client:
                 form_data = {
                     "topic": data.topic,
-                    "history": data.history,
-                    "user_id": str(data.user_id)
+                    # "history": data.history,
+                    "user_id": str(data.user_id),
+                    "db_message_id": int(data.message_id),
                 }
-                chat_url = "http://127.0.0.1:5001/chat_with_history"
-                resp = await client.post(chat_url, data=form_data)
+                chat_url = "http://192.168.50.10:8000/chat_with_history"
+                try:
+                    print("[DEBUG] Sending chat request:", form_data, flush=True)
+                    resp = await client.post(chat_url, data=form_data)
+                    print("[DEBUG] Response status:", resp.status_code, flush=True)
+                    print("[DEBUG] Response body:", await resp.aread(), flush=True)
+                except Exception as e:
+                    import traceback
+                    print("[ERROR] Failed to contact chat_url", flush=True)
+                    print(traceback.format_exc(), flush=True)
+                    raise
+
+
                 resp.raise_for_status()
                 result = resp.json()
                 output = result.get("response", "No output")

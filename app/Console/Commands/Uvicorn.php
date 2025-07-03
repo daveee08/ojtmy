@@ -3,6 +3,8 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+use Symfony\Component\Process\Process;
+
 
 class Uvicorn extends Command
 {
@@ -18,7 +20,7 @@ class Uvicorn extends Command
      *
      * @var string
      */
-    protected $description = 'Rex T. Pinatil';
+    protected $description = 'Run the FastAPI Chat Server using Uvicorn';
 
     /**
      * Create a new command instance.
@@ -37,7 +39,30 @@ class Uvicorn extends Command
      */
     public function handle()
     {
-        return "0";
+        $this->info('Starting FastAPI server...');
+
+        $process = new Process([
+            'uvicorn',
+            'chat_router_feb:chat_router', // Adjust this if your FastAPI app is named differently
+            '--host', '0.0.0.0',
+            '--port', '8000',
+            '--reload'
+        ]);
+
+        $process->setWorkingDirectory(base_path('python/Tutor Agent/')); // adjust if different
+        $process->setTimeout(null); // Run indefinitely
+
+        $process->start();
+
+        foreach ($process as $type => $data) {
+            if ($process::OUT === $type) {
+                $this->line($data);  // Normal output (print, logging, stdout)
+            } else { // STDERR
+                $this->error($data); // Errors and tracebacks
+            }
+        }
+
+        return 0;
     }
 }
 

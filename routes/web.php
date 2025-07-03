@@ -4,19 +4,15 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SummarizeController;
 use App\Http\Controllers\ProofreaderController;
 use App\Http\Controllers\QuizmeController;
-use App\Http\Controllers\RewriterController;
 use App\Http\Controllers\StepTutorController;
 use App\Http\Controllers\FiveQuestion\FiveQuestionsController;
 use App\Http\Controllers\EmailWriter\EmailWriterController;
 use App\Http\Controllers\ThankYouNote\ThankYouNoteController;
 use App\Http\Controllers\RealWorld\RealWorldController;
-use App\Http\Controllers\ResponderController;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\ScaffolderController;
 use App\Http\Controllers\TutorController;
 use App\Http\Controllers\TextLeveler\LevelerController;
 use App\Http\Controllers\InformationalTexts\InformationalController;
-use App\Http\Controllers\ExplanationsController;
 use App\Http\Controllers\QOTDController;
 use App\Http\Controllers\TongueTwistController;
 use App\Http\Controllers\TeacherJokesController;
@@ -27,8 +23,11 @@ use App\Http\Controllers\ContentCreator\ContentCreatorController;
 use App\Http\Controllers\SentenceStarters\SentenceStarterController;
 use App\Http\Controllers\Translator\TranslatorController;
 use App\Http\Controllers\StudyHabits\StudyHabitsController;
-use App\Http\Controllers\ChatconversationController;
 use App\Http\Controllers\ChatWithDocs\ChatWithDocsController;
+use App\Http\Controllers\EmailResponder\ResponderController;
+use App\Http\Controllers\TextRewriter\RewriterController;
+use App\Http\Controllers\TextScaffolder\ScaffolderController;
+use App\Http\Controllers\Explanations\ExplanationsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -150,28 +149,9 @@ Route::get('/step-tutor', [StepTutorController::class, 'showForm']);
 Route::post('/step-tutor', [StepTutorController::class, 'processForm']);
 Route::post('/step-tutor/clear', [App\Http\Controllers\StepTutorController::class, 'clearHistory'])->middleware('auth');
 
-
-// ✅ Explanations Tool
-Route::get('/explanations', 'App\Http\Controllers\ExplanationsController@showForm');
-Route::post('/explanations', 'App\Http\Controllers\ExplanationsController@processForm');
-
-<<<<<<< HEAD
-// Rewriter Tool
-Route::get('/rewriter', [RewriterController::class, 'showForm']);
-Route::post('/rewriter', [RewriterController::class, 'processForm']);
-Route::get('/rewriter', 'App\Http\Controllers\RewriterController@showForm');
-Route::post('/rewriter', 'App\Http\Controllers\RewriterController@processForm');
-
 // Routes for Book Suggestion Chatbot
 Route::get('/booksuggestion', [BookSuggestionController::class, 'index']);
 Route::post('/suggest', [BookSuggestionController::class, 'getSuggestions']);
-=======
-// Route::post('/tutor/clear', function () {
-//     Session::forget('chat_history');
-//     Session::forget('grade_level');
-//     return redirect('/tutor');
-// });
->>>>>>> 95bc6b23b3d0945f0e09d6e1a9906d239cbd33dd
 
 //email writer
 Route::get('/email-writer', [EmailWriterController::class, 'show'])->name('email.writer.show');
@@ -194,9 +174,21 @@ Route::get('/studyhabits', [StudyHabitsController::class, 'showForm'])->name('st
 Route::post('/studyhabits', [StudyHabitsController::class, 'processForm'])->name('studyhabits.process');
 
 // ✅ Responder Tool
-Route::get('/responder', [ResponderController::class, 'showForm']);
-Route::post('/responder', [ResponderController::class, 'processForm']);
+Route::get('/responder', [ResponderController::class, 'showForm'])->name('responder.form');
+Route::post('/responder', [ResponderController::class, 'processForm'])->name('responder.process');
 
-Route::get('/chat-with-docs', function () {
-    return view('Chat with Docs.chat-with-docs');
-});
+// Rewriter Tool
+Route::get('/rewriter', [RewriterController::class, 'showForm'])->name('rewriter.form');
+Route::post('/rewriter', [RewriterController::class, 'processForm'])->name('rewriter.process');
+
+// Text Scaffolder Tool
+Route::get('/scaffolder', [ScaffolderController::class, 'showForm'])->name('scaffolder.form');
+Route::post('/scaffolder', [ScaffolderController::class, 'processForm'])->name('scaffolder.process');
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// ✅ Explanations Tool
+Route::get('/explanations', [ExplanationsController::class, 'showForm'])->name('explanations.form');
+Route::post('/explanations', [ExplanationsController::class, 'processForm'])->name('explanations.process');
+
+// ✅ Assignment Scaffolder Tool
+// Route::get('/assignmentscaffolder', [AssignmentScaffolderController::class, 'showForm'])->name('assignmentscaffolder.form');
+// Route::post('/assignmentscaffolder', [AssignmentScaffolderController::class, 'processForm'])->name('assignmentscaffolder.process');

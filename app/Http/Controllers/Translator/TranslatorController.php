@@ -10,7 +10,38 @@ class TranslatorController extends Controller
 {
     public function showForm()
     {
-        return view('Text Translator.translator');
+        // return view('Text Translator.translator');
+
+        // for displaying the messages of that agent
+        $userId = auth()->id() ?? 1;       // Default for testing
+        $agentId = 16;                      // Example: Translator agent ID is 3
+
+        $historyResponse = Http::get('http://192.168.50.10:8013/chat/messages', [
+            'user_id' => $userId,
+            'agent_id' => $agentId,
+        ]);
+
+        // $messages = $historyResponse->json()['messages'] ?? [];
+
+        
+
+        Log::info('Message payload dump', ['payload' => $historyResponse->json()]);
+
+
+        $decoded = $historyResponse->json(); // <-- get the full decoded array
+
+        $messages = $decoded['messages'] ?? []; // ✅ This must isolate the inner messages array
+
+        Log::info('Fetched messages for translator', [
+            'user_id' => $userId,
+            'agent_id' => $agentId,
+            'messages_count' => count($messages),
+            'response_status' => $historyResponse->status(),
+        ]);
+
+        return view('Text Translator.translator', [
+            'messages' => $messages, // ⚠️ not 'payload', not 'data', only the array of messages
+        ]);
     }
 
     public function processForm(Request $request)
@@ -22,27 +53,12 @@ class TranslatorController extends Controller
             'language' => 'required|string',
         ]);
 
-        // // Check if message_id exists in session, otherwise generate a new one
-        // if (!session()->has('translator_message_id')) {
-        //     $generatedId = \Illuminate\Support\Int::uuid();
-        //     session(['translator_message_id' => $generatedId]);
-        // }
-
-        // $threadId = session('translator_message_id');
-
-        // Log::info('Processing translation request', [
-        //     'text' => $validated['text'],
-        //     'language' => $validated['language'],
-        //     'thread_id' => $threadId,
-        // ]);
 
         $multipartData = [
             ['name' => 'text', 'contents' => $validated['text']],
             ['name' => 'target_language', 'contents' => $validated['language']],
             ['name' => 'mode', 'contents' => 'manual'],
-            // ['name' => 'agent_id', 'contents' => 2], // Assuming agent_id for translator is 2
             ['name' => 'user_id', 'contents' => auth()->id() ?: 1], // Use authenticated user ID or default to 1
-            // ['name' => 'parameter_inputs', 'contents' => json_encode(['grade_level' => '8'])] // Example parameter inputs
         ];
         
         

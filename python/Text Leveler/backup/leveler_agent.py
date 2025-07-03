@@ -55,9 +55,10 @@ Instructions:
 Respond ONLY with the explanation text (no extra commentary).
 """
 
-# --- FastAPI App Initialization ---
-app = FastAPI(debug=True)
-app.include_router(chat_router)
+# --- LangChain Setup ---
+model = Ollama(model="llama3")
+manual_prompt = ChatPromptTemplate.from_template(manual_topic_template)
+pdf_prompt = ChatPromptTemplate.from_template(pdf_topic_template)
 
 # --- Pydantic Model for Form Input ---
 class LevelerFormInput(BaseModel):
@@ -83,11 +84,6 @@ class LevelerFormInput(BaseModel):
             learning_speed=learning_speed,
             message_id=message_id
         )
-    
-# --- LangChain Setup ---
-model = Ollama(model="llama3")
-manual_prompt = ChatPromptTemplate.from_template(manual_topic_template)
-pdf_prompt = ChatPromptTemplate.from_template(pdf_topic_template)
 
 # --- PDF Loader ---
 def load_pdf_content(pdf_path: str) -> str:
@@ -136,6 +132,10 @@ async def generate_output(
     chain = prompt | model
     result = chain.invoke(prompt_input)
     return clean_output(result)
+
+# --- FastAPI Setup ---
+app = FastAPI()
+app.include_router(chat_router)
 
 @app.post("/leveler")
 async def leveler_api(

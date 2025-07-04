@@ -51,12 +51,10 @@ Formatting Rules:
 Return only the formatted output. Do not add headings, titles, or instructional notes.
 """
 
-
-
 pdf_topic_template = """
 You are an educational assistant.
 
-Your task is to generate only **literal comprehension questions** and **vocabulary definitions** based on the given topic and grade level.
+Your task is to generate only **literal comprehension questions** and **vocabulary definitions** based on a given academic text. Your goal is to support accurate, age-appropriate understanding of the topic for {grade_level} students.
 
 Parameters:
 - Grade Level: {grade_level}
@@ -66,30 +64,36 @@ Parameters:
 
 Output Instructions:
 
-1. Generate exactly {literal_questions} **literal comprehension questions** that directly reflect facts stated in the text. Use clear, age-appropriate language suitable for a {grade_level} student.
-2. Identify and define up to {vocab_limit} essential vocabulary words. Use accurate, concise, and student-friendly language.
-3. Do NOT include explanations, summaries, introductions, or transitions.
-4. Do NOT include answer choices, explanations, or blank answer spaces.
-5. Do NOT use labels like “Definition:” or “Term:”. Just write the word followed by its definition.
-6. Use this **strict format only**:
+1. Start with the heading **Vocabulary:** and list up to {vocab_limit} important words found in the text.
+   - Each word must be followed by a short, clear definition suitable for {grade_level}.
+   - Use simple, age-appropriate language. Avoid:
+     - Technical jargon
+     - Abstract phrasing
+     - Circular or overly complex definitions
+
+2. Then write the heading **Questions:** and list exactly {literal_questions} literal comprehension questions.
+   - Questions must be based strictly on facts **explicitly stated** in the original text.
+   - Avoid interpretation, inference, summarizing, or “Why/How” questions unless clearly supported by the text.
+   - Phrase questions in a direct, concrete way that matches the reading level.
+
+3. Use this exact format (and nothing else):
 
 Vocabulary:
 1. Word: Definition.
 2. Word: Definition.
-...
+
 Questions:
-1. Literal comprehension question?
-2. Literal comprehension question?
-...
+1. Literal question?
+2. Literal question?
 
 Formatting Rules:
-- Start with the **Vocabulary** section, followed by the **Questions** section.
-- Use clean, consistent spacing.
-- Definitions should use language appropriate for {grade_level} and must be clear without relying on abstract or circular terms.
-- Questions should be direct, fact-based, and pulled only from details stated in the source material. Avoid inference or opinion-based prompts.
-- Do NOT include any additional commentary or filler content. Only return the formatted output.
+- Do **not** include any of the following:
+  - Explanations, summaries, or extra commentary
+  - Labels such as “Definition:”, “Term:”, or “Answer:”
+  - Paragraphs or introductory text
+  - Any text outside the required Vocabulary and Questions sections
 
-Your response must follow this format exactly.
+Return only the formatted output. Do not add headings, titles, or instructional notes.
 """
 
 model = Ollama(model="llama3")

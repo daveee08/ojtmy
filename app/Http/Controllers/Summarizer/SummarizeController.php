@@ -2,114 +2,124 @@
 
 namespace App\Http\Controllers\Summarizer;
 
+use App\Http\Controllers\BackendServiceController;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\{DB, Http, Auth, Log};
-use App\Models\{ParameterInput, Message};
+use Illuminate\Support\Facades\{Http, Log, Auth, DB};
+use App\Models\{Message, ParameterInput};
 
-class SummarizeController extends Controller
+class SummarizeController extends BackendServiceController
 {
-    public function index()
+    public function index(Request $request)
     {
-        $agent = DB::table('agents')->where('agent', 'summarizer')->first();
+        $selectedThread = $request->query('thread_id');
 
-        if (!$agent) {
-            abort(404, 'Summarizer agent not found.');
-        }
-
-        $parameters = DB::table('agent_parameters')
-            ->where('agent_id', $agent->id)
+        $threads = \App\Models\Message::where('user_id', auth()->id())
+            ->whereColumn('id', 'message_id')
+            ->where('agent_id', 3)
+            ->orderByDesc('created_at')
             ->get();
 
-        return view('TextSummarizer.summarize', compact('parameters'));
+        $history = $selectedThread
+            ? \App\Models\Message::where('message_id', $selectedThread)->orderBy('created_at')->get()->map(fn($m) => [
+                'role' => $m->sender,
+                'content' => $m->topic,
+                'id' => $m->id
+            ])
+            : collect();
+
+        return view('TextSummarizer.summarize', [
+            'history' => $history,
+            'threads' => $threads,
+            'activeThread' => $selectedThread
+        ]);
     }
 
     public function summarize(Request $request)
     {
         $validated = $request->validate([
-            'conditions' => 'required|string',
+            'summary_instructions' => 'required|string',
             'input_text' => 'nullable|string',
             'pdf' => 'nullable|mimes:pdf|max:10240',
+            'message_id' => 'nullable|integer',
         ]);
 
-        $agent = DB::table('agents')->where('agent', 'summarizer')->first();
+        $agent = $this->resolveAgent('summarizer');
+        $paramInputs = $this->resolveAllParameterInputs($agent, $validated);
 
-        if (!$agent) {
-            return response()->json(['error' => 'Agent not found'], 404);
+        $topic = $validated['input_text'] ?? '[PDF Upload]';
+        if (!empty($validated['add_cont'])) {
+            $topic .= "\n\nAdditional Context:\n" . $validated['add_cont'];
         }
 
-        // Get the 'conditions' parameter definition
-        $parameter = DB::table('agent_parameters')
-            ->where('agent_id', $agent->id)
-            ->where('parameter', 'conditions')
-            ->first();
 
-        if (!$parameter) {
-            return response()->json(['error' => 'Parameter not found'], 404);
-        }
+        DB::beginTransaction();
 
-        $parameterInput = ParameterInput::firstOrCreate([
-            'input' => $validated['conditions'],
-            'agent_id' => $agent->id,
-            'parameter_id' => $parameter->id,
-        ]);
-
-        $textInput = $validated['input_text'] ?? '';
-
+        $human = $this->createHumanMessage($agent->id, Auth::id(), $topic, $paramInputs, $validated['message_id'] ?? null);
+        $prior = $this->buildPriorConversation($human->message_id);
+        $mode = Message::where('message_id', $validated['message_id'] ?? 0)->exists() ? 'chat' : 'manual';
+        
         $multipart = [
-            ['name' => 'conditions', 'contents' => $validated['conditions']],
-            ['name' => 'text', 'contents' => $textInput],
+            [
+                'name' => 'summary_instructions',
+                'contents' => $validated['summary_instructions'],
+            ],
+            [
+                'name' => 'text',
+                'contents' => $validated['input_text'] ?? '',
+            ],
+            ['name' => 'mode', 'contents' => $mode],
+            ['name' => 'user_id', 'contents' => Auth::id()],
+            ['name' => 'history', 'contents' => json_encode([])],
+            ['name' => 'message_id', 'contents' => $human->message_id],
         ];
 
         if ($request->hasFile('pdf')) {
-            $pdf = $request->file('pdf');
             $multipart[] = [
-                'name'     => 'pdf',
-                'contents' => fopen($pdf->getPathname(), 'r'),
-                'filename' => $pdf->getClientOriginalName(),
-                'headers'  => ['Content-Type' => $pdf->getMimeType()],
+                'name' => 'pdf',
+                'contents' => fopen($request->file('pdf')->getPathname(), 'r'),
+                'filename' => $request->file('pdf')->getClientOriginalName(),
             ];
         }
+        
 
-        $response = Http::timeout(60)
-            ->asMultipart()
-            ->post($agent->endpoint, $multipart);
+        $response = $this->sendToBackendAPI($multipart, 'http://127.0.0.1:5001/summarize');
 
-        Log::info('Summarizer API Request', [
-            'conditions' => $validated['conditions'],
-            'text' => $textInput,
-            'user_id' => Auth::id(),
+        if ($response->failed()) {
+            DB::rollBack();
+            return response()->json(['error' => 'API call failed'], 500);
+        }
+
+        $output = $response->json()['summary'] ?? 'No output';  
+
+        // If $output is a JSON string, decode it
+        if (is_string($output) && preg_match('/^\s*\{.*\}\s*$/s', $output)) {
+            $decoded = json_decode($output, true);
+            if (is_array($decoded)) {
+                if (isset($decoded['summary'])) {
+                    $output = $decoded['summary'];
+                } elseif (isset($decoded['output'])) {
+                    $output = $decoded['output'];
+                }
+            }
+        }
+
+        $this->createAIMessage($output, $agent->id, $paramInputs, $human->message_id);
+
+        DB::commit();
+        
+        Log::info('Summarizer API output:', ['output' => $output]);
+
+
+        return response()->json([
+            'message' => $output,
+            'message_id' => $human->message_id
         ]);
 
-        Log::info('Summarizer API Response', [
-            'status' => $response->status(),
-            'body' => $response->body(),
-        ]);
+        // $summary = $response->json()['summary'] ?? 'No summary returned.';
 
-        $summary = $response->json()['summary'] ?? 'No summary returned.';
+        // return view('TextSummarizer.summarize', compact('summary'));
 
-        Message::create([
-            'user_id' => Auth::id(),
-            'agent_id' => $agent->id,
-            'sender' => 'human',
-            'topic' => $textInput ?: '[PDF Upload]',
-            'parameter_inputs' => $parameterInput->id,
-            'message_id' => 0,
-        ]);
-
-        Message::create([
-            'user_id' => Auth::id(),
-            'agent_id' => $agent->id,
-            'sender' => 'ai',
-            'topic' => $summary,
-            'parameter_inputs' => $parameterInput->id,
-            'message_id' => 0,
-        ]);
-
-        $parameters = DB::table('agent_parameters')
-            ->where('agent_id', $agent->id)
-            ->get();
-
-        return view('TextSummarizer.summarize', compact('summary', 'parameters'));
+        
     }
 }

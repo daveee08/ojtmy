@@ -29,6 +29,7 @@ use App\Http\Controllers\EmailResponder\ResponderController;
 use App\Http\Controllers\TextRewriter\RewriterController;
 use App\Http\Controllers\TextScaffolder\ScaffolderController;
 use App\Http\Controllers\Explanations\ExplanationsController;
+use App\Http\Controllers\AssignmentScaffolder\AssignmentScaffolder;
 
 /*
 |--------------------------------------------------------------------------
@@ -189,3 +190,7 @@ Route::post('/scaffolder', [ScaffolderController::class, 'processForm'])->name('
 // ✅ Explanations Tool
 Route::get('/explanations', [ExplanationsController::class, 'showForm'])->name('explanations.form');
 Route::post('/explanations', [ExplanationsController::class, 'processForm'])->name('explanations.process');
+
+// ✅ Scaffolder Tool
+Route::get('/assignmentscaffolder', [AssignmentScaffolder::class, 'showForm'])->name('assignmentscaffolder.form');
+Route::post('/assignmentscaffolder', [AssignmentScaffolder::class, 'processForm'])->name('assignmentscaffolder.process');

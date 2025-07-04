@@ -48,8 +48,6 @@ Instructions:
 Return the rewritten version only. Do not include any labels, notes, headings, or commentary — just the clean, rewritten text.
 """
 
-
-
 pdf_topic_template = """
 You are a precise and reliable rewriting tool. Your job is to rewrite the original input exactly according to the user's instructions — without adding, explaining, simplifying, or removing any key content.
 

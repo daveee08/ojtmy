@@ -45,9 +45,34 @@ Important:
     return {"email": result.strip()}
 
 # ------------------- Summarizer -------------------
-def summarize_text(text: str, conditions: str) -> str:
-    clean_text = " ".join(text.strip().replace("\n", " ").replace("\r", "").split())[:3000]
-    prompt_template = """
+from fastapi import FastAPI, UploadFile, Form, HTTPException, Request, Depends, File
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
+import tempfile, traceback, os, re
+from typing import Optional
+from langchain_core.prompts import PromptTemplate
+from langchain_ollama import Ollama
+from langchain_community.document_loaders import PyPDFLoader
+
+app = FastAPI(debug=True)
+
+# ==================== Pydantic Model ====================
+
+class SummarizerRequest(BaseModel):
+    conditions: str
+    text: Optional[str] = ""
+
+    @classmethod
+    def as_form(
+        cls,
+        conditions: str = Form(...),
+        text: str = Form("")
+    ):
+        return cls(conditions=conditions, text=text)
+
+# ==================== Prompt + LLM Setup ====================
+
+summary_template = """
 You are an intelligent and precise summarization assistant.
 
 Your task is to summarize the following content based on the user's exact instructions.
@@ -68,35 +93,62 @@ Important:
 
 Now generate the summary below:
 """
-    prompt = PromptTemplate.from_template(prompt_template)
-    llm = Ollama(model="gemma3:4b")
-    chain = prompt | llm
-    result = chain.invoke({"text": clean_text, "conditions": conditions})
-    return result.strip()
+
+prompt = PromptTemplate.from_template(summary_template)
+model = Ollama(model="gemma3:4b")
+
+# ==================== Helpers ====================
+
+def clean_text(text: str) -> str:
+    return " ".join(text.strip().replace("\n", " ").replace("\r", "").split())[:3000]
+
+def clean_output(text: str) -> str:
+    text = re.sub(r"\*\*(.*?)\*\*", r"\1", text)
+    text = re.sub(r"\*(.*?)\*", r"\1", text)
+    text = re.sub(r"^\s*[\*\-]\s*", "- ", text, flags=re.MULTILINE)
+    return text.strip()
+
+def extract_text_from_pdf(file: UploadFile) -> str:
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+        tmp.write(file.file.read())
+        tmp_path = tmp.name
+    loader = PyPDFLoader(tmp_path)
+    pages = loader.load()
+    os.remove(tmp_path)
+    return "\n".join([page.page_content for page in pages])
+
+# ==================== Route ====================
 
 @app.post("/summarize")
 async def summarize(
-    conditions: str = Form(...),
-    text: str = Form(""),
-    pdf: UploadFile = File(None)
+    data: SummarizerRequest = Depends(SummarizerRequest.as_form),
+    pdf: Optional[UploadFile] = File(None),
+    request: Request = None
 ):
-    if pdf and pdf.filename and pdf.content_type == "application/pdf":
-        contents = await pdf.read()
-        if contents:
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
-                tmp.write(contents)
-                tmp_path = tmp.name
+    try:
+        content = data.text.strip()
 
-            loader = PyPDFLoader(tmp_path)
-            pages = loader.load()
-            os.remove(tmp_path)
-            text = "\n".join([page.page_content for page in pages])
+        if pdf and pdf.filename:
+            content = extract_text_from_pdf(pdf)
 
-    if not text.strip():
-        return {"summary": "No valid text provided."}
+        if not content:
+            return {"summary": "No valid text provided."}
 
-    summary = summarize_text(text, conditions)
-    return {"summary": summary}
+        user_input = {
+            "text": clean_text(content),
+            "conditions": data.conditions
+        }
+
+        chain = prompt | model
+        result = chain.invoke(user_input)
+
+        return {"summary": clean_output(result)}
+
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={"detail": str(e), "trace": traceback.format_exc()}
+        )
 
 # ------------------- Thank You Note Generator -------------------
 @app.post("/generate-thankyou")

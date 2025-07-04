@@ -110,7 +110,7 @@
 
     <div class="row">
         <div class="col-md-3">
-            <h5 class="fw-bold mb-3">Threads</h5>
+            <h5 class="fw-bold mb-3">    Conceptual Understanding Sessions</h5>
             <ul class="list-group">
                 @foreach ($threads as $thread)
                     <li class="list-group-item {{ $thread->id == $activeThread ? 'active' : '' }}">
@@ -130,7 +130,7 @@
         <div class="row justify-content-center">
             <div class="col-lg-8">
                 <div class="ck-card">
-                    <h2 class="ck-title">AI Tutor Assistant</h2>
+                    <h2 class="ck-title">Conceptual Understanding </h2>
 
                     <!-- Chat Display -->
                     @if (isset($history) && count($history) > 0)

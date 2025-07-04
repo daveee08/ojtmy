@@ -39,7 +39,7 @@ Important:
 """
 
     prompt = PromptTemplate.from_template(prompt_template)
-    llm = Ollama(model="gemma3:4b")
+    llm = Ollama(model="gemma3:1b")
     chain = prompt | llm
     result = chain.invoke({"content": content.strip()})
     return {"email": result.strip()}

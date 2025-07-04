@@ -14,7 +14,7 @@ class TutorController extends Controller
 
         $threads = Message::where('user_id', Auth::id())
             ->whereColumn('id', 'message_id')
-            // ->where('agent', 'tutor') // Ensure we only get threads for this agent
+            ->where('agent_id', 1) // Ensure we only get threads for this agent
             ->orderByDesc('created_at')
             ->get();
 
@@ -124,7 +124,7 @@ class TutorController extends Controller
             ];
         }
 
-        $response = Http::timeout(0)->asMultipart()->post('http://127.0.0.1:5001/tutor', $multipartData);
+        $response = Http::timeout(0)->asMultipart()->post('http://192.168.50.10:8002/tutor', $multipartData);
 
         Log::info('API Request', [
             'grade_level' => $gradeLevel,

@@ -91,8 +91,8 @@ Route::get('/idea-generator', [IdeaGeneratorController::class, 'showForm'])->nam
 Route::post('/idea-generator', [IdeaGeneratorController::class, 'generate'])->name('idea.generate');
 
 // ✅ Tutor Tool
-Route::get('/tutor', 'App\Http\Controllers\TutorController@showForm');
-Route::post('/tutor', 'App\Http\Controllers\TutorController@processForm');
+Route::get('/tutor', 'App\Http\Controllers\TestTutorController@showForm');
+Route::post('/tutor', 'App\Http\Controllers\TestTutorController@processForm');
 Route::post('/tutor/clear', [App\Http\Controllers\TutorController::class, 'clearHistory'])->middleware('auth');
 
 // ✅ Leveler Tool

@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from langchain_community.llms import Ollama
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_community.document_loaders.pdf import PyPDFLoader
-import shutil, os, re, tempfile, uvicorn, traceback
+import os, re, tempfile, uvicorn
 from typing import Optional
 from uuid import uuid4
 from chat_router import chat_router, get_history_by_message_id
@@ -174,9 +174,7 @@ async def leveler_api(
 
         return {"output": output}
     except Exception as e:
-        traceback_str = traceback.format_exc()
-        print(traceback_str)
-        return JSONResponse(status_code=500, content={"detail": str(e), "trace": traceback_str})
+        return JSONResponse(status_code=500, content={"detail": str(e)})
 
 # --- Uvicorn entrypoint ---
 if __name__ == "__main__":

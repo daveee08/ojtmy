@@ -1,0 +1,21 @@
+{
+    "name": "CK Quiz Me!",
+    "short_name": "Quiz Me",
+    "description": "An AI-powered educational tool for quizzes, jokes, and more.",
+    "start_url": "/home",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#e91e63",
+    "icons": [
+        {
+            "src": "/icons/quizme.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/icons/quizme.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+} 

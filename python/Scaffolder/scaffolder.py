@@ -4,7 +4,8 @@ from pydantic import BaseModel
 from langchain_community.llms import Ollama
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_community.document_loaders.pdf import PyPDFLoader
-import shutil, os, re, tempfile, uvicorn, traceback
+import os, re, tempfile, uvicorn
+import traceback
 
 manual_topic_template = """
 You are an educational assistant.
@@ -28,7 +29,7 @@ Output Instructions:
 
 2. Then write the heading **Questions:** and list exactly {literal_questions} literal comprehension questions.
    - Questions must be based strictly on facts **explicitly stated** in the original text.
-   - Avoid interpretation, inference, summarizing, or “Why/How” questions unless clearly supported by the text.
+   - Avoid interpretation, inference, summarizing, or "Why/How" questions unless clearly supported by the text.
    - Phrase questions in a direct, concrete way that matches the reading level.
 
 3. Use this exact format (and nothing else):
@@ -44,7 +45,7 @@ Questions:
 Formatting Rules:
 - Do **not** include any of the following:
   - Explanations, summaries, or extra commentary
-  - Labels such as “Definition:”, “Term:”, or “Answer:”
+  - Labels such as "Definition:", "Term:", or "Answer:"
   - Paragraphs or introductory text
   - Any text outside the required Vocabulary and Questions sections
 
@@ -64,19 +65,12 @@ Parameters:
 
 Output Instructions:
 
-1. Start with the heading **Vocabulary:** and list up to {vocab_limit} important words found in the text.
-   - Each word must be followed by a short, clear definition suitable for {grade_level}.
-   - Use simple, age-appropriate language. Avoid:
-     - Technical jargon
-     - Abstract phrasing
-     - Circular or overly complex definitions
-
-2. Then write the heading **Questions:** and list exactly {literal_questions} literal comprehension questions.
-   - Questions must be based strictly on facts **explicitly stated** in the original text.
-   - Avoid interpretation, inference, summarizing, or “Why/How” questions unless clearly supported by the text.
-   - Phrase questions in a direct, concrete way that matches the reading level.
-
-3. Use this exact format (and nothing else):
+1. Generate exactly {literal_questions} **literal comprehension questions** that directly reflect facts stated in the text. Use clear, age-appropriate language suitable for a {grade_level} student.
+2. Identify and define up to {vocab_limit} essential vocabulary words. Use accurate, concise, and student-friendly language.
+3. Do NOT include explanations, summaries, introductions, or transitions.
+4. Do NOT include answer choices, explanations, or blank answer spaces.
+5. Do NOT use labels like "Definition:", "Term:", or "Answer:". Just write the word followed by its definition.
+6. Use this **strict format only**:
 
 Vocabulary:
 1. Word: Definition.
@@ -89,7 +83,7 @@ Questions:
 Formatting Rules:
 - Do **not** include any of the following:
   - Explanations, summaries, or extra commentary
-  - Labels such as “Definition:”, “Term:”, or “Answer:”
+  - Labels such as "Definition:", "Term:", or "Answer:"
   - Paragraphs or introductory text
   - Any text outside the required Vocabulary and Questions sections
 
@@ -182,7 +176,7 @@ async def scaffolder_api(
         return {"output": output}
     except Exception as e:
         traceback_str = traceback.format_exc()
-        print(traceback_str)
+        print("[DEBUG] Full Traceback:\n", traceback_str, flush=True)
         return JSONResponse(status_code=500, content={"detail": str(e), "trace": traceback_str})
 
 if __name__ == "__main__":

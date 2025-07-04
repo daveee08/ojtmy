@@ -10,58 +10,98 @@
     .container-qotd {
         background: #ffffff;
         max-width: 700px;
-        padding: 32px;
+        padding: 1.5rem 1rem; /* Adjusted for mobile-first */
         border-radius: 18px;
         box-shadow: 0 2px 16px rgba(80, 60, 200, 0.08);
-        margin: 40px auto;
+        margin: 1.5rem auto; /* Adjusted for mobile-first */
     }
     .h2-qotd {
         text-align:center;
         font-weight:600;
-        margin-bottom:8px;
-        color: #e91e63; /* Matching Quizme's primary color */
+        margin-bottom: 0.5rem; /* Adjusted margin */
+        color: #e91e63;
+        font-size: 1.75rem; /* Mobile-first heading size */
     }
     .p-qotd {
         text-align:center;
         color:#555;
-        margin-bottom:32px;
+        margin-bottom: 1.5rem; /* Adjusted margin */
+        font-size: 0.9rem;
     }
     .btn-primary-qotd {
-        background:#e91e63; /* Matching Quizme's primary button color */
+        background:#e91e63;
         border:none;
         font-weight:600;
-        font-size:1.1em;
+        font-size:1rem; /* Adjusted font size */
         border-radius:30px;
-        flex:3;
-        padding: 10px 20px; /* Added padding for better appearance */
+        width: 100%; /* Full width for mobile */
+        padding: 0.75rem 1.5rem; /* Increased padding for better touch target */
+        margin-bottom: 0.5rem; /* Space if buttons stack */
     }
     .form-control-qotd {
-        border-color: #ddd; /* Subtle border for form controls */
+        border-color: #ddd;
+        min-height: 48px; /* Ensure touch friendliness */
+        font-size: 1rem; /* Consistent font size */
     }
     .quote-display-qotd {
-        margin-top: 32px;
-        padding: 24px;
-        background: #f7f7ff; /* Lighter background for the quote box */
+        margin-top: 1.5rem; /* Adjusted margin */
+        padding: 1.5rem; /* Adjusted padding */
+        background: #f7f7ff;
         border-radius: 12px;
         text-align:center;
-        font-size:1.2em;
+        font-size:1.1em;
         color:#333;
     }
-    .btn-sm-outline-secondary-qotd {
-        border:1px solid #e91e63; /* Outline color matching Quizme */
-        color:#e91e63;
-        background:transparent;
-    }
+    .btn-sm-outline-secondary-qotd,
     .btn-sm-outline-danger-qotd {
-        border:1px solid #e91e63; /* Outline color matching Quizme */
+        border:1px solid #e91e63;
         color:#e91e63;
         background:transparent;
+        width: 100%; /* Full width for mobile */
+        margin-bottom: 0.5rem; /* Space if buttons stack */
+        padding: 0.5rem 1rem; /* Adjusted padding for better touch target */
+        font-size: 0.9rem; /* Adjusted font size */
     }
     .btn-sm-outline-secondary-qotd:hover,
     .btn-sm-outline-danger-qotd:hover {
-        background-color: #e91e63; /* Hover background matching Quizme */
+        background-color: #e91e63;
         color: #fff;
         border-color: #e91e63;
+    }
+
+    /* Media query for larger screens (e.g., tablets and desktops) */
+    @media (min-width: 768px) {
+        .container-qotd {
+            padding: 32px; /* Restore original padding */
+            margin: 40px auto; /* Restore original margin */
+        }
+        .h2-qotd {
+            font-size: 2rem; /* Adjust for desktop */
+            margin-bottom: 8px;
+        }
+        .p-qotd {
+            margin-bottom: 32px;
+            font-size: 1em;
+        }
+        .btn-primary-qotd {
+            width: auto; /* Restore auto width */
+            padding: 10px 20px; /* Restore original padding */
+            margin-bottom: 0; /* Remove bottom margin */
+        }
+        .quote-display-qotd {
+            margin-top: 32px;
+            padding: 24px;
+            font-size: 1.2em;
+        }
+        .btn-sm-outline-secondary-qotd,
+        .btn-sm-outline-danger-qotd {
+            width: auto; /* Restore auto width */
+            margin-bottom: 0;
+            display: inline-block; /* Make them inline */
+        }
+        .quote-display-qotd form:first-of-type + form {
+            margin-left: 10px; /* Add margin between download buttons */
+        }
     }
 </style>
 

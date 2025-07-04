@@ -7,7 +7,7 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_core.messages import HumanMessage, AIMessage, BaseMessage
 from langchain_core.chat_history import BaseChatMessageHistory
-import os, json, traceback
+import os, json
 
 chat_router = APIRouter()
 HISTORY_DIR = "chat_histories"
@@ -127,8 +127,7 @@ async def chat_api(request: ChatRequestForm = Depends(ChatRequestForm.as_form)):
         )
         return JSONResponse(content={"response": result})
     except Exception as e:
-        traceback_str = traceback.format_exc()
-        print(f"[Chat Error] {e}\n{traceback_str}")
+        print(f"[Chat Error] {e}")
         raise HTTPException(status_code=500, detail="Chat processing failed.")
 
 @chat_router.get("/chat/history/{message_id}", response_model=ChatHistoryResponse)
@@ -143,6 +142,5 @@ async def get_chat_history(message_id: str):
         ]
         return ChatHistoryResponse(message_id=message_id, history=formatted_messages)
     except Exception as e:
-        traceback_str = traceback.format_exc()
-        print(f"[Get History Error] {e}\n{traceback_str}")
+        print(f"[Get History Error] {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve chat history.")

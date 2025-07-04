@@ -267,7 +267,7 @@
             try {
                 const formData = new FormData();
                 formData.append('topic', message);
-                formData.append('message_id', messageID);
+                formData.append('session_id', sessionID);
 
                 const response = await fetch('/chat', {
                     method: 'POST',

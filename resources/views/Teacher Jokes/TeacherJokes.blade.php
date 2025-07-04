@@ -94,6 +94,45 @@
             transform: rotate(360deg);
         }
     }
+
+    /* Media query for larger screens (e.g., tablets and desktops) */
+    @media (min-width: 768px) {
+        .container-tj {
+            padding: 32px; /* Restore original padding */
+            margin: 40px auto; /* Restore original margin */
+        }
+        .h2-tj {
+            font-size: 2rem; /* Adjust for desktop */
+            margin-bottom: 8px;
+        }
+        .p-tj {
+            margin-bottom: 32px;
+            font-size: 1em;
+        }
+        .btn-primary-tj {
+            width: auto; /* Restore auto width */
+            padding: 10px 20px; /* Restore original padding */
+            margin-bottom: 0; /* Remove bottom margin */
+        }
+        .joke-display-tj {
+            margin-top: 32px;
+            padding: 24px;
+            font-size: 1.2em;
+        }
+        .loading-tj {
+            margin-top: 20px;
+        }
+        .infinity-loader {
+            width: 80px;
+            height: 80px;
+        }
+        .infinity-loader div {
+            width: 64px;
+            height: 64px;
+            margin: 8px;
+            border: 8px solid #e91e63;
+        }
+    }
 </style>
 
 <div class="container-tj container-md p-md-5 mt-md-4">

@@ -89,7 +89,7 @@
             pointer-events: none;
         }
 
-        .sidebar a i{
+        .sidebar a i {
             margin-right: 0.5rem; /* Adjusted margin */
             font-size: 1rem; /* Adjusted font size for mobile */
             transition: margin 0.3s ease, font-size 0.3s ease;
@@ -98,7 +98,7 @@
         .sidebar.collapsed a i {
             margin-right: 0;
             font-size: 0;
-        }   
+        }
 
         .link-text {
             display: inline;
@@ -185,7 +185,7 @@
                 opacity: 1;
                 pointer-events: auto;
             }
-            .sidebar a i{
+            .sidebar a i {
                 margin-right: 10px;
                 font-size: 1.2rem;
             }
@@ -219,6 +219,7 @@
                 color: rgb(90, 89, 89);
                 padding: 8px 12px;
                 border-radius: 5px;
+                font-size: 1rem;
                 box-shadow: none;
             }
         }

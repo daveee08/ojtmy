@@ -8,6 +8,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous" />
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+
         body {
             background: linear-gradient(to right, #ffe6ec, #ffffff);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -119,10 +121,50 @@
             background: transparent;
         }
 
+        /* Media query for larger screens (e.g., tablets and desktops) */
+        @media (min-width: 768px) {
+            .container {
+                padding: 3rem 2rem; /* Restore original padding for larger screens */
+                margin-top: 2rem; /* Restore original margin top */
+            }
+            .hero h1 {
+                font-size: 2.5rem; /* Restore original font size for larger screens */
+            }
+            .section-title {
+                font-size: 1.5rem; /* Restore original font size for larger screens */
+            }
+            .btn-pink {
+                width: auto; /* Buttons return to auto width on larger screens */
+                margin-bottom: 0; /* Remove bottom margin when not stacked */
+            }
+            /* Adjust spacing for buttons if they are next to each other */
+            .btn-pink + .btn-info, .btn-info + .btn-secondary, .btn-pink + .btn-secondary {
+                margin-left: 0.5rem;
+                margin-bottom: 0;
+            }
+            .nav-link {
+                margin-right: 1rem; /* Restore original margin for nav links */
+                padding: 0.5rem 1rem; /* Keep existing padding */
+            }
+        }
+
         /* Specific styles for download buttons within quiz-summary */
         #quiz-summary .download-form .btn, #resources-output .download-form .btn {
             width: 100%;
             margin-bottom: 0.5rem;
+        }
+
+        @media (min-width: 768px) {
+            #quiz-summary .download-form, #resources-output .download-form {
+                display: inline; /* Make forms inline for larger screens */
+            }
+            #quiz-summary .download-form .btn, #resources-output .download-form .btn {
+                width: auto; /* Restore auto width for buttons */
+                margin-bottom: 0;
+            }
+            #quiz-summary .download-form + .download-form, #resources-output .download-form + .download-form {
+                margin-left: 10px;
+            }
         }
 
         /* Chat history specific styles */

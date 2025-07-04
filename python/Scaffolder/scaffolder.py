@@ -5,6 +5,7 @@ from langchain_community.llms import Ollama
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_community.document_loaders.pdf import PyPDFLoader
 import os, re, tempfile, uvicorn
+import traceback
 
 manual_topic_template = """
 You are an educational assistant.
@@ -51,7 +52,7 @@ Formatting Rules:
 Return only the formatted output. Do not add headings, titles, or instructional notes.
 """
 
-pdf_topic_template = """\
+pdf_topic_template = """
 You are an educational assistant.
 
 Your task is to generate only **literal comprehension questions** and **vocabulary definitions** based on a given academic text. Your goal is to support accurate, age-appropriate understanding of the topic for {grade_level} students.
@@ -182,7 +183,9 @@ async def scaffolder_api(
 
         return {"output": output}
     except Exception as e:
-        return JSONResponse(status_code=500, content={"detail": str(e)})
+        traceback_str = traceback.format_exc()
+        print("[DEBUG] Full Traceback:\n", traceback_str, flush=True)
+        return JSONResponse(status_code=500, content={"detail": str(e), "trace": traceback_str})
 
 if __name__ == "__main__":
     uvicorn.run("scaffolder_agent:app", host="127.0.0.1", port=5001, reload=True)

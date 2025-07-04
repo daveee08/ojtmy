@@ -71,6 +71,43 @@
         border-color: #dc3545;
         color: #dc3545;
     }
+
+    /* Media query for larger screens (e.g., tablets and desktops) */
+    @media (min-width: 768px) {
+        .container-csp {
+            padding: 32px; /* Restore original padding */
+            margin: 40px auto; /* Restore original margin */
+        }
+        .h2-csp {
+            font-size: 2rem; /* Adjust for desktop */
+            margin-bottom: 8px;
+        }
+        .p-csp {
+            margin-bottom: 32px;
+            font-size: 1em;
+        }
+        .btn-primary-csp {
+            width: auto; /* Restore auto width */
+            padding: 10px 20px; /* Restore original padding */
+            margin-bottom: 0; /* Remove bottom margin */
+        }
+        .plan-display-csp {
+            margin-top: 32px;
+            padding: 24px;
+            font-size: 1.0em;
+        }
+        .btn-sm-outline-secondary-csp,
+        .btn-sm-outline-danger-csp {
+            width: auto; /* Restore auto width */
+            margin-bottom: 0;
+            display: inline-block; /* Make them inline */
+            padding: 0.25rem 0.5rem; /* Restore original padding */
+            font-size: 0.875rem; /* Restore original font size */
+        }
+        .plan-display-csp form:first-of-type + form {
+            margin-left: 10px; /* Add margin between download buttons */
+        }
+    }
 </style>
 
 <div class="container-csp container-md p-md-5 mt-md-4">

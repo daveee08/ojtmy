@@ -19,7 +19,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            padding: 1rem; /* Mobile-first padding */
         }
 
         .chat-container {
@@ -28,14 +28,14 @@
             max-width: 800px;
             width: 100%;
             background: white;
-            border-radius: 12px;
+            border-radius: 8px; /* Slightly smaller border-radius for mobile */
             overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08); /* Lighter shadow for mobile */
             /* More pronounced shadow */
-            height: 80vh;
+            height: 90vh; /* Make it take more height on mobile */
             border: 1px solid #e5e7eb;
             /* Lighter border */
-            margin-top: 20px;
+            margin-top: 1rem; /* Adjusted margin for mobile */
         }
 
         .chat-header {
@@ -45,7 +45,7 @@
             /* Darker header */
             color: white;
             font-weight: 700;
-            font-size: 1.75rem;
+            font-size: 1.5rem; /* Adjusted font size for mobile */
             /* Larger font size */
             border-bottom: 1px solid #2d3748;
         }
@@ -53,18 +53,18 @@
         .chat-body {
             flex: 1;
             overflow-y: auto;
-            padding: 1.5rem;
+            padding: 1rem; /* Adjusted padding for mobile */
             display: flex;
             flex-direction: column;
-            gap: 1rem;
+            gap: 0.75rem; /* Adjusted gap for mobile */
             background-color: #ffffff;
         }
 
         .message {
-            padding: 0.75rem 1.25rem;
+            padding: 0.6rem 1rem; /* Adjusted padding for mobile */
             border-radius: 16px;
-            max-width: 75%;
-            font-size: 1rem;
+            max-width: 90%; /* Increase max-width for better mobile readability */
+            font-size: 0.9rem; /* Adjusted font size for mobile */
             line-height: 1.5;
             word-wrap: break-word;
             /* Ensure long words break */
@@ -88,12 +88,13 @@
         }
 
         .chat-footer {
-            padding: 1rem;
+            padding: 0.75rem; /* Adjusted padding for mobile */
             border-top: 1px solid #e2e8f0;
             background-color: #f7fafc;
             /* Lighter footer */
             display: flex;
-            gap: 1rem;
+            flex-direction: column; /* Stack elements on mobile */
+            gap: 0.75rem; /* Adjusted gap for mobile */
             align-items: center;
         }
 
@@ -102,10 +103,11 @@
             flex: 1;
             border-radius: 8px;
             border: 1.5px solid #cbd5e0;
-            padding: 0.75rem 1rem;
+            padding: 0.6rem 1rem; /* Adjusted padding for mobile */
             font-size: 1rem;
             outline: none;
             transition: border-color 0.2s;
+            min-height: 48px; /* Ensure touch friendliness */
         }
 
         .chat-footer textarea:focus {
@@ -119,11 +121,12 @@
             /* Dark button */
             color: white;
             border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 10px;
+            padding: 0.75rem 1.5rem; /* Maintain good button size */
+            border-radius: 8px; /* Consistent with container */
             font-weight: 600;
             cursor: pointer;
             transition: background-color 0.2s, transform 0.1s;
+            width: 100%; /* Full width for mobile */
         }
 
         .chat-footer button:hover {
@@ -139,7 +142,7 @@
 
         #loading-spinner {
             display: none;
-            margin-top: 20px;
+            margin-top: 1rem; /* Adjusted margin */
         }
 
         .spinner-border {
@@ -163,38 +166,43 @@
         }
 
         /* Responsive adjustments */
-        @media (max-width: 768px) {
+        @media (min-width: 768px) {
+            body {
+                padding: 20px;
+            }
             .chat-container {
-                height: 90vh;
-                margin-top: 10px;
-                border-radius: 8px;
+                height: 80vh;
+                margin-top: 20px;
+                border-radius: 12px;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
             }
-
+            .chat-header {
+                font-size: 1.75rem;
+            }
             .chat-body {
-                padding: 1rem;
-                gap: 0.75rem;
+                padding: 1.5rem;
+                gap: 1rem;
             }
-
             .message {
-                max-width: 90%;
-                padding: 0.6rem 1rem;
-                font-size: 0.9rem;
+                max-width: 75%;
+                padding: 0.75rem 1.25rem;
+                font-size: 1rem;
             }
-
             .chat-footer {
-                flex-direction: column;
-                gap: 0.75rem;
-                padding: 0.75rem;
+                flex-direction: row; /* Revert to row for larger screens */
+                gap: 1rem;
+                padding: 1rem;
             }
-
+            .chat-footer textarea {
+                padding: 0.75rem 1rem;
+            }
             .chat-footer button {
-                width: 100%;
-                padding: 0.6rem 1rem;
-                font-size: 0.9rem;
+                width: auto; /* Revert to auto width for larger screens */
+                padding: 0.75rem 1.5rem;
+                border-radius: 10px;
             }
-
-            .text-center .form-control {
-                width: 90% !important;
+            #loading-spinner {
+                margin-top: 20px;
             }
         }
     </style>

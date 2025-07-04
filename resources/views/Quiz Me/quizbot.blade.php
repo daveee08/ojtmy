@@ -12,7 +12,7 @@
             background: linear-gradient(to right, #ffe6ec, #ffffff);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             color: #2c2c2c;
-            padding-top: 80px;
+            padding-top: 80px; /* Space for fixed navbar */
         }
 
         .navbar-custom {
@@ -23,12 +23,14 @@
         .navbar-brand {
             font-weight: 700;
             color: #e91e63 !important;
+            font-size: 1.25rem; /* Base font size for mobile brand */
         }
 
         .nav-link {
             color: #2c2c2c !important;
             font-weight: 500;
-            margin-right: 1rem;
+            margin-right: 0.5rem; /* Slightly reduced margin for mobile */
+            padding: 0.5rem 1rem; /* Better touch target for nav links */
         }
 
         .nav-link:hover {
@@ -38,35 +40,35 @@
         .container {
             background: #ffffff;
             max-width: 900px;
-            padding: 3rem 2rem;
+            padding: 1.5rem 1rem; /* Reduced padding for smaller screens, base for mobile-first */
             border-radius: 16px;
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
-            margin-top: 2rem;
+            margin-top: 1.5rem; /* Slightly reduced margin top for mobile */
         }
 
         .hero {
             text-align: center;
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem; /* Adjusted margin */
         }
 
         .hero h1 {
-            font-size: 2.5rem;
+            font-size: 2rem; /* Base font size for mobile headings */
             font-weight: 800;
             color: #e91e63;
         }
 
         .hero p {
-            font-size: 1rem;
+            font-size: 0.9rem;
             color: #555;
-            margin-top: 1rem;
+            margin-top: 0.5rem;
         }
 
         .section-title {
             font-weight: 700;
-            font-size: 1.5rem;
+            font-size: 1.25rem; /* Base font size for mobile section titles */
             color: #e91e63;
-            margin-top: 2.5rem;
-            margin-bottom: 1.25rem;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
         }
 
         .tool-item h5 {
@@ -79,11 +81,11 @@
         }
 
         .footer {
-            margin-top: 60px;
-            padding-top: 20px;
+            margin-top: 40px; /* Reduced margin top */
+            padding-top: 15px; /* Reduced padding */
             border-top: 1px solid #ddd;
             text-align: center;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             color: #777;
         }
 
@@ -91,10 +93,12 @@
             background-color: #e91e63;
             color: #fff;
             font-weight: 600;
-            padding: 0.5rem 2rem;
+            padding: 0.75rem 1.5rem; /* Increased padding for better touch target */
             border-radius: 8px;
             border: none;
             transition: 0.3s ease;
+            width: 100%; /* Make buttons full width on mobile */
+            margin-bottom: 0.5rem; /* Add space between stacked buttons */
         }
 
         .btn-pink:hover {
@@ -113,6 +117,63 @@
             border: none;
             padding-left: 0;
             background: transparent;
+        }
+
+        /* Media query for larger screens (e.g., tablets and desktops) */
+        @media (min-width: 768px) {
+            .container {
+                padding: 3rem 2rem; /* Restore original padding for larger screens */
+                margin-top: 2rem; /* Restore original margin top */
+            }
+            .hero h1 {
+                font-size: 2.5rem; /* Restore original font size for larger screens */
+            }
+            .section-title {
+                font-size: 1.5rem; /* Restore original font size for larger screens */
+            }
+            .btn-pink {
+                width: auto; /* Buttons return to auto width on larger screens */
+                margin-bottom: 0; /* Remove bottom margin when not stacked */
+            }
+            /* Adjust spacing for buttons if they are next to each other */
+            .btn-pink + .btn-info, .btn-info + .btn-secondary, .btn-pink + .btn-secondary {
+                margin-left: 0.5rem;
+                margin-bottom: 0;
+            }
+            .nav-link {
+                margin-right: 1rem; /* Restore original margin for nav links */
+                padding: 0.5rem 1rem; /* Keep existing padding */
+            }
+        }
+
+        /* Specific styles for download buttons within quiz-summary */
+        #quiz-summary .download-form .btn, #resources-output .download-form .btn {
+            width: 100%;
+            margin-bottom: 0.5rem;
+        }
+
+        @media (min-width: 768px) {
+            #quiz-summary .download-form, #resources-output .download-form {
+                display: inline; /* Make forms inline for larger screens */
+            }
+            #quiz-summary .download-form .btn, #resources-output .download-form .btn {
+                width: auto; /* Restore auto width for buttons */
+                margin-bottom: 0;
+            }
+            #quiz-summary .download-form + .download-form, #resources-output .download-form + .download-form {
+                margin-left: 10px;
+            }
+        }
+
+        /* Chat history specific styles */
+        #chat-history {
+            font-size: 0.9rem;
+        }
+        #chat-history p {
+            margin-bottom: 0.25rem; /* Reduce spacing between chat messages */
+        }
+        #chatInput {
+            min-height: 48px; /* Ensure chat input is tall enough for touch */
         }
     </style>
 </head>

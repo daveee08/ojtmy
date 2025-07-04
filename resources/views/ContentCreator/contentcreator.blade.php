@@ -8,28 +8,139 @@
         body {
             background-color: #f4f7fb;
             font-family: 'Poppins', sans-serif;
+            padding: 1.5rem 1rem; /* Adjusted for mobile-first */
         }
         .ck-card {
             background-color: #fff;
             border-radius: 12px;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
-            padding: 40px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04); /* Lighter shadow for mobile */
+            padding: 1.5rem; /* Adjusted padding for mobile */
             border: 1px solid #e4e8f0;
+            margin: 1.5rem auto; /* Added margin for centering on mobile */
+            max-width: 720px; /* Max width for consistency */
         }
         .ck-btn {
             background-color: #EC298B;
             color: #fff;
             border: none;
-            padding: 12px 28px;
-            border-radius: 6px;
+            padding: 0.75rem 1.5rem; /* Adjusted padding for touch friendliness */
+            border-radius: 8px; /* Consistent border-radius */
             font-weight: 600;
-            font-size: 16px;
+            font-size: 1rem; /* Adjusted font size for mobile */
+            width: 100%; /* Full width on mobile */
         }
         .ck-btn:hover {
             background-color: #d32078;
         }
-        select, textarea, input {
-            border-radius: 8px;
+        select,
+        textarea,
+        input {
+            border-radius: 8px; /* Consistent border-radius */
+            min-height: 48px; /* Ensure touch friendliness for form elements */
+            padding: 0.75rem 1rem; /* Adjusted padding */
+            font-size: 1rem; /* Consistent font size */
+        }
+
+        .text-center.fw-bold {
+            font-size: 1.75rem; /* Adjusted font size for mobile */
+            margin-bottom: 0.5rem; /* Adjusted margin */
+            color: #EC298B;
+        }
+
+        .text-center.text-muted.mb-4 {
+            font-size: 0.9rem; /* Adjusted font size for mobile */
+            margin-bottom: 1.5rem; /* Adjusted margin */
+        }
+
+        .form-label.fw-bold {
+            font-size: 0.9rem; /* Adjusted font size for mobile */
+        }
+
+        .text-center.mt-4 {
+            margin-top: 1.5rem !important; /* Adjusted margin for mobile */
+        }
+
+        .my-4 {
+            margin-top: 1.5rem !important;
+            margin-bottom: 1.5rem !important; /* Adjusted margins for hr */
+        }
+
+        .fw-bold.text-success {
+            font-size: 1.1rem; /* Adjusted font size for mobile */
+            margin-bottom: 0.5rem; /* Adjusted margin */
+        }
+
+        pre {
+            font-size: 0.9rem; /* Adjusted font size for mobile */
+            padding: 1rem; /* Adjusted padding for mobile */
+        }
+
+        .fw-bold.mt-4 {
+            font-size: 1rem; /* Adjusted font size for mobile */
+            margin-top: 1.5rem !important; /* Adjusted margin */
+        }
+
+        .alert.alert-danger.mt-3 {
+            margin-top: 1rem !important; /* Adjusted margin */
+            font-size: 0.9rem; /* Adjusted font size for mobile */
+        }
+
+        /* Media queries for larger screens */
+        @media (min-width: 768px) {
+            body {
+                padding: 0;
+            }
+            .ck-card {
+                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
+                padding: 40px;
+                margin: auto; /* Revert margin */
+            }
+            .ck-btn {
+                padding: 12px 28px;
+                font-size: 16px;
+                width: auto;
+            }
+            select,
+            textarea,
+            input {
+                min-height: auto;
+                padding: 0.375rem 0.75rem; /* Revert to original bootstrap default padding */
+                font-size: inherit;
+            }
+            .text-center.fw-bold {
+                font-size: 2rem;
+                margin-bottom: 0.5rem;
+            }
+            .text-center.text-muted.mb-4 {
+                font-size: 1rem;
+                margin-bottom: 2rem;
+            }
+            .form-label.fw-bold {
+                font-size: inherit;
+            }
+            .text-center.mt-4 {
+                margin-top: 1.5rem !important;
+            }
+            .my-4 {
+                margin-top: 1.5rem !important;
+                margin-bottom: 1.5rem !important;
+            }
+            .fw-bold.text-success {
+                font-size: inherit;
+                margin-bottom: 0.5rem;
+            }
+            pre {
+                font-size: inherit;
+                padding: 15px;
+            }
+            .fw-bold.mt-4 {
+                font-size: inherit;
+                margin-top: 1.5rem !important;
+            }
+            .alert.alert-danger.mt-3 {
+                margin-top: 1rem !important;
+                font-size: inherit;
+            }
         }
     </style>
 </head>

@@ -10,64 +10,69 @@
     .container-tj {
         background: #ffffff;
         max-width: 700px;
-        padding: 32px;
+        padding: 1.5rem 1rem; /* Adjusted for mobile-first */
         border-radius: 18px;
         box-shadow: 0 2px 16px rgba(80, 60, 200, 0.08);
-        margin: 40px auto;
+        margin: 1.5rem auto; /* Adjusted for mobile-first */
     }
     .h2-tj {
         text-align:center;
         font-weight:600;
-        margin-bottom:8px;
-        color: #e91e63; /* Matching Quizme's primary color */
+        margin-bottom: 0.5rem; /* Adjusted margin */
+        color: #e91e63;
+        font-size: 1.75rem; /* Mobile-first heading size */
     }
     .p-tj {
         text-align:center;
         color:#555;
-        margin-bottom:32px;
+        margin-bottom: 1.5rem; /* Adjusted margin */
+        font-size: 0.9rem;
     }
     .btn-primary-tj {
-        background:#e91e63; /* Matching Quizme's primary button color */
+        background:#e91e63;
         border:none;
         font-weight:600;
-        font-size:1.1em;
+        font-size:1rem; /* Adjusted font size */
         border-radius:30px;
-        flex:3;
-        padding: 10px 20px; /* Added padding for better appearance */
+        width: 100%; /* Full width for mobile */
+        padding: 0.75rem 1.5rem; /* Increased padding for better touch target */
         cursor: pointer;
+        margin-bottom: 0.5rem; /* Space if buttons stack */
     }
     .form-control-tj {
-        border-color: #ddd; /* Subtle border for form controls */
+        border-color: #ddd;
+        min-height: 48px; /* Ensure touch friendliness */
+        font-size: 1rem; /* Consistent font size */
     }
     .joke-display-tj {
-        margin-top: 32px;
-        padding: 24px;
-        background: #f7f7ff; /* Lighter background for the joke box */
+        margin-top: 1.5rem; /* Adjusted margin */
+        padding: 1.5rem; /* Adjusted padding */
+        background: #f7f7ff;
         border-radius: 12px;
         text-align:center;
-        font-size:1.2em;
+        font-size:1.1em;
         color:#333;
     }
     /* Infinity Loader CSS (reused from Tongue Twister) */
     .loading-tj {
         text-align: center;
-        margin-top: 20px;
+        margin-top: 1rem;
     }
     .infinity-loader {
         display: inline-block;
         position: relative;
-        width: 80px;
-        height: 80px;
+        width: 60px; /* Smaller for mobile */
+        height: 60px; /* Smaller for mobile */
         transform: rotate(45deg);
     }
     .infinity-loader div {
         box-sizing: border-box;
         display: block;
         position: absolute;
-        width: 64px;
-        height: 64px;
-        margin: 8px;
-        border: 8px solid #e91e63;
+        width: 48px; /* Smaller for mobile */
+        height: 48px; /* Smaller for mobile */
+        margin: 6px; /* Adjusted margin */
+        border: 6px solid #e91e63; /* Adjusted border */
         border-radius: 50%;
         animation: infinity-loader 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
         border-color: #e91e63 transparent transparent transparent;
@@ -87,6 +92,45 @@
         }
         100% {
             transform: rotate(360deg);
+        }
+    }
+
+    /* Media query for larger screens (e.g., tablets and desktops) */
+    @media (min-width: 768px) {
+        .container-tj {
+            padding: 32px; /* Restore original padding */
+            margin: 40px auto; /* Restore original margin */
+        }
+        .h2-tj {
+            font-size: 2rem; /* Adjust for desktop */
+            margin-bottom: 8px;
+        }
+        .p-tj {
+            margin-bottom: 32px;
+            font-size: 1em;
+        }
+        .btn-primary-tj {
+            width: auto; /* Restore auto width */
+            padding: 10px 20px; /* Restore original padding */
+            margin-bottom: 0; /* Remove bottom margin */
+        }
+        .joke-display-tj {
+            margin-top: 32px;
+            padding: 24px;
+            font-size: 1.2em;
+        }
+        .loading-tj {
+            margin-top: 20px;
+        }
+        .infinity-loader {
+            width: 80px;
+            height: 80px;
+        }
+        .infinity-loader div {
+            width: 64px;
+            height: 64px;
+            margin: 8px;
+            border: 8px solid #e91e63;
         }
     }
 </style>

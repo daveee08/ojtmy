@@ -8,24 +8,28 @@
         body {
             background-color: #f4f7fb;
             font-family: 'Poppins', sans-serif;
+            padding: 1.5rem 1rem; /* Adjusted for mobile-first */
         }
 
         .ck-card {
             background-color: #fff;
             border-radius: 12px;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
-            padding: 40px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04); /* Lighter shadow for mobile */
+            padding: 1.5rem; /* Adjusted padding for mobile */
             border: 1px solid #e4e8f0;
+            margin: 1.5rem auto; /* Added margin for centering on mobile */
+            max-width: 720px; /* Max width for consistency */
         }
 
         .ck-btn {
             background-color: #EC298B;
             color: #fff;
             border: none;
-            padding: 12px 28px;
-            border-radius: 6px;
+            padding: 0.75rem 1.5rem; /* Adjusted padding for touch friendliness */
+            border-radius: 8px; /* Consistent border-radius */
             font-weight: 600;
-            font-size: 16px;
+            font-size: 1rem; /* Adjusted font size for mobile */
+            width: 100%; /* Full width on mobile */
         }
 
         .ck-btn:hover {
@@ -33,21 +37,26 @@
         }
 
         .ck-title {
-            font-size: 1.8rem;
+            font-size: 1.75rem; /* Adjusted font size for mobile */
             font-weight: 600;
             text-align: center;
-            margin-bottom: 10px;
+            margin-bottom: 0.5rem; /* Adjusted margin */
         }
 
         .ck-sub {
             text-align: center;
-            margin-bottom: 25px;
+            font-size: 0.9rem; /* Adjusted font size for mobile */
+            margin-bottom: 1.5rem; /* Adjusted margin */
             color: #666;
         }
 
         select,
-        textarea {
-            border-radius: 8px;
+        textarea,
+        input {
+            border-radius: 8px; /* Consistent border-radius */
+            min-height: 48px; /* Ensure touch friendliness for form elements */
+            padding: 0.75rem 1rem; /* Adjusted padding */
+            font-size: 1rem; /* Consistent font size */
         }
 
         /* Spinner Overlay */
@@ -64,15 +73,98 @@
         }
 
         .spinner-border {
-            width: 3rem;
-            height: 3rem;
+            width: 2.5rem; /* Slightly smaller for mobile */
+            height: 2.5rem; /* Slightly smaller for mobile */
             color: #EC298B;
         }
 
         .loading-text {
-            margin-top: 1rem;
+            margin-top: 0.75rem; /* Adjusted margin */
             font-weight: bold;
             color: #EC298B;
+            font-size: 0.9rem; /* Adjusted font size for mobile */
+        }
+
+        /* Labels in form */
+        .form-label.fw-bold {
+            font-size: 0.9rem; /* Adjusted font size for mobile */
+            margin-bottom: 0.5rem; /* Adjusted margin */
+        }
+
+        /* Generated ideas output */
+        pre.mt-3 {
+            margin-top: 1.5rem !important; /* Adjusted margin */
+            font-size: 0.9rem; /* Adjusted font size for mobile */
+            padding: 1rem; /* Adjusted padding for mobile */
+        }
+
+        /* Section title for generated ideas */
+        h5.fw-bold {
+            font-size: 1.1rem; /* Adjusted font size for mobile */
+            margin-bottom: 0.5rem; /* Adjusted margin */
+        }
+
+        /* Error alert */
+        .alert.alert-danger.mt-3 {
+            margin-top: 1rem !important; /* Adjusted margin */
+            font-size: 0.9rem; /* Adjusted font size for mobile */
+        }
+
+        /* Media queries for larger screens */
+        @media (min-width: 768px) {
+            body {
+                padding: 0;
+            }
+            .ck-card {
+                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
+                padding: 40px;
+                margin: auto; /* Revert margin */
+            }
+            .ck-btn {
+                padding: 12px 28px;
+                font-size: 16px;
+                width: auto;
+            }
+            .ck-title {
+                font-size: 1.8rem;
+                margin-bottom: 10px;
+            }
+            .ck-sub {
+                font-size: inherit;
+                margin-bottom: 25px;
+            }
+            select,
+            textarea,
+            input {
+                min-height: auto;
+                padding: 0.375rem 0.75rem; /* Revert to original bootstrap default padding */
+                font-size: inherit;
+            }
+            .spinner-border {
+                width: 3rem;
+                height: 3rem;
+            }
+            .loading-text {
+                margin-top: 1rem;
+                font-size: inherit;
+            }
+            .form-label.fw-bold {
+                font-size: inherit;
+                margin-bottom: 0.5rem;
+            }
+            pre.mt-3 {
+                margin-top: 1.5rem !important;
+                font-size: inherit;
+                padding: 15px;
+            }
+            h5.fw-bold {
+                font-size: inherit;
+                margin-bottom: 0.5rem;
+            }
+            .alert.alert-danger.mt-3 {
+                margin-top: 1rem !important;
+                font-size: inherit;
+            }
         }
     </style>
 </head>

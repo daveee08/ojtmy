@@ -18,14 +18,14 @@
         .container {
             background: #ffffff;
             max-width: 720px;
-            padding: 3rem 2rem;
+            padding: 1.5rem 1rem;
             border-radius: 16px;
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
         }
 
         h2 {
             font-weight: 800;
-            font-size: 2rem;
+            font-size: 1.75rem;
             text-align: center;
             color: #EC298B;
             margin-bottom: 0.5rem;
@@ -33,8 +33,8 @@
 
         .subtitle {
             text-align: center;
-            font-size: 1rem;
-            margin-bottom: 2rem;
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
             color: #555;
         }
 
@@ -48,6 +48,8 @@
             border-radius: 10px;
             font-size: 1rem;
             color: #191919;
+            min-height: 48px;
+            padding: 0.75rem 1rem;
         }
 
         .form-control:focus,
@@ -60,16 +62,16 @@
             background-color: #EC298B;
             color: #fff;
             font-weight: 600;
-            font-size: 1.1rem;
-            padding: 0.6rem 2rem;
+            font-size: 1rem;
+            padding: 0.75rem 1.5rem;
             border-radius: 8px;
             border: none;
             transition: 0.3s;
             position: relative;
-            display: center;
+            display: flex;
             align-items: center;
             justify-content: center;
-            min-width: 130px;
+            width: 100%;
         }
 
         .btn-pink:hover {
@@ -78,12 +80,12 @@
 
         .spinner-border.text-pink {
             color: #fff;
-            display: center;
+            display: flex;
             align-items: center;
         }
 
         .btn-spinner {
-            margin-left: 10px;
+            margin-left: 0.5rem;
             vertical-align: middle;
         }
 
@@ -94,6 +96,36 @@
         textarea[readonly] {
             background-color: #ffffff;
             color: #191919;
+            min-height: 120px;
+        }
+
+        @media (min-width: 768px) {
+            .container {
+                padding: 3rem 2rem;
+            }
+            h2 {
+                font-size: 2rem;
+            }
+            .subtitle {
+                font-size: 1rem;
+                margin-bottom: 2rem;
+            }
+            .form-control,
+            .form-select {
+                padding: 0.75rem 0.75rem;
+            }
+            .btn-pink {
+                font-size: 1.1rem;
+                padding: 0.6rem 2rem;
+                width: auto;
+                min-width: 130px;
+            }
+            .btn-spinner {
+                margin-left: 10px;
+            }
+            textarea[readonly] {
+                min-height: auto;
+            }
         }
     </style>
 </head>

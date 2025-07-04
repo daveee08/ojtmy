@@ -8,7 +8,6 @@ from langchain_core.chat_history import BaseChatMessageHistory
 from langchain_core.messages import HumanMessage, AIMessage, BaseMessage
 
 import mysql.connector
-import traceback
 
 chat_router = APIRouter()
 
@@ -99,6 +98,5 @@ async def chat_with_history_api(
         )
         return JSONResponse(content={"response": result})
     except Exception as e:
-        traceback_str = traceback.format_exc()
-        print(f"[Chat Error] {e}\n{traceback_str}")
+        print(f"[Chat Error] {e}")
         raise HTTPException(status_code=500, detail="Chat processing failed.")

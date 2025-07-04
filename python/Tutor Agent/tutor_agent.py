@@ -1,7 +1,7 @@
 from fastapi import FastAPI, UploadFile, Form, HTTPException, Request, Depends
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-import traceback, os, re, tempfile
+import os, re, tempfile
 import json
 import httpx
 
@@ -224,5 +224,4 @@ async def tutor_endpoint(
 
         return {"output": output}
     except Exception as e:
-        traceback_str = traceback.format_exc()
-        return JSONResponse(status_code=500, content={"detail": str(e), "trace": traceback_str})
+        return JSONResponse(status_code=500, content={"detail": str(e)})

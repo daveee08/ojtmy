@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from langchain_community.llms import Ollama
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_community.document_loaders.pdf import PyPDFLoader
-import os, re, tempfile, uvicorn
+import shutil, os, re, tempfile, uvicorn, traceback
 from typing import Optional
 from uuid import uuid4
 from chat_router import chat_router, get_history_by_message_id
@@ -55,9 +55,10 @@ Instructions:
 Respond ONLY with the explanation text (no extra commentary).
 """
 
-# --- FastAPI App Initialization ---
-app = FastAPI(debug=True)
-app.include_router(chat_router)
+# --- LangChain Setup ---
+model = Ollama(model="llama3")
+manual_prompt = ChatPromptTemplate.from_template(manual_topic_template)
+pdf_prompt = ChatPromptTemplate.from_template(pdf_topic_template)
 
 # --- Pydantic Model for Form Input ---
 class LevelerFormInput(BaseModel):
@@ -83,11 +84,6 @@ class LevelerFormInput(BaseModel):
             learning_speed=learning_speed,
             message_id=message_id
         )
-    
-# --- LangChain Setup ---
-model = Ollama(model="llama3")
-manual_prompt = ChatPromptTemplate.from_template(manual_topic_template)
-pdf_prompt = ChatPromptTemplate.from_template(pdf_topic_template)
 
 # --- PDF Loader ---
 def load_pdf_content(pdf_path: str) -> str:
@@ -137,6 +133,10 @@ async def generate_output(
     result = chain.invoke(prompt_input)
     return clean_output(result)
 
+# --- FastAPI Setup ---
+app = FastAPI()
+app.include_router(chat_router)
+
 @app.post("/leveler")
 async def leveler_api(
     form_data: LevelerFormInput = Depends(LevelerFormInput.as_form),
@@ -165,7 +165,9 @@ async def leveler_api(
 
         return {"output": output, "message_id": message_id}
     except Exception as e:
-        return JSONResponse(status_code=500, content={"detail": str(e)})
+        traceback_str = traceback.format_exc()
+        print(traceback_str)
+        return JSONResponse(status_code=500, content={"detail": str(e), "trace": traceback_str})
 
 # --- Uvicorn entrypoint ---
 if __name__ == "__main__":

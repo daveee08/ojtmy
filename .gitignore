@@ -22,3 +22,7 @@ yarn-error.log
 /public/mix-manifest.json
 /public/service-worker.js
 package-lock.json
+
+# Image optimization files
+/public/icons/*.webp
+/python/optimize_images.py

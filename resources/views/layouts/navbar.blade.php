@@ -15,7 +15,7 @@
             --pink: #EC298B;
             --white: #ffffff;
             --dark: #191919;
-            --light-grey: #f5f5f5;
+            --light-grey: #f5ff5f;
         }
 
         body {
@@ -219,7 +219,6 @@
                 color: rgb(90, 89, 89);
                 padding: 8px 12px;
                 border-radius: 5px;
-                font-size: 1rem;
                 box-shadow: none;
             }
         }
@@ -235,11 +234,30 @@
     <div class="sidebar" id="sidebar">
         <h2>CK AI Tools</h2>
 
-        <a href="{{url('/tools')}}" data-bs-toggle="tooltip" title="Tools">
+        {{-- <div class="row">
+            <div class="col-md-3">
+                <h5 class="fw-bold mb-3">Threads</h5>
+                <ul class="list-group">
+                    @foreach ($threads as $thread)
+                        <li class="list-group-item {{ $thread->id == $activeThread ? 'active' : '' }}">
+                            <a href="{{ url('/tutor?thread_id=' . $thread->id) }}"
+                                class="text-decoration-none text-dark">
+                                {{ \Illuminate\Support\Str::limit($thread->topic, 50) }}
+                            </a>
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
+            <div class="col-md-9">
+                <!-- existing tutor form and chat box go here -->
+            </div>
+        </div> --}}
+
+        <a href="{{ url('/tools') }}" data-bs-toggle="tooltip" title="Tools">
             <i class="bi bi-tools"></i>
             <span class="link-text">Tools</span>
         </a>
-        <a href="{{url('/')}}" data-bs-toggle="tooltip" title="Home">
+        <a href="{{ url('/') }}" data-bs-toggle="tooltip" title="Home">
             <i class="bi bi-house-door"></i>
             <span class="link-text">Home</span>
         </a>
@@ -250,22 +268,23 @@
         <a href="#tool-Contact" data-bs-toggle="tooltip" title="Contact">
             <i class="bi bi-envelope"></i>
             <span class="link-text">Contact</span>
-        
-        @auth
-            <form method="POST" action="{{ url('/logout') }}" style="margin-top: 30px;">
-                @csrf
-                <button type="submit" class="btn btn-link" style="color: #e91e63; text-decoration: none; font-weight: 600;">
-                    <span class="link-text">Logout</span>
-                </button>
-            </form>
-        @else
-            <a href="{{ url('/login') }}" style="color: #e91e63; font-weight: 600;">
-                <span class="link-text">Login</span>
-            </a>
-            <a href="{{ url('/register') }}" style="color: #e91e63; font-weight: 600;">
-                <span class="link-text">Register</span>
-            </a>
-        @endauth
+
+            @auth
+                <form method="POST" action="{{ url('/logout') }}" style="margin-top: 30px;">
+                    @csrf
+                    <button type="submit" class="btn btn-link"
+                        style="color: #e91e63; text-decoration: none; font-weight: 600;">
+                        <span class="link-text">Logout</span>
+                    </button>
+                </form>
+            @else
+                <a href="{{ url('/login') }}" style="color: #e91e63; font-weight: 600;">
+                    <span class="link-text">Login</span>
+                </a>
+                <a href="{{ url('/register') }}" style="color: #e91e63; font-weight: 600;">
+                    <span class="link-text">Register</span>
+                </a>
+            @endauth
     </div>
 
     <!-- Content -->
@@ -285,9 +304,8 @@
         });
 
         const tooltipTriggerlist = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        tooltipTriggerlist.forEach(el =>{
-            new bootstrap.Tooltip(el, {
-            });
+        tooltipTriggerlist.forEach(el => {
+            new bootstrap.Tooltip(el, {});
         })
     </script>
 

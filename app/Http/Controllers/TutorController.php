@@ -111,6 +111,7 @@ class TutorController extends Controller
             ['name' => 'mode', 'contents' => $mode], // refer to the tutor_agent.py para giunsa pag gamit sa mode na gi pass dani
             ['name' => 'user_id', 'contents' => Auth::id()],
             ['name' => 'history', 'contents' => json_encode([])],
+            ['name' => 'message_id', 'contents' => $human->message_id],
         ];
 
         if ($request->hasFile('pdf_file')) {

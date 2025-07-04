@@ -109,27 +109,38 @@
                 <h2 class="ck-title text-center">Text Summarizer</h2>
 
                 <form method="POST" action="/summarize" enctype="multipart/form-data" id="summarizer-form">
-                    @csrf
+    @csrf
 
-                    <div class="mb-3">
-                        <label class="form-label">Summary Instructions</label>
-                        <input type="text" class="form-control" name="conditions" placeholder="E.g. 1 paragraph" required>
-                    </div>
+    @foreach ($parameters as $param)
+        @php
+            $name = $param->parameter;
+            $label = ucfirst(str_replace('_', ' ', $name));
+            $value = old($name, $param->parameter_value);
+        @endphp
 
-                    <div class="mb-3">
-                        <label class="form-label">Text to Summarize</label>
-                        <textarea class="form-control" name="input_text" rows="6"></textarea>
-                    </div>
+        @if ($name === 'pdf')
+            <div class="mb-3">
+                <label class="form-label">{{ $label }}</label>
+                <input type="file" class="form-control" name="{{ $name }}" accept=".pdf">
+            </div>
+        @elseif ($name === 'conditions')
+            <div class="mb-3">
+                <label class="form-label">{{ $label }}</label>
+                <input type="text" class="form-control" name="{{ $name }}" value="{{ $value }}" placeholder="E.g. 1 paragraph" required>
+            </div>
+        @else
+            <div class="mb-3">
+                <label class="form-label">{{ $label }}</label>
+                <textarea class="form-control" name="{{ $name === 'text' ? 'input_text' : $name }}" rows="6">{{ $value }}</textarea>
+            </div>
+        @endif
+    @endforeach
 
-                    <div class="mb-3">
-                        <label class="form-label">Or Upload a PDF</label>
-                        <input type="file" class="form-control" name="pdf" accept=".pdf">
-                    </div>
+    <div class="text-center mt-4">
+        <button type="submit" class="ck-btn">Generate Summary</button>
+    </div>
+</form>
 
-                    <div class="text-center mt-4">
-                        <button type= "submit" class="ck-btn">Generate Summary</button>
-                    </div>
-                </form>
 
                 @if(isset($summary))
                 <hr class="my-4">

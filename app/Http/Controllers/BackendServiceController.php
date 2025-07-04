@@ -62,7 +62,7 @@ class BackendServiceController extends Controller
     /**
      * Create and link a human message.
      */
-    protected function createHumanMessage($agentId, $userId, $topic, $gradeLevel, $parameterInputIds, $messageId = null)
+    protected function createHumanMessage($agentId, $userId, $topic, $parameterInputIds, $messageId = null)
     {
         $human = Message::create([
             'agent_id' => $agentId,
@@ -91,7 +91,7 @@ class BackendServiceController extends Controller
         return Http::timeout(0)->asMultipart()->post($endpoint, $multipartData);
     }
 
-    protected function createAIMessage($responseText, $agentId, $gradeLevel, $parameterInputIds, $messageId)
+    protected function createAIMessage($responseText, $agentId, $parameterInputIds, $messageId)
     {
         return Message::create([
             'user_id' => Auth::id(),

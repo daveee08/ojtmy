@@ -4,12 +4,13 @@ from langchain_ollama import OllamaLLM as Ollama
 from langchain.prompts import PromptTemplate
 from langchain_community.document_loaders import PyPDFLoader
 import tempfile, os
+import httpx
 
 app = FastAPI()
 
 # Enable CORS for frontend (like Laravel)
 app.add_middleware(
-    CORSMiddleware,
+    CORSMiddleware, 
     allow_origins=["*"],  # OK for local dev
     allow_methods=["*"],
     allow_headers=["*"],
@@ -51,7 +52,7 @@ from pydantic import BaseModel
 import tempfile, traceback, os, re
 from typing import Optional
 from langchain_core.prompts import PromptTemplate
-from langchain_ollama import Ollama
+from langchain_ollama import OllamaLLM as Ollama
 from langchain_community.document_loaders import PyPDFLoader
 
 app = FastAPI(debug=True)
@@ -59,16 +60,18 @@ app = FastAPI(debug=True)
 # ==================== Pydantic Model ====================
 
 class SummarizerRequest(BaseModel):
-    conditions: str
+    summary_instructions: str
     text: Optional[str] = ""
+    mode: Optional[str] = "manual"
 
     @classmethod
     def as_form(
         cls,
-        conditions: str = Form(...),
-        text: str = Form("")
+        summary_instructions: str = Form(...),
+        text: str = Form(""),
+        mode: str = Form("manual")
     ):
-        return cls(conditions=conditions, text=text)
+        return cls(summary_instructions=summary_instructions, text=text, mode=mode)
 
 # ==================== Prompt + LLM Setup ====================
 
@@ -136,13 +139,38 @@ async def summarize(
 
         user_input = {
             "text": clean_text(content),
-            "conditions": data.conditions
+            "conditions": data.summary_instructions
         }
 
-        chain = prompt | model
-        result = chain.invoke(user_input)
+        if data.mode =="chat":
+            async with httpx.AsyncClient(timeout=None) as client:
+                form_data = {
+                    "topic": data.text,
+                    # "history": data.history,
+                    "user_id": str(data.user_id),
+                    "db_message_id": int(data.message_id),
+                }
+                chat_url = "http://192.168.50.10:8001/chat_with_history"
+                try:
+                    print("[DEBUG] Sending chat request:", form_data, flush=True)
+                    resp = await client.post(chat_url, data=form_data)
+                    print("[DEBUG] Response status:", resp.status_code, flush=True)
+                    print("[DEBUG] Response body:", await resp.aread(), flush=True)
+                except Exception as e:
+                    import traceback
+                    print("[ERROR] Failed to contact chat_url", flush=True)
+                    print(traceback.format_exc(), flush=True)
+                    raise
 
-        return {"summary": clean_output(result)}
+                resp.raise_for_status()
+                result = resp.json()
+                output = result.get("response", "No output")
+
+        else:
+            chain = prompt | model
+            result = chain.invoke(user_input)
+
+            return {"summary": clean_output(result)}
 
     except Exception as e:
         return JSONResponse(

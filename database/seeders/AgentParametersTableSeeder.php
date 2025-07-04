@@ -19,6 +19,13 @@ class AgentParametersTableSeeder extends Seeder
         $scaffolderId = DB::table('agents')->where('agent', 'scaffolder')->value('id');
         $explanationsId = DB::table('agents')->where('agent', 'explanations')->value('id');
         $responderId = DB::table('agents')->where('agent', 'responder')->value('id');
+        $fivequestionId = DB::table('agents')->where('agent', 'five-question')->value('id');
+        $proofreaderId = DB::table('agents')->where('agent', 'proofreader')->value('id');
+        $realworldId = DB::table('agents')->where('agent', 'realworld')->value('id');
+        $sentencestarterId = DB::table('agents')->where('agent', 'sentence-starter')->value('id');
+        $studyhabitsID = DB::table('agents')->where('agent', 'study-habits')->value('id');
+        
+        
 
         DB::table('agent_parameters')->insert([
             [
@@ -140,6 +147,44 @@ class AgentParametersTableSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
+            [
+                'agent_id' => $fivequestionId,
+                'parameter' => 'grade_level',
+                'parameter_value' => 'Kindergarten,Elementary,Junior High,Senior High,College',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'agent_id' => $proofreaderId,
+                'parameter' => 'profile',
+                'parameter_value' => 'Academic,Casual,Concise',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'agent_id' => $realworldId,
+                'parameter' => 'grade_level',
+                'parameter_value' => 'Kindergarten,Elementary,Junior High,Senior High,College',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'agent_id' => $sentencestarterId,
+                'parameter' => 'grade_level',
+                'parameter_value' => 'Kindergarten,Elementary,Junior High,Senior High,College',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'agent_id' => $studyhabitsID,
+                'parameter' => 'grade_level',
+                'parameter_value' => 'Kindergarten,Elementary,Junior High,Senior High,College',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+
+
+
         ]);
     }
 }

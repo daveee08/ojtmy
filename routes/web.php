@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SummarizeController;
-use App\Http\Controllers\ProofreaderController;
+use App\Http\Controllers\Proofreader\ProofreaderController;
 use App\Http\Controllers\QuizmeController;
 use App\Http\Controllers\StepTutorController;
 use App\Http\Controllers\FiveQuestion\FiveQuestionsController;

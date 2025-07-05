@@ -26,7 +26,7 @@ class CreateMessagesTable extends Migration
             $table->foreign('agent_id')->references('id')->on('agents')->onDelete('cascade');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('message_id')->references('id')->on('sessions')->onDelete('cascade');
-            $table->foreign('parameter_inputs')->references('id')->on('parameter_reference')->onDelete('cascade');
+            $table->foreign('parameter_inputs')->references('id')->on('parameter_inputs')->onDelete('cascade');
         });
     }
 

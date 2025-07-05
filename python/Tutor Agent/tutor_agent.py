@@ -239,4 +239,6 @@ async def tutor_endpoint(
 
         return {"output": output}
     except Exception as e:
-        return JSONResponse(status_code=500, content={"detail": str(e)})
+        traceback_str = traceback.format_exc()
+        print("[DEBUG] Full Traceback:\n", traceback_str, flush=True)
+        return JSONResponse(status_code=500, content={"detail": str(e), "trace": traceback_str})

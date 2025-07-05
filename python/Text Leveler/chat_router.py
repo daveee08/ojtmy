@@ -29,6 +29,7 @@ class ChatRequestForm(BaseModel):
     ):
         return cls(topic=topic, message_id=message_id)
 
+
 # --- Message Item Model ---
 class MessageItem(BaseModel):
     type: Literal["human", "ai"]

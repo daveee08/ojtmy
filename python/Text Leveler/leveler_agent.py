@@ -8,6 +8,7 @@ import shutil, os, re, tempfile, uvicorn, traceback
 from typing import Optional
 from uuid import uuid4
 from chat_router import chat_router, get_history_by_message_id
+from db_utils import insert_session_and_message
 from langchain_core.messages import HumanMessage, AIMessage
 
 # --- Prompt Templates ---
@@ -146,8 +147,6 @@ async def leveler_api(
         if form_data.input_type == "pdf" and not pdf_file:
             raise HTTPException(status_code=400, detail="PDF file required for PDF input_type")
 
-        message_id = form_data.message_id or str(uuid4())
-
         output = await generate_output(
             input_type=form_data.input_type,
             topic=form_data.topic,
@@ -156,14 +155,24 @@ async def leveler_api(
             learning_speed=form_data.learning_speed,
         )
 
-        history = get_history_by_message_id(message_id)
-        human_content = form_data.topic.strip() or f"Uploaded PDF: {pdf_file.filename}"
-        history.add_messages([
-            HumanMessage(content=human_content),
-            AIMessage(content=output)
-        ])
+         # --- Save session and message in MySQL ---
+        user_id = 1
+        agent_id = 4
 
-        return {"output": output, "message_id": message_id}
+        scope_vars = {
+            "grade_level": form_data.grade_level,
+            "learning_speed": form_data.learning_speed,
+        }
+
+        insert_session_and_message(
+            user_id=user_id,
+            agent_id=agent_id,
+            sender="human",
+            topic=form_data.topic if form_data.input_type != "pdf" else "[PDF Input]",
+            scope_vars=scope_vars,
+        )
+
+        return {"output": output}
     except Exception as e:
         traceback_str = traceback.format_exc()
         print(traceback_str)

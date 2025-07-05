@@ -10,41 +10,32 @@ import tempfile, os, re, uvicorn, traceback
 assignment_scaffolder_template = """
 You are an educational assistant.
 
-Your task is to turn the following prompt into a fully scaffolded, student-friendly assignment for **Grade {grade_level}** students.
+Your task is to turn the prompt below into a scaffolded, student-friendly assignment for **Grade {grade_level}**.
 
-**Prompt:**  
+Adjust the content based on grade level:
+- Kindergarten: Very simple words, playful tone, short guided steps.
+- Grades 1-6: Simple language, clear tasks, with examples.
+- Grades 7-10: Moderate complexity, independent ideas encouraged.
+- Grades 11-12: Formal tone, critical thinking, self-directed learning.
+- University: Academic tone, structured, analytical, and reflective.
+
+**Prompt:**
 "{topic}"
 
-Your output must follow the structure below. The goal is to turn the assignment into a clear, step-by-step activity that supports understanding and completion. Use simple, encouraging language and **text-only formatting**.
+Your output should be a plain-text, step-by-step assignment handout that includes:
+• A clear title
+• A brief overview of the task
+• Step-by-step instructions (numbered)
+• Lists using the bullet character `•`
+• Encouraging, student-friendly language
 
-**Title:**  
-Create a short, engaging title that captures the theme or task of the assignment.
-
-**Step-by-Step Instructions:**  
-Break the assignment down into **clear, manageable steps (Step 1, Step 2, etc.)** that guide the student from start to finish.  
-For each step:
-- Begin with a bold heading (e.g., **Step 1: Read the Task Carefully**)  
-- Use bullet points or numbered lists for clarity  
-- Include scaffolds like:
-  - Sentence starters  
-  - Guiding questions  
-  - Tips or examples  
-  - Clarification of terms or choices  
-
-Each step should help students make progress toward completing the assignment. Do **not** refer to or include any pictures, diagrams, or visual materials.
-
-**Important Vocabulary** *(if needed)*  
-If the prompt uses technical, subject-specific, or academic words, include **3–5 key terms** and define them in student-friendly language. Use words only — no visual aids.
-
-**Tips for Success:**  
-Give **2–4 friendly tips or reminders** to support students as they work. Focus on effort, clarity, and checking their work. Keep the tone warm and motivating.
-
-**Formatting Notes:**  
-- Use **bold headers** to organize each section  
-- The output should look like a clean, ready-to-use student handout  
-- Do **not** include explanations or developer notes — return only the final formatted assignment  
-- Output must be **fully text-based** with no images, diagrams, or visual references
+Formatting Rules:
+• Use plain text only — no Markdown formatting.
+• Match clean layout, consistent line breaks, and no extra explanation.
+• Do not include any developer notes or images.
 """
+
+
 
 # Load PDF content
 def load_pdf_content(pdf_path: str) -> str:
@@ -54,19 +45,17 @@ def load_pdf_content(pdf_path: str) -> str:
     documents = loader.load()
     return "\n".join(doc.page_content for doc in documents)
 
-def clean_but_keep_format(text: str) -> str:
-    # Remove leading asterisks/dashes
-    text = re.sub(r"^\s*[\*\-]\s*", "", text, flags=re.MULTILINE)
+import re
 
-    # Optional: Convert bullet sections into numbered steps (optional)
-    def number_steps(match):
-        steps = match.group(0).strip().split("\n")
-        return "\n".join([f"{i+1}. {s.strip()}" for i, s in enumerate(steps)])
-
-    text = re.sub(r"(?<=\*\*Step \d:.*?\*\*)\n(.*(?:\n(?!\*\*).*)*)", number_steps, text, flags=re.MULTILINE)
-
-    # Clean up extra spacing
-    text = re.sub(r"\n{3,}", "\n\n", text)
+def clean_output(text: str) -> str:
+    text = re.sub(r'<[^>]+>', '', text)                                # Remove HTML
+    text = re.sub(r'\*\*(.*?)\*\*', r'\1', text)                       # Remove Markdown bold
+    text = re.sub(r'^\*\s*|\s*\*$', '', text, flags=re.MULTILINE)     # Strip stray asterisks
+    text = re.sub(r'^[ \t]*[+\*\-][ \t]*', '• ', text, flags=re.MULTILINE)  # Normalize bullets
+    text = re.sub(r'_+', '', text)                                     # Remove underscores
+    text = re.sub(r'[ \t]+$', '', text, flags=re.MULTILINE)            # Trim trailing spaces
+    text = "\n".join(line.strip() for line in text.splitlines())       # Strip each line
+    text = re.sub(r'\n\s*\n\s*\n+', '\n\n', text)                      # Limit blank lines
     return text.strip()
 
 # LangChain setup
@@ -106,7 +95,7 @@ async def generate_output(
 
     chain = scaffolder_prompt | model
     result = chain.invoke(prompt_input)
-    return clean_but_keep_format(result)
+    return clean_output(result)
 
 # FastAPI app
 app = FastAPI()
@@ -134,3 +123,5 @@ async def assignmentscaffolder_api(
 # Run with: uvicorn assignmentscaffolder:app --reload
 if __name__ == "__main__":
     uvicorn.run("assignmentscaffolder:app", host="127.0.0.1", port=5001, reload=True)
+
+#original 

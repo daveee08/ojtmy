@@ -10,31 +10,91 @@ import tempfile, os, re, uvicorn, traceback
 assignment_scaffolder_template = """
 You are an educational assistant.
 
-Your task is to turn the prompt below into a scaffolded, student-friendly assignment for **Grade {grade_level}**.
+Your task is to turn the following prompt into a fully scaffolded, student-friendly assignment for **Grade {grade_level}** students.
 
-Adjust the content based on grade level:
-- Kindergarten: Very simple words, playful tone, short guided steps.
-- Grades 1-6: Simple language, clear tasks, with examples.
-- Grades 7-10: Moderate complexity, independent ideas encouraged.
-- Grades 11-12: Formal tone, critical thinking, self-directed learning.
-- University: Academic tone, structured, analytical, and reflective.
+Before generating the output, consider the student’s level based on the grade provided. Adapt the language, tone, and level of thinking appropriately using the following categories:
+
+- Kindergarten: Use very basic vocabulary, large font structure, simple tasks, and a playful tone. Focus on short, guided steps.
+- Grades 1–6 (Elementary): Use simple instructions and vocabulary. Provide concrete examples and offer lots of guidance.
+- Grades 7–10 (Junior High): Use age-appropriate academic tone, moderately complex instructions, and include examples that encourage independent thinking.
+- Grades 11–12 (Senior High): Use a more formal tone. Encourage higher-order thinking and self-directed learning.
+- University: Use clear academic language. Expect independent interpretation, structured output, and critical analysis or reflection.
 
 **Prompt:**
 "{topic}"
 
-Your output should be a plain-text, step-by-step assignment handout that includes:
-• A clear title
-• A brief overview of the task
-• Step-by-step instructions (numbered)
-• Lists using the bullet character `•`
-• Encouraging, student-friendly language
+Your output MUST follow the structure and exact formatting of the example below. The goal is to turn the assignment into a clear, step-by-step activity that supports understanding and completion. Use simple, encouraging language.
 
-Formatting Rules:
-• Use plain text only — no Markdown formatting.
-• Match clean layout, consistent line breaks, and no extra explanation.
-• Do not include any developer notes or images.
+--- EXAMPLE OUTPUT FORMAT TO FOLLOW EXACTLY ---
+
+Writing Figures of Speech: A Step-by-Step Guide
+
+Assignment Overview
+In this assignment, you will write one sentence for each of the five figures of speech listed below. Each sentence should clearly show the figure of speech you are using. Follow the steps carefully to complete your work successfully!
+
+Figures of Speech
+• Simile
+• Metaphor
+• Personification
+• Hyperbole
+• Onomatopoeia
+
+Step-by-Step Instructions
+
+Step 1: Understand Each Figure of Speech
+Before you start writing, let's learn what each figure of speech means. Here are some definitions:
+
+Simile: A comparison between two things using "like" or "as."
+Metaphor: A direct comparison between two things without using "like" or "as."
+Personification: Giving human qualities to non-human things.
+Hyperbole: An exaggerated statement that isn't meant to be taken literally.
+Onomatopoeia: A word that imitates a sound.
+
+Step 2: Brainstorm Ideas
+Think of examples for each figure of speech. You can write down a few ideas for each one:
+
+Simile: (e.g., "as brave as a lion")
+Metaphor: (e.g., "time is a thief")
+Personification: (e.g., "the wind whispered")
+Hyperbole: (e.g., "I could sleep for a thousand years")
+Onomatopoeia: (e.g., "buzz," "clang")
+
+Step 3: Write Your Sentences
+Now, use your brainstormed ideas to write a complete sentence for each figure of speech. Make sure to:
+
+Simile: Write a sentence comparing two things using "like" or "as."
+Metaphor: Write a sentence making a direct comparison without "like" or "as."
+Personification: Write a sentence giving human traits to something non-human.
+Hyperbole: Write a sentence that exaggerates for effect.
+Onomatopoeia: Write a sentence that includes a sound word.
+
+Step 4: Review Your Sentences
+After you write your sentences, read them carefully. Check for:
+
+Clarity: Does each sentence clearly show the figure of speech?
+Grammar: Are your sentences complete and correct?
+Creativity: Did you use unique and interesting examples?
+
+Step 5: Submit Your Work
+Once you are happy with your sentences, turn in your assignment. Make sure you have written one sentence for each of the five figures of speech!
+
+Tips for Success
+If you get stuck, think of examples from books, movies, or songs.
+Don't hesitate to ask a classmate or teacher for help if you're unsure about a figure of speech.
+Take your time and have fun with your writing!
+
+--- END OF EXAMPLE OUTPUT ---
+
+Your output should directly replace the "--- EXAMPLE OUTPUT FORMAT TO FOLLOW EXACTLY ---" section with the content specific to the provided prompt and grade level, while maintaining the exact structural elements and plain text formatting shown.
+
+**Formatting Notes for your output:**
+* **Do NOT use Markdown bolding characters (`**`) or any other Markdown formatting like italics, links, etc.** The output should be plain text.
+* For lists, use the specific bullet character `•` (U+2022) as shown in the example, followed by a single space.
+* Ensure consistent line breaks and spacing as in the example.
+* The output should be a clean, ready-to-use student handout, entirely text-based.
+* Do NOT include any explanations, developer notes, or "thought process" in your final output. Return ONLY the formatted assignment.
+* Do NOT include any images, diagrams, or visual references.
 """
-
 
 
 # Load PDF content

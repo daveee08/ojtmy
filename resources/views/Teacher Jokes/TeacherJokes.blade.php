@@ -94,55 +94,16 @@
             transform: rotate(360deg);
         }
     }
-
-    /* Media query for larger screens (e.g., tablets and desktops) */
-    @media (min-width: 768px) {
-        .container-tj {
-            padding: 32px; /* Restore original padding */
-            margin: 40px auto; /* Restore original margin */
-        }
-        .h2-tj {
-            font-size: 2rem; /* Adjust for desktop */
-            margin-bottom: 8px;
-        }
-        .p-tj {
-            margin-bottom: 32px;
-            font-size: 1em;
-        }
-        .btn-primary-tj {
-            width: auto; /* Restore auto width */
-            padding: 10px 20px; /* Restore original padding */
-            margin-bottom: 0; /* Remove bottom margin */
-        }
-        .joke-display-tj {
-            margin-top: 32px;
-            padding: 24px;
-            font-size: 1.2em;
-        }
-        .loading-tj {
-            margin-top: 20px;
-        }
-        .infinity-loader {
-            width: 80px;
-            height: 80px;
-        }
-        .infinity-loader div {
-            width: 64px;
-            height: 64px;
-            margin: 8px;
-            border: 8px solid #e91e63;
-        }
-    }
 </style>
 
-<div class="container-tj">
-    <h2 class="h2-tj">Teacher Jokes</h2>
-    <p class="p-tj">Generate jokes for your class based on any topic.</p>
+<div class="container-tj container-md p-md-5 mt-md-4">
+    <h2 class="h2-tj fs-md-4 mb-md-2">Teacher Jokes</h2>
+    <p class="p-tj mb-md-4 fs-md-5">Generate jokes for your class based on any topic.</p>
     <form id="joke-form">
         @csrf
-        <div style="margin-bottom: 18px;">
-            <label for="grade" style="font-weight:500;">Grade level: <span style="color:red">*</span></label>
-            <select id="grade" name="grade" class="form-control form-control-tj" required>
+        <div class="mb-3">
+            <label for="grade" class="form-label fw-semibold">Grade level: <span class="text-danger">*</span></label>
+            <select id="grade" name="grade" class="form-select form-control-tj" required>
                 <option value="Pre-K" {{ (old('grade', $grade ?? '') == 'Pre-K') ? 'selected' : '' }}>Pre-K</option>
                 <option value="Kindergarten" {{ (old('grade', $grade ?? '') == 'Kindergarten') ? 'selected' : '' }}>Kindergarten</option>
                 <option value="1st Grade" {{ (old('grade', $grade ?? '') == '1st Grade') ? 'selected' : '' }}>1st Grade</option>
@@ -166,32 +127,32 @@
                 <option value="Professional Staff" {{ (old('grade', $grade ?? '') == 'Professional Staff') ? 'selected' : '' }}>Professional Staff</option>
             </select>
         </div>
-        <div style="margin-bottom: 18px;">
-            <label for="customization" style="font-weight:500;">Additional Customization (Optional):</label>
+        <div class="mb-3">
+            <label for="customization" class="form-label fw-semibold">Additional Customization (Optional):</label>
             <textarea id="customization" name="customization" class="form-control form-control-tj" rows="2" placeholder="Make it about mitosis" >{{ old('customization', $customization ?? '') }}</textarea>
         </div>
-        <div style="display:flex; gap:16px; align-items:center; margin-bottom: 24px;">
+        <div class="d-grid d-md-block gap-2 mb-4">
             <button type="submit" id="generate-button-tj" class="btn btn-primary-tj">Generate</button>
         </div>
     </form>
 
-    <div id="loading-indicator-tj" class="loading-tj" style="display:none;">
-        <div class="infinity-loader"><div></div><div></div><div></div><div></div></div>
+    <div id="loading-indicator-tj" class="loading-tj mt-md-3" style="display:none;">
+        <div class="infinity-loader" style="width: 80px; height: 80px;"><div></div><div></div><div></div><div></div></div>
     </div>
 
     @if(isset($joke) && $joke)
-        <div id="joke-output-tj" class="joke-display-tj">
-            <p style="font-weight: 600;">Joke for {{ $grade ?? 'N/A' }} Grade Level:</p>
+        <div id="joke-output-tj" class="joke-display-tj mt-md-4 p-md-4 fs-md-5">
+            <p class="fw-semibold">Joke for {{ $grade ?? 'N/A' }} Grade Level:</p>
             @if($customization)
-                <p style="font-weight: 600; margin-top: 5px;">Customization: {{ $customization }}</p>
+                <p class="fw-semibold mt-1">Customization: {{ $customization }}</p>
             @endif
             <br>
             <em>{{ $joke }}</em>
         </div>
     @else
-        <div id="joke-output-tj" class="joke-display-tj" style="display:none;">
-            <p style="font-weight: 600;"></p>
-            <p style="font-weight: 600; margin-top: 5px;"></p>
+        <div id="joke-output-tj" class="joke-display-tj mt-md-4 p-md-4 fs-md-5" style="display:none;">
+            <p class="fw-semibold"></p>
+            <p class="fw-semibold mt-1"></p>
             <br>
             <em></em>
         </div>

@@ -13,3 +13,12 @@ npm-debug.log
 yarn-error.log
 /.idea
 /.vscode
+
+# Compiled assets and lock files
+/public/css/app.css
+/public/js/app.js
+/public/js/app.js.LICENSE.txt
+/public/manifest.json
+/public/mix-manifest.json
+/public/service-worker.js
+package-lock.json

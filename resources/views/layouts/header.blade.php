@@ -4,10 +4,11 @@
     .navbar-nav .nav-link {
         color: black !important;
         font-family: "Poppins", Sans-serif;
-        font-size: 15px;
+        font-size: 14px;
         font-weight: 500;
         transition: color 0.2s ease-in-out;
-        margin: 0 10px;
+        margin: 0 0.5rem;
+        padding: 0.5rem 0.25rem;
     }
 
     .navbar-nav .nav-link:hover {
@@ -15,18 +16,31 @@
     }
 
     .navbar-brand img {
-        margin: 4px 50px;
-        height: 44px;
+        margin: 4px 1rem;
+        height: 36px;
     }
 
-    @media (max-width: 600px) {
+    @media (min-width: 601px) {
         .navbar-brand img {
-            margin: 4px 10px;
-            height: 36px;
+            margin: 4px 50px;
+            height: 44px;
         }
         .navbar-nav .nav-link {
-            margin: 0 4px;
-            font-size: 13px;
+            margin: 0 10px;
+            font-size: 15px;
+            padding: 0;
+        }
+    }
+
+    .navbar-light .navbar-nav .nav-link.btn-link {
+        font-size: 14px;
+        padding: 0.5rem 0.25rem;
+    }
+
+    @media (min-width: 601px) {
+        .navbar-light .navbar-nav .nav-link.btn-link {
+            font-size: 15px;
+            padding: 0;
         }
     }
 </style>
@@ -58,3 +72,4 @@
         </ul>
     </div>
 </nav>
+

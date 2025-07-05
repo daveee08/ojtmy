@@ -141,6 +141,12 @@ $$/   $$/  $$$$$$/  $$/       $$/  $$/  $$/  $$$$$$$/ $$/
             //     'file_and_app_instance' => 'thankyounote:app', // e.g., if you have main.py and `app = FastAPI()`
             //     'port' => 8003
             // ],
+            [
+                'name' => 'Translator API',
+                'path' => base_path('python/translator'), // Directory where your Python file is
+                'file_and_app_instance' => 'translator_agent:app', // e.g., if you have main.py and `app = FastAPI()`
+                'port' => 8013
+            ],
             
             
             
@@ -158,7 +164,8 @@ $$/   $$/  $$$$$$/  $$/       $$/  $$/  $$/  $$$$$$$/ $$/
                 '--host',
                 '0.0.0.0', // Listen on all network interfaces
                 '--port',
-                (string) $appConfig['port'], // Cast to string for process command
+                (string) $appConfig['port'], 
+                '--reload',// Cast to string for process command
             ];
 
             $process = new Process($command);

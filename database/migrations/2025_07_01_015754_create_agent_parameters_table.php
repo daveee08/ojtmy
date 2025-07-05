@@ -18,7 +18,7 @@ class CreateAgentParametersTable extends Migration
             $table->unsignedBigInteger('agent_id');
             $table->string('parameter');
             $table->string('parameter_value')-> nullable(); // More flexible than enum
-           $table->timestamps();
+            $table->timestamps();
 
             // Foreign key constraint
             $table->foreign('agent_id')->references('id')->on('agents')->onDelete('cascade');

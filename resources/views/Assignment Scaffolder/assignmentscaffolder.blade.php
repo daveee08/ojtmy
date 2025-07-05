@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>AI Text Scaffolder</title>
+    <title>AI Assignment Scaffolder</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous" />
     <style>
@@ -141,9 +141,19 @@
                 <select class="form-select" id="grade_level" name="grade_level">
                     <option value="" disabled selected>Select grade level</option>
                     <option value="Kindergarten">Kindergarten</option>
-                    <option value="Grade 1">Grade School</option>
-                    <option value="Grade 1">High School</option>
-                    <option value="College">College</option>
+                    <option value="Grade 1">Grade 1</option>
+                    <option value="Grade 2">Grade 2</option>
+                    <option value="Grade 3">Grade 3</option>
+                    <option value="Grade 4">Grade 4</option>
+                    <option value="Grade 5">Grade 5</option>
+                    <option value="Grade 6">Grade 6</option>
+                    <option value="Grade 7">Grade 7</option>
+                    <option value="Grade 8">Grade 8</option>
+                    <option value="Grade 9">Grade 9</option>
+                    <option value="Grade 10">Grade 10</option>
+                    <option value="Grade 11">Grade 11</option>
+                    <option value="Grade 12">Grade 12</option>
+                    <option value="University">University</option>
                 </select>
             </div>
 
@@ -197,3 +207,5 @@
 </body>
 
 </html>
+
+{{-- original --}}

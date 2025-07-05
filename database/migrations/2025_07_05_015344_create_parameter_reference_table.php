@@ -15,11 +15,11 @@ class CreateParameterReferenceTable extends Migration
     {
         Schema::create('parameter_reference', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->unsignedBigInteger('parameter_inputs_id');
-            $table->string('parameter_ids');
+            $table->unsignedBigInteger('agent_id');
+            $table->string('parameter_input_ids');
             $table->timestamps();
 
-            $table->foreign('parameter_inputs_id')->references('id')->on('parameter_inputs')->onDelete('cascade');
+            $table->foreign('agent_id')->references('id')->on('agents')->onDelete('cascade');
         });
     }
 

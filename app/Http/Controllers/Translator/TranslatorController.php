@@ -22,13 +22,19 @@ class TranslatorController extends Controller
             'language' => 'required|string',
         ]);
 
-        // Check if message_id exists in session, otherwise generate a new one
-        if (!session()->has('translator_message_id')) {
-            $generatedId = \Illuminate\Support\Str::uuid();
-            session(['translator_message_id' => $generatedId]);
-        }
+        // // Check if message_id exists in session, otherwise generate a new one
+        // if (!session()->has('translator_message_id')) {
+        //     $generatedId = \Illuminate\Support\Int::uuid();
+        //     session(['translator_message_id' => $generatedId]);
+        // }
 
-        $threadId = session('translator_message_id');
+        // $threadId = session('translator_message_id');
+
+        // Log::info('Processing translation request', [
+        //     'text' => $validated['text'],
+        //     'language' => $validated['language'],
+        //     'thread_id' => $threadId,
+        // ]);
 
         $multipartData = [
             ['name' => 'text', 'contents' => $validated['text']],
@@ -36,8 +42,7 @@ class TranslatorController extends Controller
             ['name' => 'mode', 'contents' => 'manual'],
             ['name' => 'agent_id', 'contents' => 2], // Assuming agent_id for translator is 2
             ['name' => 'user_id', 'contents' => auth()->id() ?: 1], // Use authenticated user ID or default to 1
-            // ['name' => 'parameter_inputs', 'contents' => json_encode(['grade_level' => '8'])] // Example parameter input
-            ['name' => 'message_id', 'contents' => $threadId],
+            // ['name' => 'parameter_inputs', 'contents' => json_encode(['grade_level' => '8'])] // Example parameter inputs
         ];
         
         

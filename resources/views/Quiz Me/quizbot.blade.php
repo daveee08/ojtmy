@@ -119,50 +119,10 @@
             background: transparent;
         }
 
-        /* Media query for larger screens (e.g., tablets and desktops) */
-        @media (min-width: 768px) {
-            .container {
-                padding: 3rem 2rem; /* Restore original padding for larger screens */
-                margin-top: 2rem; /* Restore original margin top */
-            }
-            .hero h1 {
-                font-size: 2.5rem; /* Restore original font size for larger screens */
-            }
-            .section-title {
-                font-size: 1.5rem; /* Restore original font size for larger screens */
-            }
-            .btn-pink {
-                width: auto; /* Buttons return to auto width on larger screens */
-                margin-bottom: 0; /* Remove bottom margin when not stacked */
-            }
-            /* Adjust spacing for buttons if they are next to each other */
-            .btn-pink + .btn-info, .btn-info + .btn-secondary, .btn-pink + .btn-secondary {
-                margin-left: 0.5rem;
-                margin-bottom: 0;
-            }
-            .nav-link {
-                margin-right: 1rem; /* Restore original margin for nav links */
-                padding: 0.5rem 1rem; /* Keep existing padding */
-            }
-        }
-
         /* Specific styles for download buttons within quiz-summary */
         #quiz-summary .download-form .btn, #resources-output .download-form .btn {
             width: 100%;
             margin-bottom: 0.5rem;
-        }
-
-        @media (min-width: 768px) {
-            #quiz-summary .download-form, #resources-output .download-form {
-                display: inline; /* Make forms inline for larger screens */
-            }
-            #quiz-summary .download-form .btn, #resources-output .download-form .btn {
-                width: auto; /* Restore auto width for buttons */
-                margin-bottom: 0;
-            }
-            #quiz-summary .download-form + .download-form, #resources-output .download-form + .download-form {
-                margin-left: 10px;
-            }
         }
 
         /* Chat history specific styles */
@@ -183,7 +143,7 @@
     <!-- Header -->
     <nav class="navbar navbar-expand-lg navbar-light fixed-top navbar-custom">
         <div class="container-fluid px-4">
-            <a class="navbar-brand" href="#">CK Quiz Me!</a>
+            <a class="navbar-brand fs-lg-5" href="#">CK Quiz Me!</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                 aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -191,10 +151,10 @@
             <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
                 <ul class="navbar-nav">
                     <li class="nav-item">
-                        <a class="nav-link" href="/">Home</a>
+                        <a class="nav-link me-lg-3" href="/">Home</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">About</a>
+                        <a class="nav-link me-lg-3" href="#">About</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="#">Support</a>
@@ -213,8 +173,8 @@
     </div>
 
     <!-- Main Content -->
-    <div class="container">
-        <div class="section-title text-center">CK Quiz Me!</div>
+    <div class="container p-md-5 mt-md-4">
+        <div class="section-title text-center fs-md-4">CK Quiz Me!</div>
         <div class="row">
             <div class="col-md-12 mb-4">
                 <div class="p-4 rounded shadow-sm bg-white tool-item">
@@ -255,8 +215,8 @@
                             <input type="number" class="form-control" id="num_questions" name="num_questions" value="10" required>
                         </div>
                         <button type="submit" class="btn btn-pink" id="generateBtn">Generate Quiz</button>
-                        <button type="button" class="btn btn-info ms-2" id="loadExemplarBtn">Load Example</button>
-                        <button type="button" class="btn btn-secondary ms-2" id="clearInputsBtn">Clear Inputs</button>
+                        <button type="button" class="btn btn-info ms-md-2" id="loadExemplarBtn">Load Example</button>
+                        <button type="button" class="btn btn-secondary ms-md-2" id="clearInputsBtn">Clear Inputs</button>
                         <div id="loadingSpinner" class="spinner-border text-pink mt-3" role="status" style="display:none;">
                             <span class="visually-hidden">Loading...</span>
                         </div>
@@ -272,7 +232,7 @@
                             <input type="text" class="form-control" id="userAnswer" placeholder="Type your answer here...">
                         </div>
                         <button type="button" class="btn btn-pink" id="submitAnswerBtn">Submit Answer</button>
-                        <button type="button" class="btn btn-success ms-2" id="nextQuestionBtn" style="display:none;">Next Question</button>
+                        <button type="button" class="btn btn-success ms-md-2" id="nextQuestionBtn" style="display:none;">Next Question</button>
                         <div id="feedback" class="mt-3"></div>
                     </div>
 
@@ -280,8 +240,8 @@
                         <h5 class="section-title">Quiz Summary</h5>
                         <p id="summaryText"></p>
                         <pre style="white-space: pre-wrap; word-wrap: break-word; display:none;" id="quizContent"></pre>
-                        <div id="download-buttons-summary" class="mt-3">
-                            <form action="{{ route('quizme.download') }}" method="POST" style="display:inline;" class="download-form">
+                        <div id="download-buttons-summary" class="mt-3 d-md-block">
+                            <form action="{{ route('quizme.download') }}" method="POST" class="download-form d-grid d-md-inline-block">
                                 @csrf
                                 <input type="hidden" name="content" id="quizTextContent" value="">
                                 <input type="hidden" name="filename" value="quiz">
@@ -289,7 +249,7 @@
                                 <input type="hidden" name="topic_name" id="quizTopicName" value="">
                                 <button type="submit" class="btn btn-sm btn-outline-secondary">Save Quiz as Text</button>
                             </form>
-                            <form action="{{ route('quizme.download') }}" method="POST" style="display:inline;" class="download-form">
+                            <form action="{{ route('quizme.download') }}" method="POST" class="download-form d-grid d-md-inline-block ms-md-2">
                                 @csrf
                                 <input type="hidden" name="content" id="quizPdfContent" value="">
                                 <input type="hidden" name="filename" value="quiz">
@@ -303,8 +263,8 @@
                     <div id="resources-output" class="mt-4" style="display:none;">
                         <h5 class="section-title">Generated Resources</h5>
                         <pre style="white-space: pre-wrap; word-wrap: break-word;" id="resourcesContent"></pre>
-                        <div class="mt-3">
-                            <form action="{{ route('quizme.download') }}" method="POST" style="display:inline;" class="download-form">
+                        <div class="mt-3 d-md-block">
+                            <form action="{{ route('quizme.download') }}" method="POST" class="download-form d-grid d-md-inline-block">
                                 @csrf
                                 <input type="hidden" name="content" id="resourcesTextContent" value="">
                                 <input type="hidden" name="filename" value="resources">
@@ -312,7 +272,7 @@
                                 <input type="hidden" name="topic_name" id="resourcesTopicName" value="">
                                 <button type="submit" class="btn btn-sm btn-outline-secondary">Save Resources as Text</button>
                             </form>
-                            <form action="{{ route('quizme.download') }}" method="POST" style="display:inline;" class="download-form">
+                            <form action="{{ route('quizme.download') }}" method="POST" class="download-form d-grid d-md-inline-block ms-md-2">
                                 @csrf
                                 <input type="hidden" name="content" id="resourcesPdfContent" value="">
                                 <input type="hidden" name="filename" value="resources">
@@ -701,7 +661,7 @@
                 // Move download buttons to the summary section
                 const downloadButtonsSummaryDiv = document.getElementById('download-buttons-summary');
                 downloadButtonsSummaryDiv.innerHTML = `
-                    <form action="{{ route('quizme.download') }}" method="POST" style="display:inline;" class="download-form">
+                    <form action="{{ route('quizme.download') }}" method="POST" class="download-form d-grid d-md-inline-block">
                         @csrf
                         <input type="hidden" name="content" value="${fullQuizText.replace(/\*\*/g, '')}">
                         <input type="hidden" name="filename" value="quiz">
@@ -709,7 +669,7 @@
                         <input type="hidden" name="topic_name" value="${currentTopic}">
                         <button type="submit" class="btn btn-sm btn-outline-secondary">Save Quiz as Text</button>
                     </form>
-                    <form action="{{ route('quizme.download') }}" method="POST" style="display:inline;" class="download-form">
+                    <form action="{{ route('quizme.download') }}" method="POST" class="download-form d-grid d-md-inline-block ms-md-2">
                         @csrf
                         <input type="hidden" name="content" value="${fullQuizText.replace(/\*\*/g, '')}">
                         <input type="hidden" name="filename" value="quiz">

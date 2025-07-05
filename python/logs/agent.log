@@ -1,0 +1,17 @@
+[2025-07-05 15:15:57,584] [INFO] Starting script execution for testing logging and DB function.
+[2025-07-05 15:15:57,584] [DEBUG] This is a DEBUG message.
+[2025-07-05 15:15:57,584] [INFO] This is an INFO message.
+[2025-07-05 15:15:57,584] [WARNING] This is a WARNING message.
+[2025-07-05 15:15:57,584] [ERROR] This is an ERROR message.
+[2025-07-05 15:15:57,584] [CRITICAL] This is a CRITICAL message.
+[2025-07-05 15:15:57,589] [INFO] Attempting to insert session and message...
+[2025-07-05 15:15:57,589] [DEBUG] ✅ Logging test: This should appear in agent.log and console.
+[2025-07-05 15:15:57,649] [DEBUG] [PARAM] Agent 1 parameters: ['language']
+[2025-07-05 15:15:57,649] [INFO] Combined input for agent 1: 
+[2025-07-05 15:15:57,659] [INFO] New session created with ID: 1260
+[2025-07-05 15:15:57,660] [INFO] Found parameter_reference ID: 1 for agent 1
+[2025-07-05 15:15:57,660] [INFO] Parameter input inserted with ID: 19
+[2025-07-05 15:15:57,660] [ERROR] Database error: 1265 (01000): Data truncated for column 'sender' at row 1
+[2025-07-05 15:15:57,660] [DEBUG] Database connection closed.
+[2025-07-05 15:15:57,660] [ERROR] Function call failed: 1265 (01000): Data truncated for column 'sender' at row 1
+[2025-07-05 15:15:57,660] [INFO] Script execution finished.

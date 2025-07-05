@@ -10,10 +10,12 @@ import sys
 import os
 # Ensure parent directory (python/) is in the path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from db_utils import insert_message
+# from db_utils import insert_message, insert_dynamic_parameter_input, insert_session
+from db_utils import insert_session_and_message
 
 
-app = FastAPI()
+app = FastAPI(debug=True)
+
 
 # === CORS setup ===
 app.add_middleware(
@@ -29,8 +31,8 @@ class TranslationInput(BaseModel):
     mode: str
     user_id: int
     parameter_inputs: int = 1  # default
-    agent_id: int = 2          # translator agent_id (adjust as needed)
-    message_id: int         # Laravel-generated session thread ID
+    agent_id: int = 16         # translator agent_id (adjust as needed)
+    # message_id: int         # Laravel-generated session thread ID
 
     @classmethod
     def as_form(
@@ -41,7 +43,7 @@ class TranslationInput(BaseModel):
         user_id: int = Form(...),
         parameter_inputs: int = Form(1),
         agent_id: int = Form(2),
-        message_id: int = Form(...)
+        # message_id: int = Form(...)
     ):
         return cls(
             text=text,
@@ -50,7 +52,7 @@ class TranslationInput(BaseModel):
             user_id=user_id,
             parameter_inputs=parameter_inputs,
             agent_id=agent_id,
-            message_id=message_id
+            # message_id=message_id
         )
 
 # Instantiate once
@@ -84,18 +86,14 @@ def translate_text(text: str, target_language: str) -> str:
 @app.post("/translate")
 async def translate_endpoint(data: TranslationInput = Depends(TranslationInput.as_form)):
     try:
-         # Step 1: Insert human input into DB
-        print("[DEBUG] Preparing to insert HUMAN message...", flush=True)
-        print(f"[DEBUG] agent_id={data.agent_id}, user_id={data.user_id}, parameter_inputs={data.parameter_inputs}, topic={data.text}", flush=True)
- 
-        insert_message(
-            agent_id=data.agent_id,
-            user_id=data.user_id,
-            parameter_inputs=data.parameter_inputs,
-            sender="human",
-            topic=data.text,
-            message_id=data.message_id  # Laravel-generated session thread ID
-        )
+        # insert_message(
+        #     agent_id=data.agent_id,
+        #     user_id=data.user_id,
+        #     parameter_inputs=parameter_inputs_id,
+        #     sender="human",
+        #     topic=data.text,
+        #     message_id=message_id  # Laravel-generated session thread ID
+        # )
 
         if data.mode == "chat":
             async with httpx.AsyncClient(timeout=None) as client:
@@ -121,14 +119,28 @@ async def translate_endpoint(data: TranslationInput = Depends(TranslationInput.a
         else:
             output = translate_text(data.text, data.target_language)
 
-        insert_message(
-            agent_id=data.agent_id,
+
+        scope_vars = {
+            "target_language": data.target_language
+        }
+
+        message_id =insert_session_and_message(
             user_id=data.user_id,
-            parameter_inputs=data.parameter_inputs,
+            agent_id=data.agent_id,
+            sender="human",
+            topic=data.text,
+            scope_vars=scope_vars,
+        )
+
+        insert_session_and_message(
+            user_id=data.user_id,
+            agent_id=data.agent_id,
             sender="ai",
             topic=output,
-            message_id=data.message_id  # ✅ still Laravel's message_id
+            scope_vars=scope_vars,
+            message_id=message_id,
         )
+        
         return {"translation": output}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

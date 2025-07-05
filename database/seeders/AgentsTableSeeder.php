@@ -25,6 +25,8 @@ class AgentsTableSeeder extends Seeder
             ['agent' => 'realworld', 'created_at' => now(), 'updated_at' => now()],
             ['agent' => 'sentence-starter', 'created_at' => now(), 'updated_at' => now()],
             ['agent' => 'study-habits', 'created_at' => now(), 'updated_at' => now()],
+            ['agent' => 'translator', 'created_at' => now(), 'updated_at' => now()],
+
         ]);
     }
 }

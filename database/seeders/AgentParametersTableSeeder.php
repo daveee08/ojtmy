@@ -24,6 +24,7 @@ class AgentParametersTableSeeder extends Seeder
         $realworldId = DB::table('agents')->where('agent', 'realworld')->value('id');
         $sentencestarterId = DB::table('agents')->where('agent', 'sentence-starter')->value('id');
         $studyhabitsID = DB::table('agents')->where('agent', 'study-habits')->value('id');
+        $translatorId = DB::table('agents')->where('agent', 'translator')->value('id');
         
         
 
@@ -179,6 +180,13 @@ class AgentParametersTableSeeder extends Seeder
                 'agent_id' => $studyhabitsID,
                 'parameter' => 'grade_level',
                 'parameter_value' => 'Kindergarten,Elementary,Junior High,Senior High,College',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'agent_id' => $translatorId,
+                'parameter' => 'target_language',
+                'parameter_value' => '',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],

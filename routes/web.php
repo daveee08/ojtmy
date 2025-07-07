@@ -30,6 +30,7 @@ use App\Http\Controllers\TextRewriter\RewriterController;
 use App\Http\Controllers\TextScaffolder\ScaffolderController;
 use App\Http\Controllers\Explanations\ExplanationsController;
 use App\Http\Controllers\AssignmentScaffolder\AssignmentScaffolder;
+use App\Http\Controllers\MathReview\MathReviewController;
 
 /*
 |--------------------------------------------------------------------------
@@ -196,3 +197,7 @@ Route::post('/explanations', [ExplanationsController::class, 'processForm'])->na
 // ✅ Scaffolder Tool
 Route::get('/assignmentscaffolder', [AssignmentScaffolder::class, 'showForm'])->name('assignmentscaffolder.form');
 Route::post('/assignmentscaffolder', [AssignmentScaffolder::class, 'processForm'])->name('assignmentscaffolder.process');
+
+// ✅ Math Review Tool
+Route::get('/mathreview', [MathReviewController::class, 'showForm'])->name('mathreview.form');
+Route::post('/mathreview', [MathReviewController::class, 'processForm'])->name('mathreview.process');

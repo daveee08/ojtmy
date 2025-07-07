@@ -171,6 +171,8 @@ Route::post('/sentencestarter', [SentenceStarterController::class, 'processForm'
 Route::get('/translator', [TranslatorController::class, 'showForm'])->name('translator.form');
 Route::post('/translator', [TranslatorController::class, 'processForm'])->name('translator.process');
 Route::post('/translator/followup', [TranslatorController::class, 'followUp'])->name('translator.followup');
+Route::get('/translator/session/{id}', [TranslatorController::class, 'showSession'])->name('translator.session');
+
 
 
 // Study Habits Agent

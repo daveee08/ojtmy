@@ -89,6 +89,8 @@ chat_with_memory = RunnableWithMessageHistory(
 
 # ====================== Endpoint ======================
 
+
+
 @chat_router.post("/chat_with_history")
 async def chat_with_history_api(
     topic: str = Form(...),
@@ -110,7 +112,7 @@ async def chat_with_history_api(
             }}
         )
 
-        return JSONResponse(content={"response": result})
+        return JSONResponse(content={"translation": result})
 
     except Exception as e:
         traceback_str = traceback.format_exc()

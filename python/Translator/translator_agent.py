@@ -12,6 +12,7 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 # from db_utils import insert_message, insert_dynamic_parameter_input, insert_session
 from db_utils import insert_session_and_message, load_messages_by_agent_and_user
+from typing import Optional
 
 
 app = FastAPI(debug=True)
@@ -32,7 +33,7 @@ class TranslationInput(BaseModel):
     user_id: int
     # parameter_inputs: int = 1  # default
     agent_id: int = 16         # translator agent_id (adjust as needed)
-    # message_id: int         # Laravel-generated session thread ID
+    # message_id: Optional[int]         # Laravel-generated session thread ID
 
     @classmethod
     def as_form(
@@ -98,7 +99,7 @@ async def translate_endpoint(data: TranslationInput = Depends(TranslationInput.a
         if data.mode == "chat":
             async with httpx.AsyncClient(timeout=None) as client:
                 form_data = {
-                    "topic": data.topic,
+                    "topic": data.text,
                     "user_id": str(data.user_id),
                     "db_message_id": int(data.message_id),
                 }
@@ -148,14 +149,29 @@ async def translate_endpoint(data: TranslationInput = Depends(TranslationInput.a
 class ChatMessage(BaseModel):
     user_id: int
     agent_id: int
-   
 
-    
-@app.get("/chat/messages")
-async def get_translator_messages(user_id: int, agent_id: int, limit: int = 100, order: str = "asc"):
+    @classmethod
+    def as_form(
+        cls,
+        user_id: int = Form(...),
+        agent_id: int = Form(...),
+    ):
+        return cls(
+            user_id=user_id,
+            agent_id=agent_id
+        )
+   
+@app.post("/chat/messages")
+async def get_translator_messages(data: ChatMessage = Depends(ChatMessage.as_form), limit: Optional[int] = None, order: str = 'asc'):
     return {
-        "messages": load_messages_by_agent_and_user(agent_id=agent_id, user_id=user_id, limit=limit, order=order)
+        "messages": load_messages_by_agent_and_user(
+            agent_id=data.agent_id,
+            user_id=data.user_id,
+            limit=limit,
+            order=order
+        )
     }
+
 
 # @app.post("/translate")
 # async def translate_endpoint(data: TranslationInput = Depends(TranslationInput.as_form)):

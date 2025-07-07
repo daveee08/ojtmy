@@ -16,17 +16,15 @@ class TranslatorController extends Controller
         $userId = auth()->id() ?? 1;       // Default for testing
         $agentId = 16;                      // Example: Translator agent ID is 3
 
-        $historyResponse = Http::get('http://192.168.50.10:8013/chat/messages', [
-            'user_id' => $userId,
-            'agent_id' => $agentId,
-        ]);
+        $multipartData = [
+            ['name' => 'user_id', 'contents' => $userId], // Initial empty text
+            ['name' => 'agent_id', 'contents' => $agentId], // Initial empty text
+        ];
 
+        $historyResponse = Http::timeout(0)->asMultipart()
+            ->post('http://192.168.50.10:8013/chat/messages', $multipartData);
         // $messages = $historyResponse->json()['messages'] ?? [];
-
-        
-
         Log::info('Message payload dump', ['payload' => $historyResponse->json()]);
-
 
         $decoded = $historyResponse->json(); // <-- get the full decoded array
 
@@ -43,9 +41,12 @@ class TranslatorController extends Controller
             'messages' => $messages, // ⚠️ not 'payload', not 'data', only the array of messages
         ]);
     }
+    
 
     public function processForm(Request $request)
     {
+
+        Log::info('🔁 processForm called');
          set_time_limit(0);
          
         $validated = $request->validate([
@@ -60,9 +61,15 @@ class TranslatorController extends Controller
             ['name' => 'mode', 'contents' => 'manual'],
             ['name' => 'user_id', 'contents' => auth()->id() ?: 1], // Use authenticated user ID or default to 1
         ];
-        
-        
 
+        // if ($request->has('message_id')) {
+        //     $multipartData[] = ['name' => 'message_id', 'contents' => $request->input('message_id')];
+        // } 
+        // else {
+        //     // If no message_id is provided, we can set a default or handle it accordingly
+        // //     $multipartData[] = ['name' => 'message_id', 'contents' => '']; // Default to 1 or handle as needed
+        // }
+        
         $response = Http::timeout(0)->asMultipart()
             ->post('http://127.0.0.1:8013/translate', $multipartData);
 
@@ -79,6 +86,8 @@ class TranslatorController extends Controller
     }
 
         $data = $response->json();
+        Log::info('Initial translation result', ['translation' => $data['translation']]);
+
 
         return view('Text Translator.translator', [
             'translation' => $data['translation'] ?? 'No translation returned.',
@@ -88,24 +97,52 @@ class TranslatorController extends Controller
 
     public function followUp(Request $request)
 {
-    $request->validate([
-        'original_text' => 'required|string',
-        'language' => 'required|string',
-        'followup' => 'required|string',
+    set_time_limit(0);
+
+    $validated = $request->validate([
+        'followup'      => 'required|string',
     ]);
 
-    // You can build logic like: "$original + $followup context"
-    $message = "Original: {$request->original_text}\nFollow-up: {$request->followup}";
+    $userId = auth()->id() ?? 1;
 
-    $translation = YourTranslationService::translate($message, $request->language); // Replace with your logic
 
-    return view('translator_blade', [
-        'translation' => $translation,
-        'old' => [
-            'text' => $message,
-            'language' => $request->language
-        ]
+    $multipartData = [
+        ['name' => 'text', 'contents' => $validated['followup']],
+        ['name' => 'mode', 'contents' => 'chat'],
+        ['name' => 'user_id', 'contents' => $userId],
+        ['name' => 'db_message_id', 'contents' => 9], // hardcoded translator agent_id
+    ];
+
+    $response = Http::timeout(0)->asMultipart()
+        ->post('http://127.0.0.1:8013/translate', $multipartData);
+
+    // Log::info('Follow-up translation sent', [
+    //     'chatContext' => $chatContext,
+    //     'response_status' => $response->status(),
+    //     'response_body' => $response->body(),
+    // ]);
+
+    if ($response->failed() || !$response->json() || !isset($response->json()['translation'])) {
+        return back()->withErrors(['error' => 'Follow-up translation failed.'])->withInput();
+    }
+
+    // Fetch updated conversation history
+    $historyResponse = Http::get('http://192.168.50.10:8013/chat/messages', [
+        'user_id' => $userId,
+        'agent_id' => 16, // hardcoded translator agent_id
+    ]);
+
+    $messages = $historyResponse->json()['messages'] ?? [];
+
+    return view('Text Translator.translator', [
+        // 'translation' => $response->json()['translation'],
+        // 'old' => [
+        //     'text' => $chatContext,
+        //     'language' => $validated['language']
+        // ],
+        'messages' => $messages
     ]);
 }
+
 
 }

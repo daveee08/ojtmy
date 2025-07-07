@@ -18,28 +18,30 @@ class SentenceStarterController extends Controller
     /**  Handle form POST. */
     public function processForm(Request $request)
     {
-        set_time_limit(0);
+        set_time_limit(0);   // allow the user to wait for the LLM
 
+        // ------------------------------------------------------------------ #
+        // 1. Validate input                                                  #
+        // ------------------------------------------------------------------ #
         $validated = $request->validate([
             'grade_level' => 'required|string',
             'topic'       => 'required|string',
         ]);
 
-        // Generate or retrieve message_id for chat history
-        if (!session()->has('sentence_starter_message_id')) {
-            $generatedId = \Illuminate\Support\Str::uuid();
-            session(['sentence_starter_message_id' => $generatedId]);
-        }
-        $messageId = session('sentence_starter_message_id');
-
+        // ------------------------------------------------------------------ #
+        // 2. Build multipart payload                                         #
+        // ------------------------------------------------------------------ #
         $multipart = [
             ['name' => 'grade_level', 'contents' => $validated['grade_level']],
-            ['name' => 'topic'        , 'contents' => $validated['topic']],
-            ['name' => 'mode'         , 'contents' => 'manual'],
-            ['name' => 'user_id'      , 'contents' => auth()->id() ?: 1],
-            ['name' => 'message_id'   , 'contents' => $messageId], // Pass message_id for chat context
+            ['name' => 'topic',        'contents' => $validated['topic']],
+            ['name' => 'mode',         'contents' => 'manual'],                // direct generation
+            ['name' => 'user_id',      'contents' => auth()->id() ?: 1],
+            // ['name' => 'agent_id',  'contents' => 14],  // optional override
         ];
 
+        // ------------------------------------------------------------------ #
+        // 3. Call the Python service                                         #
+        // ------------------------------------------------------------------ #
         $response = Http::timeout(0)
             ->asMultipart()
             ->post('http://127.0.0.1:8014/sentence-starters', $multipart);
@@ -80,41 +82,13 @@ class SentenceStarterController extends Controller
             'followup'       => 'required|string',
         ]);
 
-        // Retrieve message_id for chat context
-        $messageId = session('sentence_starter_message_id') ?? \Illuminate\Support\Str::uuid();
+        // Example: append the follow‑up to the original topic
+        $combinedTopic = "{$request->original_topic}. {$request->followup}";
 
-        // Use chat mode and pass followup as topic
-        $multipart = [
-            ['name' => 'grade_level', 'contents' => $request->grade_level],
-            ['name' => 'topic'       , 'contents' => $request->followup],
-            ['name' => 'mode'        , 'contents' => 'chat'],
-            ['name' => 'user_id'     , 'contents' => auth()->id() ?: 1],
-            ['name' => 'message_id'  , 'contents' => $messageId],
-        ];
-
-        $response = Http::timeout(0)
-            ->asMultipart()
-            ->post('http://127.0.0.1:8014/sentence-starters', $multipart);
-
-        if ($response->failed() || !($json = $response->json()) || !isset($json['sentence_starters'])) {
-            return back()
-                ->withErrors(['error' => 'Sentence‑starter agent failed.'])
-                ->withInput();
-        }
-
-        return view('Sentence Starter.sentencestarter', [
-            'output' => $json['sentence_starters'],
-            'old'    => [
-                'grade_level'    => $request->grade_level,
-                'topic'          => $request->followup,
-                'original_topic' => $request->original_topic,
-            ],
-        ]);
-    }
-
-    public function resetChat()
-    {
-        session()->forget('sentence_starter_message_id');
-        return redirect()->back();
+        // Re‑call the agent with the combined topic
+        return $this->processForm(new Request([
+            'grade_level' => $request->grade_level,
+            'topic'       => $combinedTopic,
+        ]));
     }
 }

@@ -49,7 +49,7 @@ class SentenceStarterInput(BaseModel):
         user_id: int = Form(...),
         parameter_inputs: int = Form(1),
         agent_id: int = Form(14),
-    ) -> "SentenceStarterInput":
+    ) :
         return cls(
             grade_level=grade_level,
             topic=topic,
@@ -114,7 +114,7 @@ def generate_sentence_starters(grade_level: str, topic: str) -> List[str]:
 #  Endpoint                                                                   #
 # --------------------------------------------------------------------------- #
 @app.post("/sentence-starters") 
-async def sentence_starters_endpoint(data: SentenceStarterInput):
+async def sentence_starters_endpoint(data: SentenceStarterInput = Depends(SentenceStarterInput.as_form)):
     try:
         # --------------------------- chat pass‑through ---------------------- #
         if data.mode.lower() == "chat":
@@ -149,7 +149,7 @@ async def sentence_starters_endpoint(data: SentenceStarterInput):
             message_id=msg_id,
         )
 
-        return SentenceStarterOutput(sentence_starters=starters)
+        return {"translation": starters}
 
     # --------------------------- error handling ---------------------------- #
     except Exception as exc:  # broad, but useful for an API boundary
@@ -161,4 +161,4 @@ async def sentence_starters_endpoint(data: SentenceStarterInput):
 # --------------------------------------------------------------------------- #
 # if __name__ == "__main__":
 #     import uvicorn  # local import so `uvicorn` isn’t required when run by Gunicorn
-#     uvicorn.run("sentence_starters_agent:app", host="0.0.0.0", port=8000, reload=True)
+#     uvicorn.run("sentence_starters_agent:app", host="0.0.0.0", port=8000, reload=True

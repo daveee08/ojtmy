@@ -36,17 +36,3 @@ h2 {
 .mb-3 {
     margin-bottom: 1rem !important; /* Consistent spacing */
 }
-
-/* Media query for larger screens (e.g., tablets and desktops) */
-@media (min-width: 768px) {
-    html {
-        font-size: 17px; /* Slightly larger base font size for desktops */
-    }
-    h1 {
-        font-size: 2.5rem; /* Larger H1 for desktop */
-    }
-    h2 {
-        font-size: 2rem; /* Larger H2 for desktop */
-    }
-    /* Other desktop specific overrides can go here */
-}

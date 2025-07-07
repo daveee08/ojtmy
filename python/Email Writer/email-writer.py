@@ -179,32 +179,70 @@ async def summarize(
         )
 
 # ------------------- Thank You Note Generator -------------------
+# 🔍 Tone Detection Helper
+def detect_tone(reason: str) -> str:
+    reason_lower = reason.lower()
+    if any(w in reason_lower for w in ["crayon", "blocks", "snack", "story", "game", "coloring", "stickers", "play"]):
+        return "child"
+    elif any(w in reason_lower for w in ["project", "science", "essay", "math", "presentation", "exam", "class"]):
+        return "student"
+    elif any(w in reason_lower for w in ["client", "proposal", "review", "feedback", "deadline", "meeting", "support"]):
+        return "professional"
+    elif len(reason.split()) <= 6:
+        return "casual"
+    return "neutral"
+
+# 🧽 Output Cleaner Helper
+def clean_output(text: str, tone_hint: str) -> str:
+    closings = ["Best regards", "Sincerely", "Kind regards", "Warm wishes", "With appreciation"]
+    if tone_hint in ["child", "casual", "student"]:
+        for phrase in closings:
+            if phrase in text:
+                text = text.replace(phrase, "").strip()
+    return text
+
+# 🚀 Main Route
 @app.post("/generate-thankyou")
 async def generate_thank_you(reason: str = Form(...)):
-    prompt_template = """
-You are a thoughtful and kind assistant.
+    tone_hint = detect_tone(reason)
 
-Your task is to write a sincere and warm thank-you note based on what the user is thankful for.
+    prompt_template = """
+You are a thoughtful assistant who writes thank-you notes for users of all ages — from young children to working professionals.
+
+Your task is to write a thank-you note that matches the user's age and tone as best as possible based only on what they wrote.
 
 Reason for thanks:
 {reason}
 
-Write a thank-you note that:
-- Expresses genuine appreciation
-- Mentions specific contributions or actions
-- Sounds human and heartfelt
-- Ends with a warm closing
+Tone hint (inferred): {tone_hint}
 
-Important:
-- Use a warm, natural tone (not robotic)
-- Do not include any explanations or labels
-- Return only the thank-you message
+Write a thank-you note that:
+- Uses tone, sentence structure, and vocabulary appropriate for the user's likely age or level, based only on the language of the reason
+- Expresses genuine appreciation in a clear, kind, and natural way
+- Mentions only what is directly included or implied in the reason
+- Ends with a warm and suitable closing
+
+Rules:
+- Do NOT include made-up names, sender names, or signature lines
+- Do NOT assume or invent extra context, events, relationships, or scenarios
+- Do NOT refer to time, places, or actions unless they are clearly stated in the input
+- Keep the message short and age-appropriate
+- Return only the thank-you note text — no explanations, no formatting, no labels
+- If the user sounds like a child, end the note with a cheerful, friendly phrase that a child might naturally say (like “Thanks again!” or “You’re awesome!”)
+- If the user sounds like an adult, end the note with a more formal closing only if the tone is clearly professional
 """
+
     prompt = PromptTemplate.from_template(prompt_template)
     llm = Ollama(model="gemma3:4b")
     chain = prompt | llm
-    result = chain.invoke({"reason": reason.strip()})
-    return {"thank_you_note": result.strip()}
+
+    result = chain.invoke({
+        "reason": reason.strip(),
+        "tone_hint": tone_hint
+    })
+
+    final_note = clean_output(result.strip(), tone_hint)
+    return {"thank_you_note": final_note}
 
 # ------------------- Idea Generator -------------------
 @app.post("/generate-idea")

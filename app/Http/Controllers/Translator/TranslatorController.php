@@ -41,7 +41,42 @@ class TranslatorController extends Controller
             'messages' => $messages, // ⚠️ not 'payload', not 'data', only the array of messages
         ]);
     }
-    
+
+
+    public function showSpecificMessages($message_id)
+    {
+        $userId = auth()->id() ?? 1;
+        $agentId = 16;
+
+        $multipartData = [
+            ['name' => 'user_id', 'contents' => $userId],
+            ['name' => 'agent_id', 'contents' => $agentId],
+            ['name' => 'session_id', 'contents' => $message_id], // API expects 'session_id'
+        ];
+
+        Log::info('Fetching specific messages for translator', [
+            'user_id' => $userId,
+            'agent_id' => $agentId,
+            'session_id' => $message_id,
+        ]);
+
+        $response = \Illuminate\Support\Facades\Http::timeout(0)->asMultipart()
+            ->post('http://192.168.50.10:8013/chat/specific_messages', $multipartData); // <-- use POST
+
+        Log::info('Specific messages response', [
+            'status' => $response->status(),
+            'body' => $response->body(),
+        ]);
+
+        $data = $response->json();
+        $messages = $data['messages'] ?? [];
+
+        return view('Text Translator.specific_messages', [
+            'messages' => $messages,
+            'message_id' => $message_id,
+        ]);
+    }
+        
 
     public function processForm(Request $request)
     {

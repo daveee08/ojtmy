@@ -173,6 +173,7 @@ Route::get('/translator', [TranslatorController::class, 'showForm'])->name('tran
 Route::post('/translator', [TranslatorController::class, 'processForm'])->name('translator.process');
 Route::post('/translator/followup', [TranslatorController::class, 'followUp'])->name('translator.followup');
 Route::get('/translator/session/{id}', [TranslatorController::class, 'showSession'])->name('translator.session');
+Route::get('/translator/conversation/{message_id}', [\App\Http\Controllers\Translator\TranslatorController::class, 'showSpecificMessages'])->name('translator.specific');
 
 
 

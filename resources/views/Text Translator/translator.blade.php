@@ -61,11 +61,12 @@
                             @if (!in_array($msg['message_id'], $seenSessions))
                                 @php $seenSessions[] = $msg['message_id']; @endphp
                                 <li class="list-group-item">
-                                    <!-- <strong>{{ ucfirst($msg['sender'] ?? 'N/A') }}:</strong> -->
-                                    <div>{{ $msg['topic'] ?? '[No message]' }}</div>
-                                    <small class="text-muted">
-                                        {{ $msg['created_at'] ? \Carbon\Carbon::parse($msg['created_at'])->diffForHumans() : 'just now' }}
-                                    </small>
+                                    <a href="{{ route('translator.specific', ['message_id' => $msg['message_id']]) }}" class="text-decoration-none">
+                                        <div>{{ $msg['topic'] ?? '[No message]' }}</div>
+                                        <small class="text-muted">
+                                            {{ $msg['created_at'] ? \Carbon\Carbon::parse($msg['created_at'])->diffForHumans() : 'just now' }}
+                                        </small>
+                                    </a>
                                 </li>
                             @endif
                         @endforeach

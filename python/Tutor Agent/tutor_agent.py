@@ -30,7 +30,7 @@ class TutorRequest(BaseModel):
     add_cont: str = ""
     mode: str = "manual"
     history: str = "[]"
-    message_id: int
+    message_id: Optional[int]
 
     @classmethod
     def as_form(

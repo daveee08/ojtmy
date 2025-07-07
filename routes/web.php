@@ -30,6 +30,7 @@ use App\Http\Controllers\TextRewriter\RewriterController;
 use App\Http\Controllers\TextScaffolder\ScaffolderController;
 use App\Http\Controllers\Explanations\ExplanationsController;
 use App\Http\Controllers\AssignmentScaffolder\AssignmentScaffolder;
+use App\Http\Controllers\MathReview\MathReviewController;
 
 /*
 |--------------------------------------------------------------------------
@@ -171,6 +172,8 @@ Route::post('/sentencestarter', [SentenceStarterController::class, 'processForm'
 Route::get('/translator', [TranslatorController::class, 'showForm'])->name('translator.form');
 Route::post('/translator', [TranslatorController::class, 'processForm'])->name('translator.process');
 Route::post('/translator/followup', [TranslatorController::class, 'followUp'])->name('translator.followup');
+Route::get('/translator/session/{id}', [TranslatorController::class, 'showSession'])->name('translator.session');
+
 
 
 // Study Habits Agent
@@ -196,3 +199,7 @@ Route::post('/explanations', [ExplanationsController::class, 'processForm'])->na
 // ✅ Scaffolder Tool
 Route::get('/assignmentscaffolder', [AssignmentScaffolder::class, 'showForm'])->name('assignmentscaffolder.form');
 Route::post('/assignmentscaffolder', [AssignmentScaffolder::class, 'processForm'])->name('assignmentscaffolder.process');
+
+// ✅ Math Review Tool
+Route::get('/mathreview', [MathReviewController::class, 'showForm'])->name('mathreview.form');
+Route::post('/mathreview', [MathReviewController::class, 'processForm'])->name('mathreview.process');

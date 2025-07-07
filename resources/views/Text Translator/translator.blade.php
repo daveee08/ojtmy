@@ -38,13 +38,42 @@
         }
     </style>
 </head>
-<body>
+<body> {{-- Displaying messages --}}
 <div class="container my-5">
     <div class="card shadow-sm">
+            
+
         <div class="card-body">
+            {{-- 🌐 AI Text Translator Heading --}}
             <h2 class="text-center text-highlight mb-3">🌐 AI Text Translator</h2>
             <p class="text-muted text-center mb-4">Translate any text into your selected language.</p>
 
+            {{-- ✅ Conversation History Display --}}
+            @php
+            $seenSessions = [];
+            @endphp
+
+            @if (!empty($messages))
+                <div class="mt-4">
+                    <h5 class="fw-bold">Conversation History</h5>
+                    <ul class="list-group mb-3">
+                        @foreach ($messages as $msg)
+                            @if (!in_array($msg['message_id'], $seenSessions))
+                                @php $seenSessions[] = $msg['message_id']; @endphp
+                                <li class="list-group-item">
+                                    <!-- <strong>{{ ucfirst($msg['sender'] ?? 'N/A') }}:</strong> -->
+                                    <div>{{ $msg['topic'] ?? '[No message]' }}</div>
+                                    <small class="text-muted">
+                                        {{ $msg['created_at'] ? \Carbon\Carbon::parse($msg['created_at'])->diffForHumans() : 'just now' }}
+                                    </small>
+                                </li>
+                            @endif
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
+            {{-- ✅ Translation Input Form --}}
             <form action="{{ route('translator.process') }}" method="POST" id="translateForm">
                 @csrf
 
@@ -89,35 +118,22 @@
                         <span id="btnSpinner" class="spinner-border spinner-border-sm d-none ms-2" role="status" aria-hidden="true"></span>
                     </button>
                 </div>
-
-                @if (!empty($translation))
-                    <div class="mt-4">
-                        <label class="form-label fw-semibold">Send a message:</label>
-                        <form action="{{ route('translator.followup') }}" method="POST">
-                            @csrf
-                            <input type="hidden" name="original_text" value="{{ $old['text'] ?? '' }}">
-                            <input type="hidden" name="language" value="{{ $old['language'] ?? '' }}">
-                            <textarea name="followup" rows="3" class="form-control mb-2" placeholder="Ask a follow-up, clarify, or tweak the translation..."></textarea>
-                            <div class="d-grid d-md-flex justify-content-md-end">
-                                <button type="submit" class="btn btn-outline-primary">Send Message</button>
-                            </div>
-                        </form>
-                    </div>
-                @endif
-
-
-                
             </form>
 
-            @if ($errors->any())
-                <div class="alert alert-danger mt-4">
-                    <ul class="mb-0">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
+            {{-- ✅ Follow-Up Form (not nested!) --}}
+            @if (!empty($translation))
+                <div class="mt-4">
+                    <label class="form-label fw-semibold">Send a message:</label>
+                    <form action="{{ route('translator.followup') }}" method="POST">
+                        @csrf
+                        <p class="text-muted small">DEBUG message_id: {{ $message_id ?? 'NULL' }}</p>
+                        <input type="hidden" name="message_id" value="{{ $message_id ?? '' }}">
+                        <textarea name="followup" rows="3" class="form-control mb-2" placeholder="Ask a follow-up..."></textarea>
+                        <button type="submit" class="btn btn-outline-primary">Send Message</button>
+                    </form>
                 </div>
             @endif
+
         </div>
     </div>
 </div>

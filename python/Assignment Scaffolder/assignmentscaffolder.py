@@ -12,12 +12,12 @@ You are an educational assistant.
 
 Your task is to turn the following prompt into a fully scaffolded, student-friendly assignment for **Grade {grade_level}** students.
 
-Before generating the output, consider the student’s level based on the grade provided. Adapt the language, tone, and level of thinking appropriately using the following categories:
+Before generating the output, consider the student-s level based on the grade provided. Adapt the language, tone, and level of thinking appropriately using the following categories:
 
 - Kindergarten: Use very basic vocabulary, large font structure, simple tasks, and a playful tone. Focus on short, guided steps.
-- Grades 1–6 (Elementary): Use simple instructions and vocabulary. Provide concrete examples and offer lots of guidance.
-- Grades 7–10 (Junior High): Use age-appropriate academic tone, moderately complex instructions, and include examples that encourage independent thinking.
-- Grades 11–12 (Senior High): Use a more formal tone. Encourage higher-order thinking and self-directed learning.
+- Grades 1-6 (Elementary): Use simple instructions and vocabulary. Provide concrete examples and offer lots of guidance.
+- Grades 7-10 (Junior High): Use age-appropriate academic tone, moderately complex instructions, and include examples that encourage independent thinking.
+- Grades 11-12 (Senior High): Use a more formal tone. Encourage higher-order thinking and self-directed learning.
 - University: Use clear academic language. Expect independent interpretation, structured output, and critical analysis or reflection.
 
 **Prompt:**

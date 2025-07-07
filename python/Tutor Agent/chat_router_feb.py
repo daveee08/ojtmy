@@ -112,7 +112,7 @@ async def chat_with_history_api(
             }}
         )
 
-        return JSONResponse(content={"translation": result})
+        return JSONResponse(content={"response": result})
 
     except Exception as e:
         traceback_str = traceback.format_exc()

@@ -61,14 +61,6 @@ class TranslatorController extends Controller
             ['name' => 'mode', 'contents' => 'manual'],
             ['name' => 'user_id', 'contents' => auth()->id() ?: 1], // Use authenticated user ID or default to 1
         ];
-
-        // if ($request->has('message_id')) {
-        //     $multipartData[] = ['name' => 'message_id', 'contents' => $request->input('message_id')];
-        // } 
-        // else {
-        //     // If no message_id is provided, we can set a default or handle it accordingly
-        // //     $multipartData[] = ['name' => 'message_id', 'contents' => '']; // Default to 1 or handle as needed
-        // }
         
         $response = Http::timeout(0)->asMultipart()
             ->post('http://127.0.0.1:8013/translate', $multipartData);
@@ -87,60 +79,61 @@ class TranslatorController extends Controller
 
         $data = $response->json();
         Log::info('Initial translation result', ['translation' => $data['translation']]);
+        Log::info('Initial translation result', ['translation' => $data['translation']]);
+
 
 
         return view('Text Translator.translator', [
             'translation' => $data['translation'] ?? 'No translation returned.',
             'old' => $validated,
+            'message_id' => $data['message_id'], // Pass message ID if available
+            'language' => $validated['language'],
+
         ]);
     }
 
     public function followUp(Request $request)
 {
+    Log::info('🔁 followUp called ------------------');
+
     set_time_limit(0);
 
     $validated = $request->validate([
-        'followup'      => 'required|string',
+        'followup' => 'required|string',
+        'message_id' => 'required|int',
+        'target_language' => 'nullable|string', // Optional, can be used if needed
     ]);
 
-    $userId = auth()->id() ?? 1;
-
+    Log::info('Follow-up request validation passed', [
+        'followup' => $validated['followup'],
+        'message_id' => $validated['message_id'],
+        'target_language' => $validated['target_language'] ?? 'not provided',
+    ]);
 
     $multipartData = [
         ['name' => 'text', 'contents' => $validated['followup']],
-        ['name' => 'mode', 'contents' => 'chat'],
-        ['name' => 'user_id', 'contents' => $userId],
-        ['name' => 'db_message_id', 'contents' => 9], // hardcoded translator agent_id
+        ['name' => 'message_id', 'contents' => $validated['message_id']],
+        ['name' => 'user_id', 'contents' => auth()->id() ?: 1],
+        ['name' => 'target_language', 'contents' => $validated['target_language'] ?? 'not provided'], // Assuming 'manual' mode for follow-up
+        // Use authenticated user ID or default to 1
+        // ['name' => 'target_language', 'contents' => $validated['language']],
     ];
 
-    $response = Http::timeout(0)->asMultipart()
-        ->post('http://127.0.0.1:8013/translate', $multipartData);
-
-    // Log::info('Follow-up translation sent', [
-    //     'chatContext' => $chatContext,
-    //     'response_status' => $response->status(),
-    //     'response_body' => $response->body(),
-    // ]);
-
-    if ($response->failed() || !$response->json() || !isset($response->json()['translation'])) {
-        return back()->withErrors(['error' => 'Follow-up translation failed.'])->withInput();
-    }
-
-    // Fetch updated conversation history
-    $historyResponse = Http::get('http://192.168.50.10:8013/chat/messages', [
-        'user_id' => $userId,
-        'agent_id' => 16, // hardcoded translator agent_id
+    Log::info('Preparing multipart data for follow-up', [
+        'multipart_data' => $multipartData,
     ]);
 
-    $messages = $historyResponse->json()['messages'] ?? [];
+    $response = Http::timeout(0)->asMultipart()
+        ->post('http://192.168.50.10:8013/translate/followup', $multipartData);
 
-    return view('Text Translator.translator', [
-        // 'translation' => $response->json()['translation'],
-        // 'old' => [
-        //     'text' => $chatContext,
-        //     'language' => $validated['language']
-        // ],
-        'messages' => $messages
+    Log::info('Follow-up request sent', [
+        'followup' => $validated['followup'],  
+        'response_status' => $response->status(),
+        'response_body' => $response->body(),
+    ]);
+
+    return redirect()->back()->with('success', 'Follow-up sent!')->withInput([
+        'message_id' => $validated['message_id'],
     ]);
 }
 

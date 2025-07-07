@@ -56,6 +56,30 @@ class TranslationInput(BaseModel):
             # message_id=message_id
         )
 
+
+class TranslationFollowupInput(BaseModel):
+    text: str
+    user_id: int
+    message_id: int
+    # target_language: str # Default to bisaya
+    agent_id: int = 16  # translator agent_id (adjust as needed)
+
+
+    @classmethod
+    def as_form(
+        cls,
+        text: str = Form(...),
+        user_id: int = Form(...),
+        message_id: int = Form(...),
+        # target_language: str = Form(...),  # Default to bisaya
+    ):
+        return cls(
+            text=text,
+            user_id=user_id,
+            message_id=message_id,
+            # target_language=target_language,
+        )
+
 # Instantiate once
 model = OllamaLLM(model="gemma3:1b")
 
@@ -86,39 +110,8 @@ def translate_text(text: str, target_language: str) -> str:
 
 @app.post("/translate")
 async def translate_endpoint(data: TranslationInput = Depends(TranslationInput.as_form)):
-    try:
-        # insert_message(
-        #     agent_id=data.agent_id,
-        #     user_id=data.user_id,
-        #     parameter_inputs=parameter_inputs_id,
-        #     sender="human",
-        #     topic=data.text,
-        #     message_id=message_id  # Laravel-generated session thread ID
-        # )
-
-        if data.mode == "chat":
-            async with httpx.AsyncClient(timeout=None) as client:
-                form_data = {
-                    "topic": data.text,
-                    "user_id": str(data.user_id),
-                    "db_message_id": int(data.message_id),
-                }
-                chat_url = "http://192.168.50.10:8001/chat_with_history"
-                try:
-                    print("[DEBUG] Sending chat request:", form_data, flush=True)
-                    resp = await client.post(chat_url, data=form_data)
-                    print("[DEBUG] Response status:", resp.status_code, flush=True)
-                    print("[DEBUG] Response body:", await resp.aread(), flush=True)
-                except Exception as e:
-                    import traceback
-                    print("[ERROR] Failed to contact chat_url", flush=True)
-                    print(traceback.format_exc(), flush=True)
-                    raise
-                resp.raise_for_status()
-                result = resp.json()
-                output = result.get("response", "No output")
-        else:
-            output = translate_text(data.text, data.target_language)
+    
+        output = translate_text(data.text, data.target_language)
 
 
         scope_vars = {
@@ -142,10 +135,61 @@ async def translate_endpoint(data: TranslationInput = Depends(TranslationInput.a
             message_id=message_id,
         )
         
+        return {"translation": output, "message_id": message_id}
+    # except Exception as e:
+    #     raise HTTPException(status_code=500, detail=str(e))
+    
+@app.post("/translate/followup")
+async def translate_followup_endpoint(data: TranslationFollowupInput = Depends(TranslationFollowupInput.as_form)):
+    try:
+        async with httpx.AsyncClient(timeout=None) as client:
+            form_data = {
+                "topic": data.text,
+                "user_id": str(data.user_id),
+                "db_message_id": int(data.message_id),
+            }
+            chat_url = "http://192.168.50.10:8001/chat_with_history"
+            try:
+                print("[DEBUG] Sending chat request:", form_data, flush=True)
+                resp = await client.post(chat_url, data=form_data)
+                print("[DEBUG] Response status:", resp.status_code, flush=True)
+                print("[DEBUG] Response body:", await resp.aread(), flush=True)
+            except Exception as e:
+                import traceback
+                print("[ERROR] Failed to contact chat_url", flush=True)
+                print(traceback.format_exc(), flush=True)
+                raise
+            resp.raise_for_status()
+            result = resp.json()
+            output = result.get("response", "No output")
+
+        scope_vars = {
+            "target_language": "follow up"
+        }
+
+        insert_session_and_message(
+            user_id=data.user_id,
+            agent_id=data.agent_id,
+            sender="human",
+            topic=data.text,
+            scope_vars=scope_vars,
+            message_id=data.message_id,
+        )
+
+        insert_session_and_message(
+            user_id=data.user_id,
+            agent_id=data.agent_id,
+            sender="ai",
+            topic=output,
+            scope_vars=scope_vars,
+            message_id=data.message_id,
+        )
+        
+
         return {"translation": output}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
+
 class ChatMessage(BaseModel):
     user_id: int
     agent_id: int

@@ -1,149 +1,119 @@
-from fastapi import APIRouter, HTTPException, Form, Depends
+from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
-from typing import Literal, List
-from langchain_community.llms import Ollama
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_core.runnables.history import RunnableWithMessageHistory
+from fastapi import Form, Depends
+from typing import List, Literal
+
+from langchain_ollama import OllamaLLM as Ollama
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.runnables import RunnableWithMessageHistory
 from langchain_core.messages import HumanMessage, AIMessage, BaseMessage
-from langchain_core.chat_history import BaseChatMessageHistory
-import os, json, traceback
+from langchain_core.runnables.history import BaseChatMessageHistory
+
+from db_utils import (
+    fetch_messages,
+    add_message as db_add_message,
+    clear_messages_by_session_id,
+    get_all_session_ids,
+    get_messages_by_session_id
+)
 
 chat_router = APIRouter()
-HISTORY_DIR = "chat_histories"
-os.makedirs(HISTORY_DIR, exist_ok=True)
+llm = Ollama(model="llama3")
 
-# --- LangChain Model ---
-model = Ollama(model="llama3")
+# -------------------------------
+# Pydantic Models
+# -------------------------------
 
-# --- Request Model ---
 class ChatRequestForm(BaseModel):
-    topic: str
-    message_id: str
+    session_id: int
+    input: str
 
     @classmethod
     def as_form(
         cls,
-        topic: str = Form(...),
-        message_id: str = Form(...)
+        session_id: int = Form(...),
+        input: str = Form(...)
     ):
-        return cls(topic=topic, message_id=message_id)
+        return cls(session_id=session_id, input=input)
 
+class ChatResponse(BaseModel):
+    response: str
 
-# --- Message Item Model ---
-class MessageItem(BaseModel):
-    type: Literal["human", "ai"]
-    content: str
+class SessionIDsResponse(BaseModel):
+    session_ids: List[int]
 
-# --- Response Model ---
+class MessageEntry(BaseModel):
+    sender: Literal["human", "ai"]
+    topic: str
+
 class ChatHistoryResponse(BaseModel):
-    message_id: str
-    history: List[MessageItem]
+    session_id: int
+    conversation: List[MessageEntry]
 
-# --- Chat History Store ---
-class FileChatMessageHistory(BaseChatMessageHistory, BaseModel):
-    message_id: str
-    messages: List[BaseMessage] = Field(default_factory=list)
+# -------------------------------
+# Custom Chat Message History
+# -------------------------------
+
+class MySQLChatMessageHistory(BaseChatMessageHistory):
+    def __init__(self, session_id: int):
+        self.session_id = session_id
 
     @property
-    def filepath(self) -> str:
-        return os.path.join(HISTORY_DIR, f"{self.message_id}.json")
+    def messages(self) -> List[BaseMessage]:
+        return [
+            HumanMessage(content=m["topic"]) if m["sender"] == "human" else AIMessage(content=m["topic"])
+            for m in fetch_messages(self.session_id)
+        ]
 
-    def _load_from_json(self):
-        self.messages = []
-        if not os.path.exists(self.filepath):
-            return
+    def add_message(self, message: BaseMessage) -> None:
+        db_add_message(session_id=self.session_id, message=message, user_id=1)
 
-        try:
-            with open(self.filepath, 'r', encoding='utf-8') as f:
-                data = json.load(f)
+    def clear(self) -> None:
+        clear_messages_by_session_id(self.session_id)
 
-            if isinstance(data, dict) and "conversation" in data:
-                for msg in data["conversation"]:
-                    msg_type = msg.get("type")
-                    content = msg.get("content")
+def get_history_by_message_id(session_id: str) -> MySQLChatMessageHistory:
+    return MySQLChatMessageHistory(session_id=int(session_id))
 
-                    if not content or msg_type not in {"human", "ai"}:
-                        print(f"[Skipped Invalid Message] {msg}")
-                        continue
-
-                    if msg_type == "human":
-                        self.messages.append(HumanMessage(content=content))
-                    elif msg_type == "ai":
-                        self.messages.append(AIMessage(content=content))
-
-        except Exception as e:
-            print(f"[History Load Error] {e}")
-            self.messages = []
-
-    def add_messages(self, messages: list[BaseMessage]):
-        self.messages.extend(messages)
-        self._save_to_json()
-
-    def _save_to_json(self):
-        data = {
-            "message_id": self.message_id,
-            "conversation": [
-                {"type": "human" if isinstance(msg, HumanMessage) else "ai", "content": msg.content}
-                for msg in self.messages
-            ]
-        }
-        with open(self.filepath, 'w', encoding='utf-8') as f:
-            json.dump(data, f, indent=2, ensure_ascii=False)
-
-    def clear(self):
-        self.messages = []
-        self._save_to_json()
-
-    @classmethod
-    def from_message_id(cls, message_id: str):
-        instance = cls(message_id=message_id)
-        instance._load_from_json()
-        return instance
-
-def get_history_by_message_id(message_id: str) -> FileChatMessageHistory:
-    return FileChatMessageHistory.from_message_id(message_id)
-
-# --- Chat Prompt Setup ---
 chat_prompt = ChatPromptTemplate.from_messages([
-    ("system", "You are a helpful assistant. Keep responses clear and concise."),
-    MessagesPlaceholder(variable_name="history"),
-    ("human", "{topic}")
+    ("system", "You are a helpful assistant."),
+    ("placeholder", "{chat_history}"),
+    ("human", "{input}")
 ])
 
 chat_chain = RunnableWithMessageHistory(
-    runnable=chat_prompt | model,
+    chat_prompt | llm,
     get_session_history=get_history_by_message_id,
-    input_messages_key="topic",
-    history_messages_key="history"
+    input_messages_key="input",
+    history_messages_key="chat_history"
 )
 
-# --- Routes ---
-@chat_router.post("/chat")
-async def chat_api(request: ChatRequestForm = Depends(ChatRequestForm.as_form)):
-    try:
-        result = chat_chain.invoke(
-            {"topic": request.topic},
-            config={"configurable": {"message_id": request.message_id}}
-        )
-        return JSONResponse(content={"response": result})
-    except Exception as e:
-        traceback_str = traceback.format_exc()
-        print(f"[Chat Error] {e}\n{traceback_str}")
-        raise HTTPException(status_code=500, detail="Chat processing failed.")
+# -------------------------------
+# Routes with Pydantic Responses
+# -------------------------------
 
-@chat_router.get("/chat/history/{message_id}", response_model=ChatHistoryResponse)
-async def get_chat_history(message_id: str):
+@chat_router.get("/chat/sessions", response_model=SessionIDsResponse)
+def get_existing_sessions():
     try:
-        history = get_history_by_message_id(message_id)
-        formatted_messages = [
-            MessageItem(
-                type="human" if isinstance(msg, HumanMessage) else "ai",
-                content=msg.content
-            ) for msg in history.messages
-        ]
-        return ChatHistoryResponse(message_id=message_id, history=formatted_messages)
-    except Exception as e:
-        traceback_str = traceback.format_exc()
-        print(f"[Get History Error] {e}\n{traceback_str}")
-        raise HTTPException(status_code=500, detail="Failed to retrieve chat history.")
+        return {"session_ids": get_all_session_ids()}
+    except Exception:
+        raise HTTPException(status_code=500, detail="Failed to fetch session IDs.")
+
+@chat_router.get("/chat/history/{session_id}", response_model=ChatHistoryResponse)
+def get_chat_history(session_id: int):
+    try:
+        messages = get_messages_by_session_id(session_id)
+        return {
+            "session_id": session_id,
+            "conversation": [{"sender": m["sender"], "topic": m["topic"]} for m in messages]
+        }
+    except Exception:
+        raise HTTPException(status_code=500, detail="Failed to fetch conversation history.")
+
+@chat_router.post("/chat", response_model=ChatResponse)
+async def chat_api(request: ChatRequestForm = Depends(ChatRequestForm.as_form)):
+    result = chat_chain.invoke(
+        {"input": request.input},
+        config={"configurable": {"session_id": request.session_id}}
+    )
+    return {"response": result}

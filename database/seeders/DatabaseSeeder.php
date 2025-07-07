@@ -19,6 +19,8 @@ class DatabaseSeeder extends Seeder
             AgentParametersTableSeeder::class,
             MyAgentsTableSeeder::class,
             MyAgentParametersTableSeeder::class,
+            UserSeeder::class,
+            ParameterReferenceSeeder::class,
         ]);
     }
 }

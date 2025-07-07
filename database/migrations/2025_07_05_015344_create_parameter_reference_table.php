@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateAgentParametersTable extends Migration
+class CreateParameterReferenceTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,16 +13,14 @@ class CreateAgentParametersTable extends Migration
      */
     public function up()
     {
-        Schema::create('agent_parameters', function (Blueprint $table) {
+        Schema::create('parameter_reference', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->unsignedBigInteger('agent_id');
-            $table->string('parameter');
-            $table->string('parameter_value')-> nullable(); // More flexible than enum
+            $table->string('parameter_input_ids');
             $table->timestamps();
 
-            // Foreign key constraint
             $table->foreign('agent_id')->references('id')->on('agents')->onDelete('cascade');
-        }); 
+        });
     }
 
     /**
@@ -32,7 +30,6 @@ class CreateAgentParametersTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('agent_parameters');
+        Schema::dropIfExists('parameter_reference');
     }
 }
-// This migration creates the agent_parameters table with a foreign key to agents.

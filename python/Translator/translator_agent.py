@@ -59,7 +59,7 @@ class TranslationInput(BaseModel):
 
 
 # Instantiate once
-model = OllamaLLM(model="gemma3:latest")
+model = OllamaLLM(model="gemma3:1b")
 
 # Safer templated prompt
 prompt_template = ChatPromptTemplate.from_template("""

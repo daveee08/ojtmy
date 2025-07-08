@@ -1,3 +1,5 @@
+@extends('layouts.history')
+    
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -39,6 +41,8 @@
     </style>
 </head>
 <body> {{-- Displaying messages --}}
+
+@section('main-content')
 <div class="container my-5">
     <div class="card shadow-sm">
             
@@ -48,7 +52,7 @@
             <h2 class="text-center text-highlight mb-3">🌐 AI Text Translator</h2>
             <p class="text-muted text-center mb-4">Translate any text into your selected language.</p>
 
-            {{-- ✅ Conversation History Display --}}
+            <!-- {{-- ✅ Conversation History Display --}}
             @php
             $seenSessions = [];
             @endphp
@@ -72,7 +76,7 @@
                         @endforeach
                     </ul>
                 </div>
-            @endif
+            @endif -->
 
             {{-- ✅ Translation Input Form --}}
             <form action="{{ route('translator.process') }}" method="POST" id="translateForm">
@@ -139,6 +143,7 @@
         </div>
     </div>
 </div>
+@endsection
 
 {{-- Loading Overlay --}}
 <div id="loadingOverlay" class="position-fixed top-0 start-0 w-100 h-100 d-flex d-none justify-content-center align-items-center bg-white bg-opacity-75" style="z-index: 9999;">

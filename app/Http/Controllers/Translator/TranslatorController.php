@@ -6,9 +6,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
+use \Illuminate\Support\Facades\View; // Import View facade
+
 class TranslatorController extends Controller
 {
-
+    
     public function getMessages()
     {
         // for displaying the messages of that agent
@@ -69,6 +71,14 @@ class TranslatorController extends Controller
         //     'response_status' => $historyResponse->status(),
         // ]);
 
+        View::composer('layouts.history', function ($view) {
+        $view->with([
+            'agentId' => 16,
+            // 'title' => 'Text Translator',
+            // 'description' => 'Translate text to different languages using AI.',
+        ]);
+    });
+
         $messages = $this->getMessages(); // Call the getMessages method to fetch messages
 
         return view('Text Translator.translator', [
@@ -127,7 +137,6 @@ class TranslatorController extends Controller
         $multipartData = [
             ['name' => 'text', 'contents' => $validated['text']],
             ['name' => 'target_language', 'contents' => $validated['language']],
-            ['name' => 'mode', 'contents' => 'manual'],
             ['name' => 'user_id', 'contents' => auth()->id() ?: 1], // Use authenticated user ID or default to 1
         ];
         
@@ -151,6 +160,15 @@ class TranslatorController extends Controller
         Log::info('Initial translation result', ['translation' => $data['translation']]);
 
         $messages = $this->getMessages();
+
+        View::composer('layouts.history', function ($view) {
+            $view->with([
+                'agentId' => 16,
+                // 'title' => 'Text Translator',
+                // 'description' => 'Translate text to different languages using AI.',
+            ]);
+        });
+
 
         return view('Text Translator.translator', [
             'translation' => $data['translation'] ?? 'No translation returned.',

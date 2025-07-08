@@ -16,23 +16,20 @@
             display: flex;
             justify-content: center;
             align-items: flex-start;
-            padding: 1.5rem 1rem;
+            padding: 3rem 1rem;
         }
 
         .container {
             background: white;
             max-width: 700px;
             width: 100%;
-            padding: 1.5rem 1rem;
+            padding: 2.5rem 3rem;
             border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-            margin: 1.5rem auto;
         }
 
         h2 {
             font-weight: 700;
-            font-size: 1.75rem;
-            margin-bottom: 1.5rem;
+            margin-bottom: 2rem;
             text-align: center;
             letter-spacing: 1px;
             text-transform: uppercase;
@@ -41,7 +38,6 @@
         label {
             font-weight: 600;
             color: #34495e;
-            font-size: 0.9rem;
         }
 
         .form-control,

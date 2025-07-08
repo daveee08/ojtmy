@@ -14,24 +14,22 @@
     </style>
 </head>
 
-<body class="bg-gray-50 font-sans text-gray-800 min-h-screen flex flex-col items-center justify-center px-4 py-6 md:py-10">
+<body class="bg-gray-50 font-sans text-gray-800 min-h-screen flex flex-col items-center justify-center px-4 py-10">
 
-    <div class="w-full max-w-2xl bg-white rounded-lg shadow-md p-4 md:p-8">
-        <h1 class="text-2xl md:text-3xl font-bold text-center mb-4 md:mb-6 text-indigo-700">CK Book Suggestion Chatbot</h1>
+    <div class="w-full max-w-2xl bg-white rounded-lg shadow-md p-8">
+        <h1 class="text-3xl font-bold text-center mb-6 text-indigo-700">CK Book Suggestion Chatbot</h1>
 
         {{-- Bot Response Display --}}
-        <div id="chat-response-container" class="hidden bg-blue-100 border border-blue-300 text-blue-800 px-4 py-3 rounded mb-4 md:mb-6">
+        <div id="chat-response-container" class="hidden bg-blue-100 border border-blue-300 text-blue-800 px-4 py-3 rounded mb-6">
             <strong class="block font-medium">Bot's Suggestion:</strong>
             <p id="chat-response" class="mt-1 whitespace-pre-line"></p>
-            <div class="flex flex-col md:flex-row mt-2 md:space-x-2">
-                <button id="copy-suggestion-button" class="w-full md:w-auto bg-indigo-500 text-white text-sm px-4 py-2 rounded hover:bg-indigo-600 transition mb-2 md:mb-0">Copy Suggestion</button>
-                <button id="save-suggestion-button" class="w-full md:w-auto bg-green-500 text-white text-sm px-4 py-2 rounded hover:bg-green-600 transition">Save as Text File</button>
-            </div>
+            <button id="copy-suggestion-button" class="mt-2 bg-indigo-500 text-white text-xs px-3 py-1 rounded hover:bg-indigo-600 transition">Copy Suggestion</button>
+            <button id="save-suggestion-button" class="mt-2 ml-2 bg-green-500 text-white text-xs px-3 py-1 rounded hover:bg-green-600 transition">Save as Text File</button>
         </div>
 
         {{-- Toggle Prompt Button --}}
         <div class="text-right mb-4">
-            <button id="toggle-prompt-button" class="text-indigo-600 hover:underline text-sm px-2 py-1">Hide Prompt</button>
+            <button id="toggle-prompt-button" class="text-indigo-600 hover:underline text-sm">Hide Prompt</button>
         </div>
 
         {{-- Input Form --}}
@@ -39,7 +37,7 @@
             <div class="mb-4">
                 <label for="grade-level" class="block text-sm font-medium text-gray-700">Grade level:</label>
                 <select name="grade_level" id="grade-level" required
-                    class="mt-1 w-full border border-gray-300 rounded-md shadow-sm p-3 md:p-3.5 focus:ring-indigo-500 focus:border-indigo-500 min-h-[48px]">
+                    class="mt-1 w-full border border-gray-300 rounded-md shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500">
                     <option value="" disabled selected hidden>Select a grade level</option>
                     <option value="preschool">Preschool</option>
                     <option value="kindergarten">Kindergarten</option>
@@ -64,13 +62,13 @@
             <div class="mb-4">
                 <label for="user-interests" class="block text-sm font-medium text-gray-700">What are your interests:</label>
                 <textarea name="interests" id="user-interests" rows="4"
-                    class="mt-1 w-full border border-gray-300 rounded-md shadow-sm p-3 md:p-3.5 focus:ring-indigo-500 focus:border-indigo-500 resize-none min-h-[96px]"
+                    class="mt-1 w-full border border-gray-300 rounded-md shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
                     placeholder="Type your interests, e.g., 'fantasy adventures', 'mystery with detectives', 'sci-fi with robots'" required></textarea>
             </div>
 
             <div class="pt-4 text-center">
                 <button type="submit" id="send-button"
-                    class="w-full bg-indigo-600 text-white px-6 py-2 rounded hover:bg-indigo-700 transition md:w-auto md:px-8 md:py-3">
+                    class="bg-indigo-600 text-white px-6 py-2 rounded hover:bg-indigo-700 transition">
                     Generate Suggestion
                 </button>
             </div>
@@ -81,7 +79,7 @@
             Thinking...
         </div>
 
-        <div class="text-center mt-6 md:mt-8">
+        <div class="text-center mt-8">
             <a href="{{ url('/') }}" class="text-indigo-600 hover:underline">← Back to Home</a>
         </div>
     </div>

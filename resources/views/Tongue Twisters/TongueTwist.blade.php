@@ -10,53 +10,48 @@
     .container-tt {
         background: #ffffff;
         max-width: 700px;
-        padding: 1.5rem 1rem; /* Adjusted for mobile-first */
+        padding: 32px;
         border-radius: 18px;
         box-shadow: 0 2px 16px rgba(80, 60, 200, 0.08);
-        margin: 1.5rem auto; /* Adjusted for mobile-first */
+        margin: 40px auto;
     }
     .h2-tt {
         text-align:center;
         font-weight:600;
-        margin-bottom: 0.5rem; /* Adjusted margin */
-        color: #e91e63;
-        font-size: 1.75rem; /* Mobile-first heading size */
+        margin-bottom:8px;
+        color: #e91e63; /* Matching Quizme's primary color */
     }
     .p-tt {
         text-align:center;
         color:#555;
-        margin-bottom: 1.5rem; /* Adjusted margin */
-        font-size: 0.9rem;
+        margin-bottom:32px;
     }
     .btn-primary-tt {
-        background:#e91e63;
+        background:#e91e63; /* Matching Quizme's primary button color */
         border:none;
         font-weight:600;
-        font-size:1rem; /* Adjusted font size */
+        font-size:1.1em;
         border-radius:30px;
-        width: 100%; /* Full width for mobile */
-        padding: 0.75rem 1.5rem; /* Increased padding for better touch target */
-        cursor: pointer;
-        margin-bottom: 0.5rem; /* Space if buttons stack */
+        flex:3;
+        padding: 10px 20px; /* Added padding for better appearance */
+        cursor: pointer; /* Indicate it's clickable */
     }
     .form-control-tt {
-        border-color: #ddd;
-        min-height: 48px; /* Ensure touch friendliness */
-        font-size: 1rem; /* Consistent font size */
+        border-color: #ddd; /* Subtle border for form controls */
     }
     .tt-display-tt {
-        margin-top: 1.5rem; /* Adjusted margin */
-        padding: 1.5rem; /* Adjusted padding */
-        background: #f7f7ff;
+        margin-top: 32px;
+        padding: 24px;
+        background: #f7f7ff; /* Lighter background for the tongue twister box */
         border-radius: 12px;
         text-align:center;
-        font-size:1.1em;
+        font-size:1.2em;
         color:#333;
     }
     .loading-tt {
         text-align: center;
-        margin-top: 1rem;
-        font-size: 1em; /* Adjusted font size */
+        margin-top: 20px;
+        font-size: 1.1em;
         color: #e91e63;
         font-weight: 500;
     }
@@ -64,18 +59,18 @@
     .infinity-loader {
         display: inline-block;
         position: relative;
-        width: 60px; /* Smaller for mobile */
-        height: 60px; /* Smaller for mobile */
+        width: 80px;
+        height: 80px;
         transform: rotate(45deg);
     }
     .infinity-loader div {
         box-sizing: border-box;
         display: block;
         position: absolute;
-        width: 48px; /* Smaller for mobile */
-        height: 48px; /* Smaller for mobile */
-        margin: 6px; /* Adjusted margin */
-        border: 6px solid #e91e63; /* Adjusted border */
+        width: 64px;
+        height: 64px;
+        margin: 8px;
+        border: 8px solid #e91e63;
         border-radius: 50%;
         animation: infinity-loader 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
         border-color: #e91e63 transparent transparent transparent;
@@ -95,46 +90,6 @@
         }
         100% {
             transform: rotate(360deg);
-        }
-    }
-
-    /* Media query for larger screens (e.g., tablets and desktops) */
-    @media (min-width: 768px) {
-        .container-tt {
-            padding: 32px; /* Restore original padding */
-            margin: 40px auto; /* Restore original margin */
-        }
-        .h2-tt {
-            font-size: 2rem; /* Adjust for desktop */
-            margin-bottom: 8px;
-        }
-        .p-tt {
-            margin-bottom: 32px;
-            font-size: 1em;
-        }
-        .btn-primary-tt {
-            width: auto; /* Restore auto width */
-            padding: 10px 20px; /* Restore original padding */
-            margin-bottom: 0; /* Remove bottom margin */
-        }
-        .tt-display-tt {
-            margin-top: 32px;
-            padding: 24px;
-            font-size: 1.2em;
-        }
-        .loading-tt {
-            margin-top: 20px;
-            font-size: 1.1em;
-        }
-        .infinity-loader {
-            width: 80px;
-            height: 80px;
-        }
-        .infinity-loader div {
-            width: 64px;
-            height: 64px;
-            margin: 8px;
-            border: 8px solid #e91e63;
         }
     }
 </style>

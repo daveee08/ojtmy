@@ -10,114 +10,75 @@
     .container-csp {
         background: #ffffff;
         max-width: 700px;
-        padding: 1.5rem 1rem; /* Adjusted for mobile-first */
+        padding: 32px;
         border-radius: 18px;
         box-shadow: 0 2px 16px rgba(80, 60, 200, 0.08);
-        margin: 1.5rem auto; /* Adjusted for mobile-first */
+        margin: 40px auto;
     }
     .h2-csp {
         text-align:center;
         font-weight:600;
-        margin-bottom: 0.5rem; /* Adjusted margin */
-        color: #e91e63;
-        font-size: 1.75rem; /* Mobile-first heading size */
+        margin-bottom:8px;
+        color: #e91e63; /* Matching Quizme's primary color */
     }
     .p-csp {
         text-align:center;
         color:#555;
-        margin-bottom: 1.5rem; /* Adjusted margin */
-        font-size: 0.9rem;
+        margin-bottom:32px;
     }
     .btn-primary-csp {
-        background:#e91e63;
+        background:#e91e63; /* Matching Quizme's primary button color */
         border:none;
         font-weight:600;
-        font-size:1rem; /* Adjusted font size */
+        font-size:1.1em;
         border-radius:30px;
-        width: 100%; /* Full width for mobile */
-        padding: 0.75rem 1.5rem; /* Increased padding for better touch target */
-        margin-bottom: 0.5rem; /* Space if buttons stack */
+        flex:3;
+        padding: 10px 20px; /* Added padding for better appearance */
     }
     .form-control-csp {
-        border-color: #ddd;
-        min-height: 48px; /* Ensure touch friendliness */
-        font-size: 1rem; /* Consistent font size */
+        border-color: #ddd; /* Subtle border for form controls */
     }
     .plan-display-csp {
-        margin-top: 1.5rem; /* Adjusted margin */
-        padding: 1.5rem; /* Adjusted padding */
-        background: #f7f7ff;
+        margin-top: 32px;
+        padding: 24px;
+        background: #f7f7ff; /* Lighter background for the plan box */
         border-radius: 12px;
-        text-align:left;
-        font-size:1em;
+        text-align:left; /* Align text to left for better readability of a plan */
+        font-size:1.0em;
         color:#333;
-        white-space: pre-wrap;
-        word-wrap: break-word;
+        white-space: pre-wrap; /* Preserve whitespace and line breaks */
+        word-wrap: break-word; /* Break long words */
     }
-    .btn-sm-outline-secondary-csp,
-    .btn-sm-outline-danger-csp {
+    .btn-sm-outline-secondary-csp {
         background-color: #fff;
         border: 1px solid #6c757d;
         color: #6c757d;
-        padding: 0.75rem 1rem; /* Adjusted padding for better touch target */
-        font-size: 0.9rem; /* Adjusted font size */
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
         line-height: 1.5;
         border-radius: 0.2rem;
         transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-        width: 100%; /* Full width for mobile */
-        margin-bottom: 0.5rem; /* Space if buttons stack */
     }
     .btn-sm-outline-danger-csp {
-        border-color: #dc3545;
+        background-color: #fff;
+        border: 1px solid #dc3545;
         color: #dc3545;
-    }
-
-    /* Media query for larger screens (e.g., tablets and desktops) */
-    @media (min-width: 768px) {
-        .container-csp {
-            padding: 32px; /* Restore original padding */
-            margin: 40px auto; /* Restore original margin */
-        }
-        .h2-csp {
-            font-size: 2rem; /* Adjust for desktop */
-            margin-bottom: 8px;
-        }
-        .p-csp {
-            margin-bottom: 32px;
-            font-size: 1em;
-        }
-        .btn-primary-csp {
-            width: auto; /* Restore auto width */
-            padding: 10px 20px; /* Restore original padding */
-            margin-bottom: 0; /* Remove bottom margin */
-        }
-        .plan-display-csp {
-            margin-top: 32px;
-            padding: 24px;
-            font-size: 1.0em;
-        }
-        .btn-sm-outline-secondary-csp,
-        .btn-sm-outline-danger-csp {
-            width: auto; /* Restore auto width */
-            margin-bottom: 0;
-            display: inline-block; /* Make them inline */
-            padding: 0.25rem 0.5rem; /* Restore original padding */
-            font-size: 0.875rem; /* Restore original font size */
-        }
-        .plan-display-csp form:first-of-type + form {
-            margin-left: 10px; /* Add margin between download buttons */
-        }
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+        line-height: 1.5;
+        border-radius: 0.2rem;
+        transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
     }
 </style>
 
-<div class="container-csp container-md p-md-5 mt-md-4">
-    <h2 class="h2-csp fs-md-4 mb-md-2">Coach's Sports Practice</h2>
-    <p class="p-csp mb-md-4 fs-md-5">Generate a plan for practice for any sport that you're coaching!</p>
+<div class="container-csp">
+    <h2 class="h2-csp">Coach's Sports Practice</h2>
+    <p class="p-csp">Generate a plan for practice for any sport that you're coaching!</p>
     <form method="POST" action="/coachsportprac">
         @csrf
-        <div class="mb-3">
-            <label for="grade" class="form-label fw-semibold">Grade level: <span class="text-danger">*</span></label>
-            <select id="grade" name="grade" class="form-select form-control-csp" required>
+        <div style="margin-bottom: 18px;">
+            <label for="grade" style="font-weight:500;">Grade level: <span style="color:red">*</span></label>
+            <select id="grade" name="grade" class="form-control form-control-csp" required>
                 <option value="Pre-K" {{ (old('grade', $grade ?? '') == 'Pre-K') ? 'selected' : '' }}>Pre-K</option>
                 <option value="Kindergarten" {{ (old('grade', $grade ?? '') == 'Kindergarten') ? 'selected' : '' }}>Kindergarten</option>
                 <option value="1st Grade" {{ (old('grade', $grade ?? '') == '1st Grade') ? 'selected' : '' }}>1st Grade</option>
@@ -141,9 +102,9 @@
                 <option value="Professional Staff" {{ (old('grade', $grade ?? '') == 'Professional Staff') ? 'selected' : '' }}>Professional Staff</option>
             </select>
         </div>
-        <div class="mb-3">
-            <label for="length" class="form-label fw-semibold">Length of Practice: <span class="text-danger">*</span></label>
-            <select id="length" name="length" class="form-select form-control-csp" required>
+        <div style="margin-bottom: 18px;">
+            <label for="length" style="font-weight:500;">Length of Practice: <span style="color:red">*</span></label>
+            <select id="length" name="length" class="form-control form-control-csp" required>
                 <option value="30 mins" {{ (old('length', $length ?? '') == '30 mins') ? 'selected' : '' }}>30 mins</option>
                 <option value="1 hour" {{ (old('length', $length ?? '') == '1 hour') ? 'selected' : '' }}>1 hour</option>
                 <option value="1.5 hours" {{ (old('length', $length ?? '') == '1.5 hours') ? 'selected' : '' }}>1.5 hours</option>
@@ -151,31 +112,31 @@
                 <option value="More than 2 hours" {{ (old('length', $length ?? '') == 'More than 2 hours') ? 'selected' : '' }}>More than 2 hours</option>
             </select>
         </div>
-        <div class="mb-3">
-            <label for="sport" class="form-label fw-semibold">Sport: <span class="text-danger">*</span></label>
+        <div style="margin-bottom: 18px;">
+            <label for="sport" style="font-weight:500;">Sport: <span style="color:red">*</span></label>
             <textarea id="sport" name="sport" class="form-control form-control-csp" rows="2" placeholder="Soccer, Basketball, Cheerleading, Lacrosse, Baseball, Football, etc." required>{{ old('sport', $sport ?? '') }}</textarea>
         </div>
-        <div class="mb-3">
-            <label for="customization" class="form-label fw-semibold">Additional Customization (Optional):</label>
+        <div style="margin-bottom: 18px;">
+            <label for="customization" style="font-weight:500;">Additional Customization (Optional):</label>
             <textarea id="customization" name="customization" class="form-control form-control-csp" rows="2" placeholder="Include a jogging warmup, include weightlifting, activities to improve agility, focus on passing, etc.">{{ old('customization', $customization ?? '') }}</textarea>
         </div>
-        <div class="d-grid d-md-block gap-2 mb-4">
+        <div style="display:flex; gap:16px; align-items:center; margin-bottom: 24px;">
             <button type="submit" class="btn btn-primary-csp">Generate</button>
         </div>
     </form>
     @if(isset($practicePlan))
-        <div class="plan-display-csp mt-md-4 p-md-4 fs-md-5">
-            <strong class="d-block mb-2">Practice Plan:</strong>
-            <pre class="mb-3">{{ $practicePlanFormatted }}</pre>
-            <div class="d-grid d-md-flex gap-2 mt-3">
-                <form action="{{ route('coachsportprac.download') }}" method="POST" class="download-form d-grid d-md-inline-block">
+        <div class="plan-display-csp">
+            <strong>Practice Plan:</strong><br>
+            <pre style="white-space: pre-wrap; word-wrap: break-word;">{{ $practicePlanFormatted }}</pre>
+            <div style="margin-top: 20px;">
+                <form action="{{ route('coachsportprac.download') }}" method="POST" style="display:inline;">
                     @csrf
                     <input type="hidden" name="content" value="{{ $practicePlan }}">
                     <input type="hidden" name="filename" value="sports_practice_plan">
                     <input type="hidden" name="format" value="txt">
                     <button type="submit" class="btn btn-sm-outline-secondary-csp">Save as Text</button>
                 </form>
-                <form action="{{ route('coachsportprac.download') }}" method="POST" class="download-form d-grid d-md-inline-block ms-md-2">
+                <form action="{{ route('coachsportprac.download') }}" method="POST" style="display:inline; margin-left: 10px;">
                     @csrf
                     <input type="hidden" name="content" value="{{ $practicePlan }}">
                     <input type="hidden" name="filename" value="sports_practice_plan">

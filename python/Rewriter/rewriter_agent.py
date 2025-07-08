@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from langchain_community.llms import Ollama 
 from langchain_core.prompts import ChatPromptTemplate 
 from langchain_community.document_loaders.pdf import PyPDFLoader 
-import os, re, tempfile, uvicorn
+import shutil, os, re, tempfile, uvicorn, traceback 
 
 manual_topic_template = """
 You are a precise and reliable rewriting tool. Your job is to rewrite the original input exactly according to the user's instructions — without adding, explaining, simplifying, or removing any key content.
@@ -19,9 +19,9 @@ Instructions:
    - Rephrase the original input into the format specified by the user.
    - Do not summarize, explain, expand, or reduce the meaning.
    - Avoid commentary phrases such as:
-     - "In other words…"
-     - "To clarify…"
-     - "This means that…"
+     - “In other words…”
+     - “To clarify…”
+     - “This means that…”
 
 2. **Follow Custom Instructions Exactly**:
    - Use the tone and structure requested (e.g., **formal**, **concise**, **friendly**).
@@ -61,9 +61,9 @@ Instructions:
    - Rephrase the original input into the format specified by the user.
    - Do not summarize, explain, expand, or reduce the meaning.
    - Avoid commentary phrases such as:
-     - "In other words…"
-     - "To clarify…"
-     - "This means that…"
+     - “In other words…”
+     - “To clarify…”
+     - “This means that…”
 
 2. **Follow Custom Instructions Exactly**:
    - Use the tone and structure requested (e.g., **formal**, **concise**, **friendly**).
@@ -168,7 +168,9 @@ async def rewriter_api(
         
         return {"output": output}
     except Exception as e:
-        return JSONResponse(status_code=500, content={"detail": str(e)})
+        traceback_str = traceback.format_exc()
+        print(traceback_str)
+        return JSONResponse(status_code=500, content={"detail": str(e), "trace": traceback_str})
 
 if __name__ == "__main__":
     uvicorn.run("rewriter_agent:app", host="127.0.0.1", port=5001, reload=True)

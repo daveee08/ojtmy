@@ -119,24 +119,6 @@
                         <span id="btnSpinner" class="spinner-border spinner-border-sm d-none ms-2" role="status" aria-hidden="true"></span>
                     </button>
                 </div>
-
-                @if (!empty($translation))
-                    <div class="mt-4">
-                        <label class="form-label fw-semibold">Send a message:</label>
-                        <form action="{{ route('translator.followup') }}" method="POST">
-                            @csrf
-                            <input type="hidden" name="original_text" value="{{ $old['text'] ?? '' }}">
-                            <input type="hidden" name="language" value="{{ $old['language'] ?? '' }}">
-                            <textarea name="followup" rows="3" class="form-control mb-2" placeholder="Ask a follow-up, clarify, or tweak the translation..."></textarea>
-                            <div class="d-grid d-md-flex justify-content-md-end">
-                                <button type="submit" class="btn btn-outline-primary">Send Message</button>
-                            </div>
-                        </form>
-                    </div>
-                @endif
-
-
-                
             </form>
 
             {{-- ✅ Follow-Up Form (not nested!) --}}

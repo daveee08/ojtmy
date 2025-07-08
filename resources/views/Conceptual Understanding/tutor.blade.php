@@ -13,14 +13,13 @@
         body {
             background-color: #f4f7fb;
             font-family: 'Poppins', sans-serif;
-            padding: 1rem; /* Mobile-first padding */
         }
 
         .ck-card {
             background-color: #fff;
-            border-radius: 12px; /* Slightly smaller border-radius for mobile */
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05); /* Lighter shadow for mobile */
-            padding: 1.5rem 1rem; /* Adjusted padding for mobile */
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            padding: 40px 30px;
             border: 1px solid #e4e8f0;
         }
 
@@ -28,12 +27,11 @@
             background-color: #EC298B;
             color: #fff;
             border: none;
-            padding: 0.75rem 1.5rem; /* Adjusted padding for touch friendliness */
-            border-radius: 8px; /* Slightly smaller border-radius for mobile */
+            padding: 12px 28px;
+            border-radius: 10px;
             font-weight: 600;
-            font-size: 1rem; /* Adjusted font size for mobile */
+            font-size: 16px;
             transition: background-color 0.3s ease;
-            width: 100%; /* Full width on mobile */
         }
 
         .ck-btn:hover {
@@ -41,57 +39,52 @@
         }
 
         .ck-title {
-            font-size: 1.75rem; /* Mobile-first heading size */
+            font-size: 2.2rem;
             font-weight: 700;
             color: #EC298B;
             text-align: center;
-            margin-bottom: 1.5rem; /* Adjusted margin */
+            margin-bottom: 25px;
         }
 
         .chat-box {
-            max-height: 250px; /* Adjusted max-height for mobile */
+            max-height: 300px;
             overflow-y: auto;
-            padding: 1rem; /* Adjusted padding for mobile */
+            padding: 15px;
             background-color: #fdfdfe;
             border: 1px solid #e4e8f0;
-            border-radius: 8px; /* Consistent border-radius */
-            margin-bottom: 1rem; /* Adjusted margin */
+            border-radius: 12px;
+            margin-bottom: 20px;
         }
 
         .message {
-            margin-bottom: 0.75rem; /* Adjusted margin */
+            margin-bottom: 15px;
         }
 
         .message .user {
             color: #2c3e50;
             font-weight: 600;
-            margin-bottom: 0.25rem; /* Adjusted margin */
-            font-size: 0.9rem; /* Adjusted font size for mobile */
+            margin-bottom: 3px;
         }
 
         .message .assistant {
             color: #EC298B;
             font-weight: 600;
-            margin-bottom: 0.25rem; /* Adjusted margin */
-            font-size: 0.9rem; /* Adjusted font size for mobile */
+            margin-bottom: 3px;
         }
 
         .message-content {
             background-color: #f0f4f8;
-            padding: 0.75rem 1rem; /* Adjusted padding for mobile */
+            padding: 10px 15px;
             border-radius: 10px;
             white-space: pre-line;
-            font-size: 0.9rem; /* Adjusted font size for mobile */
+            font-size: 15px;
         }
 
         .form-control,
         .form-select {
-            border-radius: 8px; /* Consistent border-radius */
+            border-radius: 8px;
             border: 1px solid #ccd6e0;
             box-shadow: none;
-            min-height: 48px; /* Ensure touch friendliness */
-            padding: 0.75rem 1rem; /* Adjusted padding */
-            font-size: 1rem; /* Consistent font size */
         }
 
         .form-control:focus,
@@ -107,55 +100,11 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(255,255,255,0.8);
+            background-color: rgba(255, 255, 255, 0.8);
             z-index: 9999;
             align-items: center;
             justify-content: center;
             flex-direction: column;
-        }
-
-        /* Media queries for larger screens */
-        @media (min-width: 768px) {
-            body {
-                padding: 0; /* Remove padding if not needed on larger screens */
-            }
-            .ck-card {
-                border-radius: 16px;
-                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-                padding: 40px 30px;
-            }
-            .ck-btn {
-                padding: 12px 28px;
-                border-radius: 10px;
-                font-size: 16px;
-                width: auto; /* Revert to auto width */
-            }
-            .ck-title {
-                font-size: 2.2rem;
-                margin-bottom: 25px;
-            }
-            .chat-box {
-                max-height: 300px;
-                padding: 15px;
-                margin-bottom: 20px;
-            }
-            .message {
-                margin-bottom: 15px;
-            }
-            .message .user,
-            .message .assistant {
-                margin-bottom: 3px;
-                font-size: inherit; /* Revert font size */
-            }
-            .message-content {
-                padding: 10px 15px;
-                font-size: 15px;
-            }
-            .form-control,
-            .form-select {
-                padding: 0.75rem; /* Revert to original padding */
-                min-height: auto; /* Revert min-height */
-            }
         }
     </style>
 
@@ -203,6 +152,10 @@
                             @endforeach
                         </div>
                     @endif
+
+
+
+
 
                     <!-- Tutor Form -->
                     <form id="tutor-form" action="{{ url('/tutor') }}" method="POST" enctype="multipart/form-data">
@@ -274,6 +227,9 @@
             </div>
         </div>
     </div>
+
+
+
 
     <script>
         // Toggle topic and PDF inputs based on selected input type

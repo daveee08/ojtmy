@@ -42,12 +42,21 @@ def insert_session_and_message(user_id, agent_id, sender, topic, scope_vars, mes
                 raise Exception("No parameter_reference found for this agent.")
             parameter_id = param[0]
 
-            # 🔹 Step 5: Insert parameter input
+            # 🔹 Step 5: Check if parameter_inputs already exists for this session/message_id
             cursor.execute(
-                "INSERT INTO parameter_inputs (input, parameter_id, agent_id) VALUES (%s, %s, %s)",
-                (combined_input, parameter_id, agent_id)
+                "SELECT id FROM parameter_inputs WHERE message_id = %s",
+                (message_id,)
             )
-            parameter_inputs = cursor.lastrowid
+            param_input_row = cursor.fetchone()
+            if param_input_row:
+                parameter_inputs = param_input_row[0]
+            else:
+                cursor.execute(
+                    "INSERT INTO parameter_inputs (input, parameter_id, agent_id, message_id) VALUES (%s, %s, %s, %s)",
+                    (combined_input, parameter_id, agent_id, message_id)
+                )
+                parameter_inputs = cursor.lastrowid
+            # parameter_inputs = cursor.lastrowid
 
               # Step 6: Insert message with current timestamp
             now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -149,6 +158,41 @@ def load_messages_by_session_id(session_id, limit=None, order='asc'):
             return cursor.fetchall()
     finally:
         db.close()
+
+
+def get_parameter_inputs_by_message_id(message_id):
+    """
+    Get parameter inputs for a specific message ID.
+    
+    Args:
+        message_id (int): The ID of the message.
+        
+    Returns:
+        list of dict: Parameter inputs records.
+    """
+    try:
+        db = mysql.connector.connect(
+            host="127.0.0.1",
+            user="root",
+            password="",
+            database="ck_agent",
+        )
+        with db.cursor(dictionary=True) as cursor:
+            query = """
+                SELECT
+                    pi.input
+                FROM
+                    parameter_inputs pi
+                WHERE
+                    pi.message_id = %s
+            """
+            cursor.execute(query, (message_id,))
+            return cursor.fetchall()
+    finally:
+        db.close()
+
+
+
 
 # scope_vars = {
 #             "target_language": "bisaya"

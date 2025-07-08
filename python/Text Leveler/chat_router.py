@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Form, HTTPException
-from pydantic import BaseModel
-from typing import Literal, List, Dict
-from typing import List, Dict
+from pydantic import BaseModel, Field
+from typing import List, Optional
+from datetime import datetime
 
 from langchain_ollama import OllamaLLM as Ollama
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
@@ -15,22 +15,30 @@ chat_router = APIRouter()
 llm = Ollama(model="llama3")
 
 # -------------------------------
-# Request & Response Models
+# Request/Response Schemas
 # -------------------------------
 
 class ChatRequestForm(BaseModel):
-    message_id: int
-    input: str
-
+    message_id: int = Field(..., description="Session ID")
+    input: str = Field(..., description="User message")
     @classmethod
-    def as_form(cls, message_id: int = Form(...), input: str = Form(...)):
+    def as_form(cls, message_id: int = Form(...), input: str = Form(...)) -> "ChatRequestForm":
         return cls(message_id=message_id, input=input)
 
 class ChatResponse(BaseModel):
     response: str
 
+class ChatMessage(BaseModel):
+    sender: str
+    topic: str
+    created_at: Optional[datetime]
+
+class ChatHistory(BaseModel):
+    session_id: int
+    conversation: List[ChatMessage]
+
 # -------------------------------
-# MySQL Message History
+# Message History Handler
 # -------------------------------
 
 class MySQLChatMessageHistory(BaseChatMessageHistory):
@@ -42,26 +50,18 @@ class MySQLChatMessageHistory(BaseChatMessageHistory):
         db = get_db_connection()
         try:
             with db.cursor() as cursor:
-                cursor.execute("SELECT id FROM sessions WHERE id = %s", (self.message_id,))
-                if cursor.fetchone() is None:
-                    cursor.execute("INSERT INTO sessions (id, created_at, updated_at) VALUES (%s, NOW(), NOW())", (self.message_id,))
-                    db.commit()
+                cursor.execute("INSERT IGNORE INTO sessions (id, created_at, updated_at) VALUES (%s, NOW(), NOW())", (self.message_id,))
+                db.commit()
         finally:
             db.close()
 
     @property
-    def messages(self):
+    def messages(self) -> List[BaseMessage]:
         db = get_db_connection()
         try:
             with db.cursor(dictionary=True) as cursor:
-                cursor.execute("""
-                    SELECT sender, topic FROM messages
-                    WHERE message_id = %s ORDER BY id ASC
-                """, (self.message_id,))
-                return [
-                    HumanMessage(content=m["topic"]) if m["sender"] == "human" else AIMessage(content=m["topic"])
-                    for m in cursor.fetchall()
-                ]
+                cursor.execute("SELECT sender, topic FROM messages WHERE message_id = %s ORDER BY id ASC", (self.message_id,))
+                return [HumanMessage(m["topic"]) if m["sender"] == "human" else AIMessage(m["topic"]) for m in cursor.fetchall()]
         finally:
             db.close()
 
@@ -69,39 +69,27 @@ class MySQLChatMessageHistory(BaseChatMessageHistory):
         db = get_db_connection()
         try:
             with db.cursor(dictionary=True) as cursor:
+                cursor.execute("SELECT agent_id, parameter_inputs FROM messages WHERE message_id = %s ORDER BY id DESC LIMIT 1", (self.message_id,))
+                row = cursor.fetchone() or {}
+                agent_id = row.get("agent_id", 1)
+                parameter_inputs = row.get("parameter_inputs")
+
+                if not parameter_inputs:
+                    parameter_id = 1
+                    cursor.execute("""
+                        INSERT INTO parameter_inputs (message_id, agent_id, parameter_id, input, created_at, updated_at)
+                        VALUES (%s, %s, %s, %s, NOW(), NOW())
+                    """, (self.message_id, agent_id, parameter_id, "default"))
+                    parameter_inputs = cursor.lastrowid
+
                 sender = "human" if isinstance(message, HumanMessage) else "ai"
-                topic = message.content
-
-                # Try to reuse latest agent_id and parameter_inputs
-                cursor.execute("""
-                    SELECT agent_id, parameter_inputs FROM messages
-                    WHERE message_id = %s ORDER BY id DESC LIMIT 1
-                """, (self.message_id,))
-                latest = cursor.fetchone()
-
-                if latest:
-                    agent_id = latest["agent_id"]
-                    parameter_inputs = latest["parameter_inputs"]
-                else:
-                    agent_id = 1
-                    parameter_inputs = self._create_default_parameter_input(cursor, agent_id)
-
-                user_id = 1  # Hardcoded or fetched per session/user
                 cursor.execute("""
                     INSERT INTO messages (user_id, agent_id, message_id, parameter_inputs, sender, topic, created_at, updated_at)
-                    VALUES (%s, %s, %s, %s, %s, %s, NOW(), NOW())
-                """, (user_id, agent_id, self.message_id, parameter_inputs, sender, topic))
+                    VALUES (1, %s, %s, %s, %s, %s, NOW(), NOW())
+                """, (agent_id, self.message_id, parameter_inputs, sender, message.content))
                 db.commit()
         finally:
             db.close()
-
-    def _create_default_parameter_input(self, cursor, agent_id: int) -> int:
-        parameter_id = 1  # Assumed to exist
-        cursor.execute("""
-            INSERT INTO parameter_inputs (message_id, agent_id, parameter_id, input, created_at, updated_at)
-            VALUES (%s, %s, %s, %s, NOW(), NOW())
-        """, (self.message_id, agent_id, parameter_id, "default"))
-        return cursor.lastrowid
 
     def clear(self):
         db = get_db_connection()
@@ -133,54 +121,39 @@ chat_chain = RunnableWithMessageHistory(
 )
 
 # -------------------------------
-# Chat Endpoint
+# Chat Endpoints
 # -------------------------------
 
 @chat_router.post("/chat", response_model=ChatResponse)
-async def chat_api(request: ChatRequestForm = Depends(ChatRequestForm.as_form)):
+async def chat_api(request: ChatRequestForm = Depends(ChatRequestForm.as_form)) -> ChatResponse:
     result = await chat_chain.ainvoke(
         {"input": request.input},
         config={"configurable": {"session_id": request.message_id}}
     )
-    return {"response": result}
+    return ChatResponse(response=result)
 
-@chat_router.get("/session-ids/{user_id}", response_model=List[int])
-def get_session_ids_by_user(user_id: int):
+@chat_router.get("/sessions/{user_id}", response_model=List[int])
+def get_session_ids_by_user(user_id: int) -> List[int]:
     db = get_db_connection()
     try:
         with db.cursor() as cursor:
-            cursor.execute("""
-                SELECT DISTINCT message_id
-                FROM messages
-                WHERE user_id = %s
-                ORDER BY message_id ASC
-            """, (user_id,))
-            rows = cursor.fetchall()
-            return [row[0] for row in rows]
+            cursor.execute("SELECT DISTINCT message_id FROM messages WHERE user_id = %s ORDER BY message_id ASC", (user_id,))
+            return [row[0] for row in cursor.fetchall()]
     finally:
         db.close()
 
-# -------------------------------
-# GET full chat history by session
-# -------------------------------
-
-@chat_router.get("/chat/history/{message_id}")
-def get_chat_history(message_id: int) -> Dict:
+@chat_router.get("/chat/history/{message_id}", response_model=ChatHistory)
+def get_chat_history(message_id: int) -> ChatHistory:
     db = get_db_connection()
     try:
         with db.cursor(dictionary=True) as cursor:
-            cursor.execute("""
-                SELECT sender, topic, created_at
-                FROM messages
-                WHERE message_id = %s
-                ORDER BY id ASC
-            """, (message_id,))
-            messages = cursor.fetchall()
-            if not messages:
-                raise HTTPException(status_code=404, detail="No conversation found for this session.")
-            return {
-                "session_id": message_id,
-                "conversation": messages
-            }
+            cursor.execute("SELECT sender, topic, created_at FROM messages WHERE message_id = %s ORDER BY id ASC", (message_id,))
+            rows = cursor.fetchall()
+            if not rows:
+                raise HTTPException(status_code=404, detail="No conversation found.")
+            return ChatHistory(
+                session_id=message_id,
+                conversation=[ChatMessage(**r) for r in rows]
+            )
     finally:
         db.close()

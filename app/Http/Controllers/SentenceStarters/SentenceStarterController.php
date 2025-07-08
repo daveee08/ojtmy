@@ -9,86 +9,81 @@ use Illuminate\Support\Facades\Log;
 
 class SentenceStarterController extends Controller
 {
-    /**  Display the blade form. */
+    /** Show the form and any previous messages for this agent. */
     public function showForm()
     {
-        return view('Sentence Starter.sentencestarter');
-    }
+        $userId  = auth()->id() ?? 1;   // default to 1 for local testing
+        $agentId = 14;                  // sentence‑starter agent ID
 
-    /**  Handle form POST. */
-    public function processForm(Request $request)
-    {
-        set_time_limit(0);   // allow the user to wait for the LLM
+        // Fetch chat history from the Python service
 
-        // ------------------------------------------------------------------ #
-        // 1. Validate input                                                  #
-        // ------------------------------------------------------------------ #
-        $validated = $request->validate([
-            'grade_level' => 'required|string',
-            'topic'       => 'required|string',
-        ]);
-
-        // ------------------------------------------------------------------ #
-        // 2. Build multipart payload                                         #
-        // ------------------------------------------------------------------ #
-        $multipart = [
-            ['name' => 'grade_level', 'contents' => $validated['grade_level']],
-            ['name' => 'topic',        'contents' => $validated['topic']],
-            ['name' => 'mode',         'contents' => 'manual'],                // direct generation
-            ['name' => 'user_id',      'contents' => auth()->id() ?: 1],
-            // ['name' => 'agent_id',  'contents' => 14],  // optional override
+         $multipartData = [
+            ['name' => 'user_id', 'contents' => $userId], // Initial empty text
+            ['name' => 'agent_id', 'contents' => $agentId], // Initial empty text
         ];
 
-        // ------------------------------------------------------------------ #
-        // 3. Call the Python service                                         #
-        // ------------------------------------------------------------------ #
-        $response = Http::timeout(0)
-            ->asMultipart()
-            ->post('http://127.0.0.1:8014/sentence-starters', $multipart);
+        $historyResponse = Http::timeout(0)->asMultipart()
+            ->post('http://192.168.50.10:8013/chat/messages', $multipartData);
+        // $messages = $historyResponse->json()['messages'] ?? [];
+        Log::info('Message payload dump', ['payload' => $historyResponse->json()]);
 
-        Log::info('Sentence‑starter request', [
-            'payload'         => $validated,
-            'response_status' => $response->status(),
-            'response_body'   => $response->body(),
+       $decoded = $historyResponse->json(); // <-- get the full decoded array
+
+        $messages = $decoded['messages'] ?? []; // ✅ This must isolate the inner messages array
+
+        Log::info('Fetched messages for translator', [
+            'user_id' => $userId,
+            'agent_id' => $agentId,
+            'messages_count' => count($messages),
+            'response_status' => $historyResponse->status(),
+        ]);
+        return view('Sentence Starters.sentence_starters', [
+            'messages' => $messages, // ⚠️ not 'payload', not 'data', only the array of messages
         ]);
 
-        if ($response->failed() ||
-            !($json = $response->json()) ||
-            !isset($json['sentence_starters'])) {
-
-            return back()
-                ->withErrors(['error' => 'Sentence‑starter agent failed.'])
-                ->withInput();
-        }
-
-        // ------------------------------------------------------------------ #
-        // 4. Render view with starters                                       #
-        // ------------------------------------------------------------------ #
-        return view('Sentence Starter.sentencestarter', [
-            'output' => $json['sentence_starters'],
-            'old'    => $validated,
-        ]);
     }
-
-    /* --------------------------------------------------------------------- *
-     *  OPTIONAL: quick follow‑up endpoint                                   *
-     *  (kept here only if you really need it; otherwise delete)             *
-     * --------------------------------------------------------------------- */
-    public function followUp(Request $request)
+    
+    public function processForm(Request $request)
     {
-        $request->validate([
-            'original_topic' => 'required|string',
-            'grade_level'    => 'required|string',
-            'followup'       => 'required|string',
+        Log::info('🔁 processForm called');
+        set_time_limit(0);
+
+        $validated = $request->validate([
+            'grade_level' => 'required|string',
+            'text'        => 'required|string',
+            'mode'        => 'required|string',
         ]);
 
-        // Example: append the follow‑up to the original topic
-        $combinedTopic = "{$request->original_topic}. {$request->followup}";
+        $multipartData = [
+            ['name' => 'grade_level', 'contents' => $validated['grade_level']],
+            ['name' => 'text', 'contents' => $validated['text']],
+            ['name' => 'mode', 'contents' => $validated['mode']],
+            ['name' => 'user_id', 'contents' => auth()->id() ?? 1], // Default for testing
+            ['name' => 'agent_id', 'contents' => 14], // Example: Sentence Starter agent ID is 14
+        ];
 
-        // Re‑call the agent with the combined topic
-        return $this->processForm(new Request([
-            'grade_level' => $request->grade_level,
-            'topic'       => $combinedTopic,
-        ]));
-    }
-}
+        $response = Http::timeout(0)->asMultipart()
+            ->post('http://127.0.0.1:5001/sentence-starters', $multipartData);
+
+        Log::info('Response from sentence starters', [
+            'text' => $validated['text'],
+            'language' => $validated['language'],
+            'response_status' => $response->status(),
+            'response_body' => $response->body(), // <-- Add this
+        ]);
+
+       if ($response->failed() || !$response->json() || !isset($response->json()['sentence_starters'])) {
+       return back()->withErrors(['Sentence starter failed', ])->withInput();
+                
+       $data = $response->json();
+        Log::info('Initial sentence starter result', ['sentence_starters' => $data['sentence_starters']]);
+        Log::info('Initial sentence starter result', ['sentence_starters' => $data['sentence_starters']]);
+
+        return view('Sentence Starters.sentence_starters', [
+            'sentence_starters' => $data['sentence_starters'] ?? 'No sentenced returned.',
+            'old' => $validated,
+            'message_id' => $data['message_id'],
+            'language' => $validated['language'],
+        ]);
+    }          
+}}

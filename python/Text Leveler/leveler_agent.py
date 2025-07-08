@@ -60,13 +60,13 @@ Respond ONLY with the explanation text (no extra commentary).
 app = FastAPI(debug=True)
 app.include_router(chat_router)
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # or Laravel origin like "http://localhost:8000"
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=["*"],  # or Laravel origin like "http://localhost:8000"
+#     allow_credentials=True,
+#     allow_methods=["*"],
+#     allow_headers=["*"],
+# )
 
 # --- Pydantic Model for Form Input ---
 class LevelerFormInput(BaseModel):

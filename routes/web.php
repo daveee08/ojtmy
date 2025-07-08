@@ -31,6 +31,7 @@ use App\Http\Controllers\Explanations\ExplanationsController;
 use App\Http\Controllers\AssignmentScaffolder\AssignmentScaffolder;
 use App\Http\Controllers\MathReview\MathReviewController;
 use App\Http\Controllers\MakeItRelevant\MakeItRelevantController;
+use App\Http\Controllers\ChatconversationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -203,3 +204,7 @@ Route::post('/mathreview', [MathReviewController::class, 'processForm'])->name('
 
 Route::get('/makeitrelevant', [MakeItRelevantController::class, 'showForm'])->name('makeitrelevant.form');
 Route::post('/makeitrelevant', [MakeItRelevantController::class, 'processForm'])->name('makeitrelevant.process');
+
+Route::get('/chat/history/{session_id}', [ChatconversationController::class, 'showForm']);
+Route::post('/chat', [ChatconversationController::class, 'sendMessage']);
+Route::get('/chat/api/history/{session_id}', [ChatconversationController::class, 'getHistory']);

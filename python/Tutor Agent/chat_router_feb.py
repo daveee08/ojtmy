@@ -30,30 +30,33 @@ class ChatRequest(BaseModel):
     topic: str
     user_id: int
     db_message_id: int
-
+    context: str 
+    
     @classmethod
     def as_form(
         cls,
         agent_system_prompt: str = Form(...),
         topic: str = Form(...),
         user_id: int = Form(...),
-        db_message_id: int = Form(...)
+        db_message_id: int = Form(...),
+        context: str = Form(...)
     ):
         return cls(
             agent_system_prompt=agent_system_prompt,
             topic=topic,
             user_id=user_id,
-            db_message_id=db_message_id
+            db_message_id=db_message_id,
+            context=context
         )
 
 
 chat_prompt = ChatPromptTemplate.from_messages([
     ("system", "{agent_system_prompt}"),
     MessagesPlaceholder(variable_name="history"),
-    ("human", "{topic}")
+    ("human", "{topic} context: {context}"),
 ])
 
-model = Ollama(model="gemma3:1b")
+model = Ollama(model="gemma3:latest")
 chat_chain: Runnable = chat_prompt | model
 
 # ====================== DB Message History ======================
@@ -139,7 +142,8 @@ async def chat_with_history_api(
         result = await chat_with_memory.ainvoke(
             {
             "topic": data.topic,
-            "agent_system_prompt": data.agent_system_prompt
+            "agent_system_prompt": data.agent_system_prompt,
+            "context": data.context,
             },
             config={"configurable": {
             "session_id": session_key

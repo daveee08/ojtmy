@@ -122,6 +122,7 @@
             </form>
 
             {{-- ✅ Follow-Up Form (not nested!) --}}
+            @if (!empty($translation))
             <div class="mt-4">
                 <label class="form-label fw-semibold">Send a message:</label>
                 <form action="{{ route('translator.followup') }}" method="POST">
@@ -132,6 +133,7 @@
                     <button type="submit" class="btn btn-outline-primary">Send Message</button>
                 </form>
             </div>
+            @endif
 
 
         </div>

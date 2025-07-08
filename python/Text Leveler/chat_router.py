@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Depends, Form
+from fastapi import APIRouter, Depends, Form, HTTPException
 from pydantic import BaseModel
-from typing import Literal
+from typing import Literal, List, Dict
+from typing import List, Dict
 
 from langchain_ollama import OllamaLLM as Ollama
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
@@ -142,3 +143,44 @@ async def chat_api(request: ChatRequestForm = Depends(ChatRequestForm.as_form)):
         config={"configurable": {"session_id": request.message_id}}
     )
     return {"response": result}
+
+@chat_router.get("/session-ids/{user_id}", response_model=List[int])
+def get_session_ids_by_user(user_id: int):
+    db = get_db_connection()
+    try:
+        with db.cursor() as cursor:
+            cursor.execute("""
+                SELECT DISTINCT message_id
+                FROM messages
+                WHERE user_id = %s
+                ORDER BY message_id ASC
+            """, (user_id,))
+            rows = cursor.fetchall()
+            return [row[0] for row in rows]
+    finally:
+        db.close()
+
+# -------------------------------
+# GET full chat history by session
+# -------------------------------
+
+@chat_router.get("/chat/history/{message_id}")
+def get_chat_history(message_id: int) -> Dict:
+    db = get_db_connection()
+    try:
+        with db.cursor(dictionary=True) as cursor:
+            cursor.execute("""
+                SELECT sender, topic, created_at
+                FROM messages
+                WHERE message_id = %s
+                ORDER BY id ASC
+            """, (message_id,))
+            messages = cursor.fetchall()
+            if not messages:
+                raise HTTPException(status_code=404, detail="No conversation found for this session.")
+            return {
+                "session_id": message_id,
+                "conversation": messages
+            }
+    finally:
+        db.close()

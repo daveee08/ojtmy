@@ -29,7 +29,6 @@ app.add_middleware(
 class TranslationInput(BaseModel):
     text: str
     target_language: str
-    mode: str
     user_id: int
     # parameter_inputs: int = 1  # default
     agent_id: int = 16         # translator agent_id (adjust as needed)
@@ -40,7 +39,6 @@ class TranslationInput(BaseModel):
         cls,
         text: str = Form(...),
         target_language: str = Form(...),
-        mode: str = Form(...),
         user_id: int = Form(...),
         # parameter_inputs: int = Form(1),
         agent_id: int = Form(16),
@@ -49,7 +47,6 @@ class TranslationInput(BaseModel):
         return cls(
             text=text,
             target_language=target_language,
-            mode=mode,
             user_id=user_id,
             # parameter_inputs=parameter_inputs,
             agent_id=agent_id,

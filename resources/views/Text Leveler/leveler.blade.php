@@ -1,12 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
+@extends('layouts.bootstrap')
+@extends('layouts.historysidenav')
 
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>AI Text Leveler</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous" />
+{{-- This section will inject the title into the <title> tag in your layout --}}
+
+@section('title', 'AI Text Leveler')
+
+{{-- This section will inject the CSS into the @yield('styles') in your layout --}}
+@section('styles')
     <style>
         body {
             background: linear-gradient(135deg, #f0f2f5, #ffffff);
@@ -101,9 +101,9 @@
             color: #EC298B;
         }
     </style>
-</head>
+@endsection
 
-<body>
+@section('content')
     <div class="container">
         <h2>AI Text Leveler</h2>
 
@@ -169,7 +169,7 @@
         </div>
     </div>
 
-    <!-- Spinner Overlay -->
+    {{-- The loading overlay should ideally be in the layout, but if it's specific to this page, keep it here --}}
     <div id="loading-overlay"
         style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background-color:rgba(255,255,255,0.8); z-index:9999; align-items:center; justify-content:center; flex-direction: column;">
         <div class="spinner-border text-pink" role="status" style="width: 3rem; height: 3rem;">
@@ -177,8 +177,9 @@
         </div>
         <p class="mt-3 text-center fw-bold" style="color:#EC298B;">Generating your response...</p>
     </div>
+@endsection
 
-    <!-- Scripts -->
+@section('scripts')
     <script>
         function toggleInputFields() {
             const mode = document.getElementById('input_type').value;
@@ -203,7 +204,4 @@
             this.querySelector('button[type="submit"]').disabled = true;
         });
     </script>
-
-</body>
-
-</html>
+@endsection

@@ -61,6 +61,7 @@ app.include_router(chat_router)
 
 # --- Pydantic Model for Form Input ---
 class LevelerFormInput(BaseModel):
+    user_id: int
     input_type: str
     topic: str
     grade_level: str
@@ -70,6 +71,7 @@ class LevelerFormInput(BaseModel):
     @classmethod
     def as_form(
         cls,
+        user_id: int = Form(...),
         input_type: str = Form(...),
         topic: str = Form(""),
         grade_level: str = Form(...),
@@ -77,6 +79,7 @@ class LevelerFormInput(BaseModel):
         message_id: Optional[str] = Form(default=None)
     ):
         return cls(
+            user_id=user_id,
             input_type=input_type,
             topic=topic,
             grade_level=grade_level,
@@ -154,8 +157,6 @@ async def leveler_api(
             learning_speed=form_data.learning_speed,
         )
 
-        user_id = 1
-        agent_id = 4
         scope_vars = {
             "grade_level": form_data.grade_level,
             "learning_speed": form_data.learning_speed,
@@ -164,8 +165,8 @@ async def leveler_api(
         human_topic = form_data.topic if form_data.input_type != "pdf" else "[PDF Input]"
 
         create_session_and_parameter_inputs(
-            user_id=user_id,
-            agent_id=agent_id,
+            user_id=form_data.user_id,
+            agent_id=4,
             scope_vars=scope_vars,
             human_topic=human_topic,
             ai_output=output

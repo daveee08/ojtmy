@@ -96,6 +96,7 @@ Your output should directly replace the "--- EXAMPLE OUTPUT FORMAT TO FOLLOW EXA
 * Do NOT include any images, diagrams, or visual references.
 """
 
+
 # Load PDF content
 def load_pdf_content(pdf_path: str) -> str:
     if not os.path.exists(pdf_path):

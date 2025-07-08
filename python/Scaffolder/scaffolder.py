@@ -4,8 +4,7 @@ from pydantic import BaseModel
 from langchain_community.llms import Ollama
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_community.document_loaders.pdf import PyPDFLoader
-import os, re, tempfile, uvicorn
-import traceback
+import shutil, os, re, tempfile, uvicorn, traceback
 
 manual_topic_template = """
 You are an educational assistant.
@@ -29,7 +28,7 @@ Output Instructions:
 
 2. Then write the heading **Questions:** and list exactly {literal_questions} literal comprehension questions.
    - Questions must be based strictly on facts **explicitly stated** in the original text.
-   - Avoid interpretation, inference, summarizing, or "Why/How" questions unless clearly supported by the text.
+   - Avoid interpretation, inference, summarizing, or “Why/How” questions unless clearly supported by the text.
    - Phrase questions in a direct, concrete way that matches the reading level.
 
 3. Use this exact format (and nothing else):
@@ -45,7 +44,7 @@ Questions:
 Formatting Rules:
 - Do **not** include any of the following:
   - Explanations, summaries, or extra commentary
-  - Labels such as "Definition:", "Term:", or "Answer:"
+  - Labels such as “Definition:”, “Term:”, or “Answer:”
   - Paragraphs or introductory text
   - Any text outside the required Vocabulary and Questions sections
 
@@ -74,7 +73,7 @@ Output Instructions:
 
 2. Then write the heading **Questions:** and list exactly {literal_questions} literal comprehension questions.
    - Questions must be based strictly on facts **explicitly stated** in the original text.
-   - Avoid interpretation, inference, summarizing, or "Why/How" questions unless clearly supported by the text.
+   - Avoid interpretation, inference, summarizing, or “Why/How” questions unless clearly supported by the text.
    - Phrase questions in a direct, concrete way that matches the reading level.
 
 3. Use this exact format (and nothing else):
@@ -90,10 +89,9 @@ Questions:
 Formatting Rules:
 - Do **not** include any of the following:
   - Explanations, summaries, or extra commentary
-  - Labels such as "Definition:", "Term:", or "Answer:"
+  - Labels such as “Definition:”, “Term:”, or “Answer:”
   - Paragraphs or introductory text
   - Any text outside the required Vocabulary and Questions sections
-  - Answer choices, explanations, or blank answer spaces.
 
 Return only the formatted output. Do not add headings, titles, or instructional notes.
 """
@@ -184,7 +182,7 @@ async def scaffolder_api(
         return {"output": output}
     except Exception as e:
         traceback_str = traceback.format_exc()
-        print("[DEBUG] Full Traceback:\n", traceback_str, flush=True)
+        print(traceback_str)
         return JSONResponse(status_code=500, content={"detail": str(e), "trace": traceback_str})
 
 if __name__ == "__main__":

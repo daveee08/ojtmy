@@ -175,6 +175,8 @@ Route::post('/translator/followup', [TranslatorController::class, 'followUp'])->
 Route::get('/translator/session/{id}', [TranslatorController::class, 'showSession'])->name('translator.session');
 Route::get('/translator/conversation/{message_id}', [\App\Http\Controllers\Translator\TranslatorController::class, 'showSpecificMessages'])->name('translator.specific');
 
+
+
 // Study Habits Agent
 Route::get('/studyhabits', [StudyHabitsController::class, 'showForm'])->name('studyhabits.form');
 Route::post('/studyhabits', [StudyHabitsController::class, 'processForm'])->name('studyhabits.process');

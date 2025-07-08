@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
@@ -16,6 +17,16 @@
     </style>
 
     <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CK AI Tools</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <style>
         :root {
             --pink: #e91e63;
             --white: #ffffff;
@@ -24,65 +35,73 @@
         }
 
         body {
-            font-family: 'Nunito', sans-serif;
+            font-family: system-ui, sans-serif;
             background-color: var(--white);
             color: var(--dark);
             margin: 0;
-            padding: 1rem; /* Mobile-first padding */
         }
 
         .sidebar {
-            position: relative; /* Change to relative for flow on mobile */
-            width: 100%; /* Full width on mobile */
-            height: auto; /* Auto height on mobile */
-            border-right: none; /* Remove right border on mobile */
-            border-bottom: 1px solid #e5e5e5; /* Add bottom border for separation */
-            padding: 1.5rem 1rem; /* Adjusted padding for mobile */
-            box-shadow: none; /* Remove shadow on mobile for flatter look */
-            text-align: center; /* Center content on mobile */
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 240px;
+            background-color: var(--white);
+            border-right: 1px solid #e5e5e5;
+            padding: 40px 20px;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.03);
         }
 
         .sidebar h2 {
-            font-size: 1.4rem; /* Adjusted font size for mobile */
-            margin-bottom: 1.5rem; /* Adjusted margin for mobile */
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--pink);
+            margin-bottom: 40px;
+            text-align: center;
         }
 
         .sidebar a {
             display: block;
             color: var(--dark);
             text-decoration: none;
-            margin: 0.75rem 0; /* Adjusted margin for mobile */
-            font-size: 0.9rem; /* Adjusted font size for mobile */
-            padding: 0.75rem 1rem; /* Adjusted padding for touch targets */
+            margin: 14px 0;
+            font-size: 1rem;
+            padding: 10px 16px;
             border-radius: 6px;
             transition: background 0.2s, color 0.2s;
         }
 
+        .sidebar a:hover {
+            background-color: var(--light-grey);
+            color: var(--pink);
+        }
+
         .content {
-            margin-left: 0; /* No left margin on mobile */
-            padding: 1rem; /* Adjusted padding for mobile */
+            margin-left: 240px;
+            padding: 40px;
         }
 
         .hero {
             background-color: #fef5f8;
             border: 1px solid #f2f2f2;
-            padding: 1.5rem; /* Adjusted padding for mobile */
+            padding: 50px;
             border-radius: 12px;
-            margin-bottom: 1.5rem; /* Adjusted margin for mobile */
+            margin-bottom: 40px;
             text-align: center;
         }
 
         .hero h1 {
-            font-size: 1.75rem; /* Adjusted font size for mobile */
+            font-size: 2rem;
             color: var(--pink);
             font-weight: 700;
         }
 
         .hero p {
-            font-size: 0.9rem; /* Adjusted font size for mobile */
+            font-size: 1rem;
             color: #555;
             max-width: 600px;
-            margin: 0.5rem auto 0; /* Adjusted margin for mobile */
+            margin: 15px auto 0;
         }
 
         .tool-card {
@@ -90,24 +109,24 @@
             border: 1px solid #eee;
             border-left: 5px solid var(--pink);
             border-radius: 8px;
-            padding: 1.25rem; /* Adjusted padding for mobile */
-            margin-bottom: 1rem; /* Adjusted margin for mobile */
+            padding: 20px 24px;
+            margin-bottom: 20px;
             transition: box-shadow 0.3s ease;
         }
 
         .tool-card:hover {
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); /* Lighter shadow on hover for mobile */
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
         }
 
         .tool-card h5 {
-            font-size: 1rem; /* Adjusted font size for mobile */
+            font-size: 1.15rem;
             color: var(--pink);
             font-weight: 600;
-            margin-bottom: 0.5rem; /* Adjusted margin for mobile */
+            margin-bottom: 8px;
         }
 
         .tool-card p {
-            font-size: 0.8rem; /* Adjusted font size for mobile */
+            font-size: 0.95rem;
             color: #555;
             margin: 0;
         }
@@ -123,80 +142,26 @@
 
         .footer {
             text-align: center;
-            margin-top: 2rem; /* Adjusted margin for mobile */
-            padding-top: 1rem; /* Adjusted padding for mobile */
-            font-size: 0.8rem; /* Adjusted font size for mobile */
+            margin-top: 60px;
+            padding-top: 30px;
+            font-size: 0.9rem;
             color: #888;
             border-top: 1px solid #eee;
         }
 
-        /* Media queries for larger screens */
-        @media (min-width: 768px) {
-            body {
-                padding: 0; /* Remove padding on larger screens if sidebar is fixed */
-            }
+        @media (max-width: 768px) {
             .sidebar {
-                position: fixed; /* Revert to fixed on larger screens */
-                width: 240px;
-                height: 100vh;
-                border-right: 1px solid #e5e5e5;
-                border-bottom: none;
-                padding: 40px 20px;
-                box-shadow: 2px 0 5px rgba(0, 0, 0, 0.03);
-                text-align: left; /* Revert text alignment */
-            }
-
-            .sidebar h2 {
-                font-size: 1.6rem;
-                margin-bottom: 40px;
-            }
-
-            .sidebar a {
-                margin: 14px 0;
-                font-size: 1rem;
-                padding: 10px 16px;
+                position: relative;
+                width: 100%;
+                height: auto;
+                border-right: none;
+                border-bottom: 1px solid #e5e5e5;
+                text-align: center;
             }
 
             .content {
-                margin-left: 240px; /* Restore left margin for fixed sidebar */
-                padding: 40px;
-            }
-
-            .hero {
-                padding: 50px;
-                margin-bottom: 40px;
-            }
-
-            .hero h1 {
-                font-size: 2rem;
-            }
-
-            .hero p {
-                margin: 15px auto 0;
-            }
-
-            .tool-card {
-                padding: 20px 24px;
-                margin-bottom: 20px;
-            }
-
-            .tool-card:hover {
-                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
-            }
-
-            .tool-card h5 {
-                font-size: 1.15rem;
-                margin-bottom: 8px;
-            }
-
-            .tool-card p {
-                font-size: 0.95rem;
-            }
-
-            .footer {
-                margin-top: 60px;
-                padding-top: 30px;
-                font-size: 0.9rem;
+                margin-left: 0;
+                padding: 20px;
             }
         }
     </style>
@@ -362,6 +327,7 @@
             </div>
         </div>
     </div>
+<body>
 
     <div class="sidebar">
         <h2>CK AI Tools</h2>
@@ -405,13 +371,14 @@
         </div>
 
         <div class="footer">
-            &copy; <span id="year"></span> CK Children's Publishing. All rights reserved.
+            &copy; <span id="year"></span> CK Children’s Publishing. All rights reserved.
         </div>
     </div>
 
     <script>
         document.getElementById("year").textContent = new Date().getFullYear();
     </script>
+
 </body>
 
 </html>

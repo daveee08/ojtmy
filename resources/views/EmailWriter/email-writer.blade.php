@@ -8,29 +8,25 @@
         body {
             background-color: #f4f7fb;
             font-family: 'Poppins', sans-serif;
-            padding: 1.5rem 1rem; /* Adjusted for mobile-first */
         }
 
         .ck-card {
             background-color: #fff;
             border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04); /* Lighter shadow for mobile */
-            padding: 1.5rem; /* Adjusted padding for mobile */
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
+            padding: 40px;
             border: 1px solid #e4e8f0;
-            margin: 1.5rem auto; /* Added margin for centering on mobile */
-            max-width: 720px; /* Max width for consistency */
         }
 
         .ck-btn {
             background-color: #EC298B;
             color: #fff;
             border: none;
-            padding: 0.75rem 1.5rem; /* Adjusted padding for touch friendliness */
-            border-radius: 8px; /* Consistent border-radius */
+            padding: 12px 28px;
+            border-radius: 6px;
             font-weight: 600;
-            font-size: 1rem; /* Adjusted font size for mobile */
+            font-size: 16px;
             transition: background-color 0.3s ease;
-            width: 100%; /* Full width on mobile */
         }
 
         .ck-btn:hover {
@@ -38,36 +34,30 @@
         }
 
         .ck-title {
-            font-size: 1.75rem; /* Adjusted font size for mobile */
+            font-size: 2rem;
             font-weight: 600;
             color: #EC298B;
-            margin-bottom: 1.5rem; /* Adjusted margin */
-            text-align: center; /* Center align title */
+            margin-bottom: 30px;
         }
 
         label {
             font-weight: 500;
             color: #2c3e50;
-            font-size: 0.9rem; /* Adjusted font size for mobile */
         }
 
         pre {
             white-space: pre-wrap;
             background-color: #f0f4f8;
             border-radius: 8px;
-            padding: 1rem; /* Adjusted padding for mobile */
+            padding: 15px;
             border: 1px solid #dce3ed;
             font-family: 'Courier New', monospace;
-            font-size: 0.9rem; /* Adjusted font size for mobile */
         }
 
         .form-control {
             border-radius: 6px;
             border: 1px solid #ccd6e0;
             box-shadow: none;
-            min-height: 48px; /* Ensure touch friendliness */
-            padding: 0.75rem 1rem; /* Adjusted padding */
-            font-size: 1rem; /* Consistent font size */
         }
 
         .form-control:focus {
@@ -77,7 +67,6 @@
 
         .spinner-border.text-pink {
             color: #EC298B;
-            margin-left: 0.5rem; /* Adjusted margin */
         }
 
         #loading-overlay {
@@ -92,41 +81,6 @@
             align-items: center;
             justify-content: center;
             flex-direction: column;
-        }
-
-        /* Media queries for larger screens */
-        @media (min-width: 768px) {
-            body {
-                padding: 0; /* Remove padding if not needed on larger screens */
-            }
-            .ck-card {
-                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
-                padding: 40px;
-                margin: auto; /* Revert margin */
-            }
-            .ck-btn {
-                padding: 12px 28px;
-                font-size: 16px;
-                width: auto; /* Revert to auto width */
-            }
-            .ck-title {
-                font-size: 2rem;
-                margin-bottom: 30px;
-            }
-            label {
-                font-size: inherit;
-            }
-            pre {
-                padding: 15px;
-                font-size: inherit;
-            }
-            .form-control {
-                padding: 0.375rem 0.75rem; /* Revert to original bootstrap default padding */
-                min-height: auto; /* Revert min-height */
-            }
-            .spinner-border.text-pink {
-                margin-left: 10px;
-            }
         }
     </style>
 </head>

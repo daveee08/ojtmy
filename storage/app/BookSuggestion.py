@@ -479,18 +479,18 @@ async def suggest_book(
     print(f"DEBUG: LLM input: interests='{original_user_interests}', grade_level='{canonical_grade_level}', context='{search_context[:100]}...'")
     
     try:
-        raw_ai_output = chain.invoke({
-            "interests": original_user_interests,
-            "grade_level": canonical_grade_level,
-            "context": search_context
-        })
-        
-        print(f"DEBUG: Raw AI output from chain.invoke:\n{raw_ai_output}")
+    raw_ai_output = chain.invoke({
+        "interests": original_user_interests,
+        "grade_level": canonical_grade_level,
+        "context": search_context
+    })
+    
+    print(f"DEBUG: Raw AI output from chain.invoke:\n{raw_ai_output}")
 
-        final_response = post_process_ai_output(raw_ai_output, original_user_interests, canonical_grade_level, search_context)
+    final_response = post_process_ai_output(raw_ai_output, original_user_interests, canonical_grade_level, search_context)
 
-        print(f"INFO: Final response:\n{final_response}")
-        return {"suggestion": final_response}
+    print(f"INFO: Final response:\n{final_response}")
+    return {"suggestion": final_response}
     except Exception as e:
         print(f"ERROR: Error in suggest_book: {e}")
         return JSONResponse(status_code=500, content={"detail": str(e)})

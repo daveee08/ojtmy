@@ -6,13 +6,13 @@
 @section('styles')
     <style>
         .container {
-            margin-top: 170px;
+            margin-top: 100px;
             display: flex;
             justify-content: center;
             align-items: center;
             text-align: center;
             flex-direction: column;
-            padding: 0 20px;
+            padding: 0 1rem;
             width: 100%;
             max-width: 800px;
             margin-left: auto;
@@ -23,45 +23,48 @@
         .hero {
             background-color: #F5F5F5;
             border: 1px solid #F5F5F5;
-            padding: 60px 40px;
+            padding: 1.5rem;
             border-radius: 12px;
             width: 100%;
             max-width: 500px;
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 1rem;
             text-align: left;
         }
 
         .form-group label {
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 0.25rem;
             color: #333;
+            font-size: 0.9rem;
         }
 
         .form-group input {
             width: 100%;
-            padding: 10px;
+            padding: 0.75rem;
             border: 1px solid #ddd;
             border-radius: 4px;
-            font-size: 16px;
+            font-size: 1rem;
+            min-height: 48px;
         }
 
         .error {
             color: #e91e63;
-            font-size: 0.9rem;
-            margin-top: 5px;
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+            margin-bottom: 1rem;
             text-align: left;
         }
 
         .btn-register {
             background-color: #e91e63;
             color: white;
-            padding: 14px 36px;
+            padding: 0.75rem 1.5rem;
             font-size: 1rem;
             border: none;
-            border-radius: 4px;
+            border-radius: 8px;
             cursor: pointer;
             width: 100%;
         }
@@ -71,13 +74,51 @@
         }
 
         .login-link {
-            margin-top: 15px;
+            margin-top: 1rem;
             color: #666;
+            font-size: 0.9rem;
         }
 
         .login-link a {
             color: #e91e63;
             text-decoration: none;
+        }
+
+        @media (min-width: 768px) {
+            .container {
+                margin-top: 170px;
+                padding: 0 20px;
+            }
+            .hero {
+                padding: 60px 40px;
+            }
+            .form-group {
+                margin-bottom: 20px;
+            }
+            .form-group label {
+                margin-bottom: 5px;
+                font-size: inherit;
+            }
+            .form-group input {
+                padding: 10px;
+                font-size: 16px;
+                min-height: auto;
+            }
+            .error {
+                font-size: 0.9rem;
+                margin-top: 5px;
+                margin-bottom: 0;
+            }
+            .btn-register {
+                padding: 14px 36px;
+                font-size: 1rem;
+                border-radius: 4px;
+                width: auto;
+            }
+            .login-link {
+                margin-top: 15px;
+                font-size: inherit;
+            }
         }
     </style>
 @endsection

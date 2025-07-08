@@ -1,8 +1,55 @@
+<<<<<<< HEAD
+# db_utils.py
+=======
 # # db_utils.py
+>>>>>>> de6dd1350989dd64b817199263cbe82d61bcc5e0
 
 import mysql.connector
 from datetime import datetime
 
+<<<<<<< HEAD
+# Adjust these to your environment
+DB_CONFIG = {
+    "host": "127.0.0.1",
+    "user": "root",
+    "password": "",
+    "database": "ck_agent",
+    "port": 3306,
+}
+
+def get_db_connection():
+    return mysql.connector.connect(**DB_CONFIG)
+
+
+def insert_message(agent_id: int, user_id: int, parameter_inputs: int, sender: str, topic: str, message_id: int = 0):
+    """
+    Inserts a message into the messages table. Returns the inserted message's ID.
+    """
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    sql = """
+        INSERT INTO messages (agent_id, user_id, parameter_inputs, sender, message_id, topic, created_at, updated_at)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+    """
+    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    cursor.execute(sql, (
+        agent_id,
+        user_id,
+        parameter_inputs,
+        sender,
+        message_id,
+        topic,
+        now, now
+    ))
+    conn.commit()
+    inserted_id = cursor.lastrowid
+
+    cursor.close()
+    conn.close()
+
+    return inserted_id
+=======
 def insert_session_and_message(user_id, agent_id, sender, topic, scope_vars, message_id=None):
     try:
         db = mysql.connector.connect(
@@ -161,3 +208,4 @@ def load_messages_by_session_id(session_id, limit=None, order='asc'):
 #             topic="Laravel is a web application framework with expressive",
 #             scope_vars=scope_vars,
 #         ))
+>>>>>>> de6dd1350989dd64b817199263cbe82d61bcc5e0

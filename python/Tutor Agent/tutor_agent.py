@@ -30,7 +30,7 @@ class TutorRequest(BaseModel):
     add_cont: str = ""
     mode: str = "manual"
     history: str = "[]"
-    message_id: int
+    message_id: Optional[int]
 
     @classmethod
     def as_form(
@@ -242,4 +242,8 @@ async def tutor_endpoint(
         import traceback
         traceback_str = traceback.format_exc()
         print("[DEBUG] Full Traceback:\n", traceback_str, flush=True)
+<<<<<<< HEAD
         return JSONResponse(status_code=500, content={"detail": str(e), "trace": traceback_str})
+=======
+        return JSONResponse(status_code=500, content={"detail": str(e), "trace": traceback_str})
+>>>>>>> de6dd1350989dd64b817199263cbe82d61bcc5e0

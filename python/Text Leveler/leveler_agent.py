@@ -8,7 +8,7 @@ import os, re, tempfile, uvicorn
 from typing import Optional
 from uuid import uuid4
 from chat_router import chat_router, get_history_by_message_id
-from db_utils import insert_session_and_message
+from db_utils import create_session_and_parameter_inputs, insert_message
 from langchain_core.messages import HumanMessage, AIMessage
 
 # --- Prompt Templates ---
@@ -84,7 +84,7 @@ class LevelerFormInput(BaseModel):
             learning_speed=learning_speed,
             message_id=message_id
         )
-    
+
 # --- LangChain Setup ---
 model = Ollama(model="llama3")
 manual_prompt = ChatPromptTemplate.from_template(manual_topic_template)
@@ -155,21 +155,21 @@ async def leveler_api(
             learning_speed=form_data.learning_speed,
         )
 
-         # --- Save session and message in MySQL ---
         user_id = 1
         agent_id = 4
-
         scope_vars = {
             "grade_level": form_data.grade_level,
             "learning_speed": form_data.learning_speed,
         }
 
-        insert_session_and_message(
+        human_topic = form_data.topic if form_data.input_type != "pdf" else "[PDF Input]"
+
+        create_session_and_parameter_inputs(
             user_id=user_id,
             agent_id=agent_id,
-            sender="human",
-            topic=form_data.topic if form_data.input_type != "pdf" else "[PDF Input]",
             scope_vars=scope_vars,
+            human_topic=human_topic,
+            ai_output=output
         )
 
         return {"output": output}

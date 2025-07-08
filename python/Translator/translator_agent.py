@@ -206,7 +206,7 @@ class ChatMessage(BaseModel):
         )
    
 @app.post("/chat/messages")
-async def get_translator_messages(data: ChatMessage = Depends(ChatMessage.as_form), limit: Optional[int] = None, order: str = 'asc'):
+async def get_translator_messages(data: ChatMessage = Depends(ChatMessage.as_form), limit: Optional[int] = None, order: str = 'desc'):
     return {
         "messages": load_messages_by_agent_and_user(
             agent_id=data.agent_id,

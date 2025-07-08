@@ -29,6 +29,7 @@ class TranslatorController extends Controller
         $decoded = $historyResponse->json(); // <-- get the full decoded array
 
         $messages = $decoded['messages'] ?? []; // ✅ This must isolate the inner messages array
+        Log::info('Messages', ['messages' => $messages]); // Debugging line to check messages
 
         Log::info('Fetched messages for translator', [
             'user_id' => $userId,
@@ -167,9 +168,8 @@ class TranslatorController extends Controller
         'response_body' => $response->body(),
     ]);
 
-    return redirect()->back()->with('success', 'Follow-up sent!')->withInput([
-        'message_id' => $validated['message_id'],
-    ]);
+    // Always call showSpecificMessages and return its response
+    return $this->showSpecificMessages($validated['message_id']);
 }
 
 

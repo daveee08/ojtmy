@@ -11,7 +11,7 @@ import os
 # Ensure parent directory (python/) is in the path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 # from db_utils import insert_message, insert_dynamic_parameter_input, insert_session
-from db_utils import insert_session_and_message, load_messages_by_agent_and_user, load_messages_by_session_id
+from db_utils import insert_session_and_message, load_messages_by_agent_and_user, load_messages_by_session_id, get_parameter_inputs_by_message_id
 from typing import Optional
 
 
@@ -57,12 +57,31 @@ class TranslationInput(BaseModel):
         )
 
 
+
+# Instantiate once
+model = OllamaLLM(model="gemma3:1b")
+
+# Safer templated prompt
+prompt_template = ChatPromptTemplate.from_template("""
+You are a multilingual translator. Translate the following text clearly and naturally into {language}.
+Only return the translated text. Do not include the original, explanations, or extra information.
+Text:
+{text}
+""")
+
+follow_up_prompt_template = """You are a dedicated multilingual translator and translation assistant. 
+Your primary function is to translate text clearly and naturally. Additionally, you can answer questions directly related to the provided history of translation, such as 'translate it back' or 'how do I pronounce this?' 
+Do not engage in conversations, provide information, or answer questions outside the scope of translation or translation-related assistance. 
+For direct translation requests, return only the translated text, without the original, explanations, or extra commentary."""
+
+
 class TranslationFollowupInput(BaseModel):
     text: str
     user_id: int
     message_id: int
     # target_language: str # Default to bisaya
     agent_id: int = 16  # translator agent_id (adjust as needed)
+    agent_system_prompt: str = follow_up_prompt_template
 
 
     @classmethod
@@ -79,17 +98,6 @@ class TranslationFollowupInput(BaseModel):
             message_id=message_id,
             # target_language=target_language,
         )
-
-# Instantiate once
-model = OllamaLLM(model="gemma3:1b")
-
-# Safer templated prompt
-prompt_template = ChatPromptTemplate.from_template("""
-You are a multilingual translator. Translate the following text clearly and naturally into {language}.
-Only return the translated text. Do not include the original, explanations, or extra information.
-Text:
-{text}
-""")
 
 # Combine into a chain
 chain = prompt_template | model
@@ -147,6 +155,8 @@ async def translate_followup_endpoint(data: TranslationFollowupInput = Depends(T
                 "topic": data.text,
                 "user_id": str(data.user_id),
                 "db_message_id": int(data.message_id),
+                "agent_system_prompt": data.agent_system_prompt,
+                "context": str(get_parameter_inputs_by_message_id(data.message_id)),
             }
             chat_url = "http://192.168.50.10:8001/chat_with_history"
             try:

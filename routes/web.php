@@ -11,7 +11,6 @@ use App\Http\Controllers\ThankYouNote\ThankYouNoteController;
 use App\Http\Controllers\RealWorld\RealWorldController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\TutorController;
-use App\Http\Controllers\ChatconversationController;
 use App\Http\Controllers\TextLeveler\LevelerController;
 use App\Http\Controllers\InformationalTexts\InformationalController;
 use App\Http\Controllers\QOTDController;
@@ -60,10 +59,6 @@ Route::middleware('guest')->group(function () {
     Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
     Route::post('/register', [AuthController::class, 'register']);
 });
-
-Route::get('/chat', [ChatconversationController::class, 'showForm']);
-Route::get('/chat/history/{session_id}', [ChatconversationController::class, 'getHistory']);
-Route::post('/chat', [ChatconversationController::class, 'sendMessage']);
 
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');

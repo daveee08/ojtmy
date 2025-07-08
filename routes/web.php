@@ -201,6 +201,5 @@ Route::post('/assignmentscaffolder', [AssignmentScaffolder::class, 'processForm'
 Route::get('/mathreview', [MathReviewController::class, 'showForm'])->name('mathreview.form');
 Route::post('/mathreview', [MathReviewController::class, 'processForm'])->name('mathreview.process');
 
-// ✅ Make It Relevant Tool
 Route::get('/makeitrelevant', [MakeItRelevantController::class, 'showForm'])->name('makeitrelevant.form');
 Route::post('/makeitrelevant', [MakeItRelevantController::class, 'processForm'])->name('makeitrelevant.process');

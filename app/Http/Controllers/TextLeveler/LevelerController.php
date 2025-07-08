@@ -1,18 +1,17 @@
 <?php
 
-namespace App\Http\Controllers\TextLeveler; # added
+namespace App\Http\Controllers\TextLeveler;
 
 use Illuminate\Http\Request;
-use Symfony\Component\Process\Process;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Storage;
-use App\Http\Controllers\Controller; # added
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 
 class LevelerController extends Controller
 {
     public function showForm()
     {
-        return view('Text Leveler.leveler'); # added
+        return view('Text Leveler.leveler');
     }
 
     public function processForm(Request $request)
@@ -27,6 +26,7 @@ class LevelerController extends Controller
             'pdf_file' => 'nullable|file|mimes:pdf|max:5120',
         ]);
 
+        // Build multipart form data for FastAPI
         $multipartData = [
             [
                 'name' => 'input_type',
@@ -44,8 +44,13 @@ class LevelerController extends Controller
                 'name' => 'topic',
                 'contents' => $validated['topic'] ?? ''
             ],
+            [
+                'name' => 'user_id',
+                'contents' => Auth::id() ?? 1 // ✅ Send logged-in user ID or fallback to 1
+            ],
         ];
 
+        // Include PDF if uploaded
         if ($request->hasFile('pdf_file')) {
             $pdf = $request->file('pdf_file');
             $multipartData[] = [
@@ -58,14 +63,20 @@ class LevelerController extends Controller
             ];
         }
 
+        // Send request to FastAPI server
         $response = Http::timeout(0)
             ->asMultipart()
             ->post('http://192.168.50.144:5001/leveler', $multipartData);
 
+        // Handle errors
         if ($response->failed()) {
+            logger()->error('FastAPI Leveler error', ['body' => $response->body()]);
             return back()->withErrors(['error' => 'Python API failed: ' . $response->body()]);
         }
- 
-        return view('Text Leveler.leveler', ['response' => $response->json()['output'] ?? 'No output']); # added
+
+        // Return output to Blade view
+        return view('Text Leveler.leveler', [
+            'response' => $response->json()['output'] ?? 'No output'
+        ]);
     }
 }

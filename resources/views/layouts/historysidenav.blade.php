@@ -156,31 +156,6 @@
             <i class="bi bi-people"></i>
             <span class="link-text">About</span>
         </a>
-        <a href="#tool-Contact" data-bs-toggle="tooltip" title="Contact">
-            <i class="bi bi-envelope"></i>
-            <span class="link-text">Contact</span>
-
-            @auth
-                <form method="POST" action="{{ url('/logout') }}" style="margin-top: 30px;">
-                    @csrf
-                    <button type="submit" class="btn btn-link"
-                        style="color: #e91e63; text-decoration: none; font-weight: 600;">
-                        <span class="link-text">Logout</span>
-                    </button>
-                </form>
-            @else
-                <a href="{{ url('/login') }}" style="color: #e91e63; font-weight: 600;">
-                    <span class="link-text">Login</span>
-                </a>
-                <a href="{{ url('/register') }}" style="color: #e91e63; font-weight: 600;">
-                    <span class="link-text">Register</span>
-                </a>
-            @endauth
-    </div>
-
-    <!-- Content -->
-    <div class="content" id="mainContent">
-        @yield('content')
     </div>
 
     <!-- Scripts -->

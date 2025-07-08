@@ -111,9 +111,35 @@ def get_chat_history(session_id: int):
         raise HTTPException(status_code=500, detail="Failed to fetch conversation history.")
 
 @chat_router.post("/chat", response_model=ChatResponse)
-async def chat_api(request: ChatRequestForm = Depends(ChatRequestForm.as_form)):
-    result = chat_chain.invoke(
+async def chat_api(request: ChatRequestForm = Depends(ChatRequestForm.as_form)) -> ChatResponse:
+    result = await chat_chain.ainvoke(
         {"input": request.input},
         config={"configurable": {"session_id": request.session_id}}
     )
-    return {"response": result}
+    return ChatResponse(response=result)
+
+@chat_router.get("/sessions/{user_id}", response_model=List[int])
+def get_session_ids_by_user(user_id: int) -> List[int]:
+    db = get_db_connection()
+    try:
+        with db.cursor() as cursor:
+            cursor.execute("SELECT DISTINCT message_id FROM messages WHERE user_id = %s ORDER BY message_id ASC", (user_id,))
+            return [row[0] for row in cursor.fetchall()]
+    finally:
+        db.close()
+
+@chat_router.get("/chat/history/{message_id}", response_model=ChatHistory)
+def get_chat_history(message_id: int) -> ChatHistory:
+    db = get_db_connection()
+    try:
+        with db.cursor(dictionary=True) as cursor:
+            cursor.execute("SELECT sender, topic, created_at FROM messages WHERE message_id = %s ORDER BY id ASC", (message_id,))
+            rows = cursor.fetchall()
+            if not rows:
+                raise HTTPException(status_code=404, detail="No conversation found.")
+            return ChatHistory(
+                session_id=message_id,
+                conversation=[ChatMessage(**r) for r in rows]
+            )
+    finally:
+        db.close()

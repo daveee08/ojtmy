@@ -6,8 +6,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_community.document_loaders.pdf import PyPDFLoader
 import shutil, os, re, tempfile, uvicorn, traceback
 from typing import Optional
-from uuid import uuid4
-from chat_router import chat_router, get_history_by_message_id
+from chat_router import chat_router
 from db_utils import create_session_and_parameter_inputs, insert_message
 from langchain_core.messages import HumanMessage, AIMessage
 

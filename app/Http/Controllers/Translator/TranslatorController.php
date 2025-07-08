@@ -8,10 +8,9 @@ use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 class TranslatorController extends Controller
 {
-    public function showForm()
-    {
-        // return view('Text Translator.translator');
 
+    public function getMessages()
+    {
         // for displaying the messages of that agent
         $userId = auth()->id() ?? 1;       // Default for testing
         $agentId = 16;                      // Example: Translator agent ID is 3
@@ -37,6 +36,40 @@ class TranslatorController extends Controller
             'messages_count' => count($messages),
             'response_status' => $historyResponse->status(),
         ]);
+
+        return $messages; // Return the messages array directly
+    }
+    public function showForm()
+    {
+        // return view('Text Translator.translator');
+
+        // for displaying the messages of that agent
+        // $userId = auth()->id() ?? 1;       // Default for testing
+        // $agentId = 16;                      // Example: Translator agent ID is 3
+
+        // $multipartData = [
+        //     ['name' => 'user_id', 'contents' => $userId], // Initial empty text
+        //     ['name' => 'agent_id', 'contents' => $agentId], // Initial empty text
+        // ];
+
+        // $historyResponse = Http::timeout(0)->asMultipart()
+        //     ->post('http://192.168.50.10:8013/chat/messages', $multipartData);
+        // // $messages = $historyResponse->json()['messages'] ?? [];
+        // Log::info('Message payload dump', ['payload' => $historyResponse->json()]);
+
+        // $decoded = $historyResponse->json(); // <-- get the full decoded array
+
+        // $messages = $decoded['messages'] ?? []; // ✅ This must isolate the inner messages array
+        // Log::info('Messages', ['messages' => $messages]); // Debugging line to check messages
+
+        // Log::info('Fetched messages for translator', [
+        //     'user_id' => $userId,
+        //     'agent_id' => $agentId,
+        //     'messages_count' => count($messages),
+        //     'response_status' => $historyResponse->status(),
+        // ]);
+
+        $messages = $this->getMessages(); // Call the getMessages method to fetch messages
 
         return view('Text Translator.translator', [
             'messages' => $messages, // ⚠️ not 'payload', not 'data', only the array of messages
@@ -117,13 +150,14 @@ class TranslatorController extends Controller
         Log::info('Initial translation result', ['translation' => $data['translation']]);
         Log::info('Initial translation result', ['translation' => $data['translation']]);
 
-
+        $messages = $this->getMessages();
 
         return view('Text Translator.translator', [
             'translation' => $data['translation'] ?? 'No translation returned.',
             'old' => $validated,
             'message_id' => $data['message_id'], // Pass message ID if available
             'language' => $validated['language'],
+            'messages' => $messages,
 
         ]);
     }

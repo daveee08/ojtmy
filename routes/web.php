@@ -30,6 +30,7 @@ use App\Http\Controllers\TextScaffolder\ScaffolderController;
 use App\Http\Controllers\Explanations\ExplanationsController;
 use App\Http\Controllers\AssignmentScaffolder\AssignmentScaffolder;
 use App\Http\Controllers\MathReview\MathReviewController;
+use App\Http\Controllers\MakeItRelevant\MakeItRelevantController;
 
 /*
 |--------------------------------------------------------------------------
@@ -199,3 +200,7 @@ Route::post('/assignmentscaffolder', [AssignmentScaffolder::class, 'processForm'
 // ✅ Math Review Tool
 Route::get('/mathreview', [MathReviewController::class, 'showForm'])->name('mathreview.form');
 Route::post('/mathreview', [MathReviewController::class, 'processForm'])->name('mathreview.process');
+
+// ✅ Make It Relevant Tool
+Route::get('/makeitrelevant', [MakeItRelevantController::class, 'showForm'])->name('makeitrelevant.form');
+Route::post('/makeitrelevant', [MakeItRelevantController::class, 'processForm'])->name('makeitrelevant.process');

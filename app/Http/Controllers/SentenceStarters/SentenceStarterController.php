@@ -23,7 +23,7 @@ class SentenceStarterController extends Controller
         ];
 
         $historyResponse = Http::timeout(0)->asMultipart()
-            ->post('http://192.168.50.10:8013/chat/messages', $multipartData);
+            ->post('http://192.168.50.40:8014/chat/messages', $multipartData);
         // $messages = $historyResponse->json()['messages'] ?? [];
         Log::info('Message payload dump', ['payload' => $historyResponse->json()]);
 
@@ -37,7 +37,7 @@ class SentenceStarterController extends Controller
             'messages_count' => count($messages),
             'response_status' => $historyResponse->status(),
         ]);
-        return view('Sentence Starters.sentence_starters', [
+        return view('Sentence Starter.sentencestarter', [
             'messages' => $messages, // ⚠️ not 'payload', not 'data', only the array of messages
         ]);
 
@@ -63,27 +63,82 @@ class SentenceStarterController extends Controller
         ];
 
         $response = Http::timeout(0)->asMultipart()
-            ->post('http://127.0.0.1:5001/sentence-starters', $multipartData);
+            ->post('http://127.0.0.1:8014/sentence-starters', $multipartData);
 
         Log::info('Response from sentence starters', [
+            'status' => $response->status(),
+            'body' => $response->body(),
+            'grade_level' => $validated['grade_level'],
             'text' => $validated['text'],
-            'language' => $validated['language'],
-            'response_status' => $response->status(),
-            'response_body' => $response->body(), // <-- Add this
+            'mode' => $validated['mode'],
+            'user_id' => auth()->id() ?? 1,
+            
         ]);
 
        if ($response->failed() || !$response->json() || !isset($response->json()['sentence_starters'])) {
-       return back()->withErrors(['Sentence starter failed', ])->withInput();
-                
-       $data = $response->json();
-        Log::info('Initial sentence starter result', ['sentence_starters' => $data['sentence_starters']]);
+            return back()->withErrors(['Sentence starter failed'])->withInput();
+        }
+
+        $data = $response->json();
         Log::info('Initial sentence starter result', ['sentence_starters' => $data['sentence_starters']]);
 
-        return view('Sentence Starters.sentence_starters', [
-            'sentence_starters' => $data['sentence_starters'] ?? 'No sentenced returned.',
+        return view('Sentence Starter.sentencestarter', [
+            'sentence_starters' => $data['sentence_starters'] ?? 'No sentence returned.',
             'old' => $validated,
-            'message_id' => $data['message_id'],
-            'language' => $validated['language'],
+            'message_id' => $data['message_id'] ?? null // Include message ID if available
         ]);
-    }          
-}}
+    } 
+    public function followUp(Request $request)
+{
+    Log::info('🔁 followUp called ------------------');
+
+    set_time_limit(0);
+
+    $validated = $request->validate([
+        'followup' => 'required|string',
+        'message_id' => 'required|integer',
+        'grade_level' => 'nullable|string',        
+    ]);
+
+
+    Log::info('Follow-up request validation passed', [
+        'followup' => $validated['followup'],
+        'message_id' => $validated['message_id'],
+        'grade_level' => $validated['grade_level'] ?? 'not provided',
+    ]);
+
+    $multipartData = [
+        ['name' => 'text', 'contents' => $validated['followup']],
+        ['name' => 'message_id', 'contents' => $validated['message_id']],
+        ['name' => 'user_id', 'contents' => auth()->id() ?: 1],
+    ];
+
+    if (!empty($validated['grade_level'])) {
+        $multipartData[] = ['name' => 'grade_level', 'contents' => $validated['grade_level']];
+    }
+    // Use authenticated user ID or default to 1
+    // ['name' => 'target_language', 'contents' => $validated['language']],
+
+    Log::info('Preparing multipart data for follow-up', [
+        'multipart_data' => $multipartData,
+    ]);
+
+    $response = Http::timeout(0)->asMultipart()
+        ->post('http://192.168.50.40:8014/sentence_starter/followup', $multipartData);
+
+    Log::info('Follow-up request sent', [
+        'followup' => $validated['followup'],  
+        'response_status' => $response->status(),
+        'response_body' => $response->body(),
+    ]);
+
+    return redirect()->back()->with('success', 'Follow-up sent!')->withInput([
+        'message_id' => $validated['message_id'],
+    ]);
+}         
+}
+
+
+
+
+

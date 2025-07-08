@@ -65,7 +65,7 @@ class SentenceStarterFollowupInput(BaseModel):
     user_id: int
     message_id: int
     # target_language: str # Default to bisaya
-    agent_id: int = 16  # translator agent_id (adjust as needed)
+    agent_id: int = 14  # translator agent_id (adjust as needed)
 
 
     @classmethod
@@ -164,7 +164,6 @@ async def sentence_starters_endpoint(data: SentenceStarterInput):
 
         scope_vars = {
             "grade_level": data.grade_level,
-            "topic": data.text,  # Use the text as the topic
         }
 
         message_id =insert_session_and_message(
@@ -194,8 +193,10 @@ async def sentence_starters_followup_endpoint(data:SentenceStarterFollowupInput 
                 "topic": data.text,
                 "user_id": str(data.user_id),
                 "db_message_id": int(data.message_id),
+                # "agent_system_prompt": "You are a helpful assistant.",  # <-- required
+                # "context": "",
             }
-            chat_url = "http://192.168.50.10:8001/chat_with_history"
+            chat_url = "http://192.168.50.40:8001/chat_with_history"
             try:
                 print("[DEBUG] Sending chat request:", form_data, flush=True)
                 resp = await client.post(chat_url, data=form_data)
@@ -211,9 +212,7 @@ async def sentence_starters_followup_endpoint(data:SentenceStarterFollowupInput 
             output = result.get("response", "No output")
 
         scope_vars = {
-           "grade_level": "follow up",
-            "topic": data.text,  # Use the text as the topic
-
+            "grade_level": "follow up"   
         }
 
         insert_session_and_message(

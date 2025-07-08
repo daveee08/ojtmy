@@ -54,7 +54,7 @@
 
                 <div class="mb-3">
                     <label for="topic" class="form-label">Describe what you're learning about (be specific):</label>
-                    <textarea class="form-control" name="topic" id="topic" rows="4" required>{{ old('topic', $old['topic'] ?? '') }}</textarea>
+                   <textarea class="form-control" name="text" id="text" rows="4" required>{{ old('text', $old['text'] ?? '') }}</textarea>
                 </div>
 
                 <div class="d-grid d-md-flex justify-content-md-end">
@@ -65,11 +65,11 @@
                 </div>
             </form>
              {{-- ---------------- Output ---------------- --}}   
-            @if(isset($output) && count($output))
+            @if(isset($sentence_starters) && is_array($sentence_starters) && count($sentence_starters))
                 <div class="mt-5">
                     <h5 class="text-highlight">Sentence Starters:</h5>
                     <ul class="mb-0">
-                        @foreach($output as $sentence)
+                        @foreach($sentence_starters as $sentence)
             <div class="d-flex justify-content-between align-items-start bg-light p-3 mb-3 rounded shadow-sm position-relative border border-1">
                 <p class="mb-0 me-3 flex-grow-1" style="word-break: break-word;">{{ $sentence }}</p>
                 <button onclick="copyToClipboard(this)" class="btn btn-sm btn-outline-secondary" title="Copy">

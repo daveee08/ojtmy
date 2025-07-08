@@ -9,6 +9,12 @@ use Illuminate\Support\Facades\Auth;
 
 class LevelerController extends Controller
 {
+    public function fetchUserSessions()
+    {
+        $userId = Auth::id();
+        $response = Http::get("http://192.168.50.144:5001/sessions/$userId");
+        return response()->json($response->json());
+    }
     public function showForm()
     {
         return view('Text Leveler.leveler');

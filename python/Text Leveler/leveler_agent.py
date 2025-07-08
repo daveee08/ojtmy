@@ -9,6 +9,7 @@ from typing import Optional
 from chat_router import chat_router
 from db_utils import create_session_and_parameter_inputs, insert_message
 from langchain_core.messages import HumanMessage, AIMessage
+from fastapi.middleware.cors import CORSMiddleware
 
 # --- Prompt Templates ---
 manual_topic_template = """
@@ -58,6 +59,14 @@ Respond ONLY with the explanation text (no extra commentary).
 # --- FastAPI App Initialization ---
 app = FastAPI(debug=True)
 app.include_router(chat_router)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # or Laravel origin like "http://localhost:8000"
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # --- Pydantic Model for Form Input ---
 class LevelerFormInput(BaseModel):

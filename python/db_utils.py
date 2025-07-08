@@ -85,13 +85,17 @@ def load_messages_by_agent_and_user(agent_id, user_id, limit=None, order='asc'):
         with db.cursor(dictionary=True) as cursor:
             query = """
                 SELECT 
-                    id, user_id, agent_id, message_id, parameter_inputs, sender, topic, created_at, updated_at
+                    m.id, m.user_id, m.agent_id, m.message_id, m.parameter_inputs, m.sender, m.topic, m.created_at, m.updated_at
                 FROM 
-                    messages
-                WHERE 
-                    user_id = %s AND agent_id = %s
+                    messages m
+                INNER JOIN (
+                    SELECT MIN(id) as min_id
+                    FROM messages
+                    WHERE user_id = %s AND agent_id = %s
+                    GROUP BY message_id
+                ) sub ON m.id = sub.min_id
                 ORDER BY 
-                    created_at {}
+                    m.updated_at {}
             """.format("ASC" if order.lower() == "asc" else "DESC")
 
             if limit:
@@ -104,9 +108,47 @@ def load_messages_by_agent_and_user(agent_id, user_id, limit=None, order='asc'):
     finally:
         db.close()
 
+
+def load_messages_by_session_id(session_id, limit=None, order='asc'):
+    """
+    Load all messages for a given session ID.
+    
+    Args:
+        session_id (int): The ID of the session.
+        limit (int, optional): Limit number of messages.
+        order (str, optional): 'asc' or 'desc' for chronological order.
         
+    Returns:
+        list of dict: Message records.
+    """
+    try:
+        db = mysql.connector.connect(
+            host="127.0.0.1",
+            user="root",
+            password="",
+            database="ck_agent",
+        )
+        with db.cursor(dictionary=True) as cursor:
+            query = """
+                SELECT 
+                    id, user_id, agent_id, message_id, parameter_inputs, sender, topic, created_at, updated_at
+                FROM 
+                    messages
+                WHERE 
+                    message_id = %s
+                ORDER BY 
+                    created_at {}
+            """.format("ASC" if order.lower() == "asc" else "DESC")
 
+            if limit:
+                query += " LIMIT %s"
+                cursor.execute(query, (session_id, limit))
+            else:
+                cursor.execute(query, (session_id,))
 
+            return cursor.fetchall()
+    finally:
+        db.close()
 
 # scope_vars = {
 #             "target_language": "bisaya"

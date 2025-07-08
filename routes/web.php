@@ -31,6 +31,7 @@ use App\Http\Controllers\TextScaffolder\ScaffolderController;
 use App\Http\Controllers\Explanations\ExplanationsController;
 use App\Http\Controllers\AssignmentScaffolder\AssignmentScaffolder;
 use App\Http\Controllers\MathReview\MathReviewController;
+use App\Http\Controllers\MakeItRelevant\MakeItRelevantController;
 
 /*
 |--------------------------------------------------------------------------
@@ -173,6 +174,7 @@ Route::get('/translator', [TranslatorController::class, 'showForm'])->name('tran
 Route::post('/translator', [TranslatorController::class, 'processForm'])->name('translator.process');
 Route::post('/translator/followup', [TranslatorController::class, 'followUp'])->name('translator.followup');
 Route::get('/translator/session/{id}', [TranslatorController::class, 'showSession'])->name('translator.session');
+Route::get('/translator/conversation/{message_id}', [\App\Http\Controllers\Translator\TranslatorController::class, 'showSpecificMessages'])->name('translator.specific');
 
 
 
@@ -203,3 +205,7 @@ Route::post('/assignmentscaffolder', [AssignmentScaffolder::class, 'processForm'
 // ✅ Math Review Tool
 Route::get('/mathreview', [MathReviewController::class, 'showForm'])->name('mathreview.form');
 Route::post('/mathreview', [MathReviewController::class, 'processForm'])->name('mathreview.process');
+
+// ✅ Make It Relevant Tool
+Route::get('/makeitrelevant', [MakeItRelevantController::class, 'showForm'])->name('makeitrelevant.form');
+Route::post('/makeitrelevant', [MakeItRelevantController::class, 'processForm'])->name('makeitrelevant.process');

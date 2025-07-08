@@ -1,149 +1,186 @@
-from fastapi import APIRouter, HTTPException, Form, Depends
-from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
-from typing import Literal, List
-from langchain_community.llms import Ollama
+from fastapi import APIRouter, Depends, Form, HTTPException
+from pydantic import BaseModel
+from typing import Literal, List, Dict
+from typing import List, Dict
+
+from langchain_ollama import OllamaLLM as Ollama
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_core.runnables.history import RunnableWithMessageHistory
+from langchain_core.runnables import RunnableWithMessageHistory
 from langchain_core.messages import HumanMessage, AIMessage, BaseMessage
-from langchain_core.chat_history import BaseChatMessageHistory
-import os, json, traceback
+from langchain_core.runnables.history import BaseChatMessageHistory
+
+from db_utils import get_db_connection
 
 chat_router = APIRouter()
-HISTORY_DIR = "chat_histories"
-os.makedirs(HISTORY_DIR, exist_ok=True)
+llm = Ollama(model="llama3")
 
-# --- LangChain Model ---
-model = Ollama(model="llama3")
+# -------------------------------
+# Request & Response Models
+# -------------------------------
 
-# --- Request Model ---
 class ChatRequestForm(BaseModel):
-    topic: str
-    message_id: str
+    message_id: int
+    input: str
 
     @classmethod
-    def as_form(
-        cls,
-        topic: str = Form(...),
-        message_id: str = Form(...)
-    ):
-        return cls(topic=topic, message_id=message_id)
+    def as_form(cls, message_id: int = Form(...), input: str = Form(...)):
+        return cls(message_id=message_id, input=input)
 
+class ChatResponse(BaseModel):
+    response: str
 
-# --- Message Item Model ---
-class MessageItem(BaseModel):
-    type: Literal["human", "ai"]
-    content: str
+# -------------------------------
+# MySQL Message History
+# -------------------------------
 
-# --- Response Model ---
-class ChatHistoryResponse(BaseModel):
-    message_id: str
-    history: List[MessageItem]
+class MySQLChatMessageHistory(BaseChatMessageHistory):
+    def __init__(self, message_id: int):
+        self.message_id = message_id
+        self._ensure_session()
 
-# --- Chat History Store ---
-class FileChatMessageHistory(BaseChatMessageHistory, BaseModel):
-    message_id: str
-    messages: List[BaseMessage] = Field(default_factory=list)
+    def _ensure_session(self):
+        db = get_db_connection()
+        try:
+            with db.cursor() as cursor:
+                cursor.execute("SELECT id FROM sessions WHERE id = %s", (self.message_id,))
+                if cursor.fetchone() is None:
+                    cursor.execute("INSERT INTO sessions (id, created_at, updated_at) VALUES (%s, NOW(), NOW())", (self.message_id,))
+                    db.commit()
+        finally:
+            db.close()
 
     @property
-    def filepath(self) -> str:
-        return os.path.join(HISTORY_DIR, f"{self.message_id}.json")
-
-    def _load_from_json(self):
-        self.messages = []
-        if not os.path.exists(self.filepath):
-            return
-
+    def messages(self):
+        db = get_db_connection()
         try:
-            with open(self.filepath, 'r', encoding='utf-8') as f:
-                data = json.load(f)
+            with db.cursor(dictionary=True) as cursor:
+                cursor.execute("""
+                    SELECT sender, topic FROM messages
+                    WHERE message_id = %s ORDER BY id ASC
+                """, (self.message_id,))
+                return [
+                    HumanMessage(content=m["topic"]) if m["sender"] == "human" else AIMessage(content=m["topic"])
+                    for m in cursor.fetchall()
+                ]
+        finally:
+            db.close()
 
-            if isinstance(data, dict) and "conversation" in data:
-                for msg in data["conversation"]:
-                    msg_type = msg.get("type")
-                    content = msg.get("content")
+    def add_message(self, message: BaseMessage) -> None:
+        db = get_db_connection()
+        try:
+            with db.cursor(dictionary=True) as cursor:
+                sender = "human" if isinstance(message, HumanMessage) else "ai"
+                topic = message.content
 
-                    if not content or msg_type not in {"human", "ai"}:
-                        print(f"[Skipped Invalid Message] {msg}")
-                        continue
+                # Try to reuse latest agent_id and parameter_inputs
+                cursor.execute("""
+                    SELECT agent_id, parameter_inputs FROM messages
+                    WHERE message_id = %s ORDER BY id DESC LIMIT 1
+                """, (self.message_id,))
+                latest = cursor.fetchone()
 
-                    if msg_type == "human":
-                        self.messages.append(HumanMessage(content=content))
-                    elif msg_type == "ai":
-                        self.messages.append(AIMessage(content=content))
+                if latest:
+                    agent_id = latest["agent_id"]
+                    parameter_inputs = latest["parameter_inputs"]
+                else:
+                    agent_id = 1
+                    parameter_inputs = self._create_default_parameter_input(cursor, agent_id)
 
-        except Exception as e:
-            print(f"[History Load Error] {e}")
-            self.messages = []
+                user_id = 1  # Hardcoded or fetched per session/user
+                cursor.execute("""
+                    INSERT INTO messages (user_id, agent_id, message_id, parameter_inputs, sender, topic, created_at, updated_at)
+                    VALUES (%s, %s, %s, %s, %s, %s, NOW(), NOW())
+                """, (user_id, agent_id, self.message_id, parameter_inputs, sender, topic))
+                db.commit()
+        finally:
+            db.close()
 
-    def add_messages(self, messages: list[BaseMessage]):
-        self.messages.extend(messages)
-        self._save_to_json()
-
-    def _save_to_json(self):
-        data = {
-            "message_id": self.message_id,
-            "conversation": [
-                {"type": "human" if isinstance(msg, HumanMessage) else "ai", "content": msg.content}
-                for msg in self.messages
-            ]
-        }
-        with open(self.filepath, 'w', encoding='utf-8') as f:
-            json.dump(data, f, indent=2, ensure_ascii=False)
+    def _create_default_parameter_input(self, cursor, agent_id: int) -> int:
+        parameter_id = 1  # Assumed to exist
+        cursor.execute("""
+            INSERT INTO parameter_inputs (message_id, agent_id, parameter_id, input, created_at, updated_at)
+            VALUES (%s, %s, %s, %s, NOW(), NOW())
+        """, (self.message_id, agent_id, parameter_id, "default"))
+        return cursor.lastrowid
 
     def clear(self):
-        self.messages = []
-        self._save_to_json()
+        db = get_db_connection()
+        try:
+            with db.cursor() as cursor:
+                cursor.execute("DELETE FROM messages WHERE message_id = %s", (self.message_id,))
+                db.commit()
+        finally:
+            db.close()
 
-    @classmethod
-    def from_message_id(cls, message_id: str):
-        instance = cls(message_id=message_id)
-        instance._load_from_json()
-        return instance
+def get_history_by_message_id(message_id: str) -> MySQLChatMessageHistory:
+    return MySQLChatMessageHistory(int(message_id))
 
-def get_history_by_message_id(message_id: str) -> FileChatMessageHistory:
-    return FileChatMessageHistory.from_message_id(message_id)
+# -------------------------------
+# LangChain Setup
+# -------------------------------
 
-# --- Chat Prompt Setup ---
 chat_prompt = ChatPromptTemplate.from_messages([
-    ("system", "You are a helpful assistant. Keep responses clear and concise."),
-    MessagesPlaceholder(variable_name="history"),
-    ("human", "{topic}")
+    ("system", "You are a helpful assistant."),
+    MessagesPlaceholder(variable_name="chat_history"),
+    ("human", "{input}")
 ])
 
 chat_chain = RunnableWithMessageHistory(
-    runnable=chat_prompt | model,
+    chat_prompt | llm,
     get_session_history=get_history_by_message_id,
-    input_messages_key="topic",
-    history_messages_key="history"
+    input_messages_key="input",
+    history_messages_key="chat_history"
 )
 
-# --- Routes ---
-@chat_router.post("/chat")
-async def chat_api(request: ChatRequestForm = Depends(ChatRequestForm.as_form)):
-    try:
-        result = chat_chain.invoke(
-            {"topic": request.topic},
-            config={"configurable": {"message_id": request.message_id}}
-        )
-        return JSONResponse(content={"response": result})
-    except Exception as e:
-        traceback_str = traceback.format_exc()
-        print(f"[Chat Error] {e}\n{traceback_str}")
-        raise HTTPException(status_code=500, detail="Chat processing failed.")
+# -------------------------------
+# Chat Endpoint
+# -------------------------------
 
-@chat_router.get("/chat/history/{message_id}", response_model=ChatHistoryResponse)
-async def get_chat_history(message_id: str):
+@chat_router.post("/chat", response_model=ChatResponse)
+async def chat_api(request: ChatRequestForm = Depends(ChatRequestForm.as_form)):
+    result = await chat_chain.ainvoke(
+        {"input": request.input},
+        config={"configurable": {"session_id": request.message_id}}
+    )
+    return {"response": result}
+
+@chat_router.get("/session-ids/{user_id}", response_model=List[int])
+def get_session_ids_by_user(user_id: int):
+    db = get_db_connection()
     try:
-        history = get_history_by_message_id(message_id)
-        formatted_messages = [
-            MessageItem(
-                type="human" if isinstance(msg, HumanMessage) else "ai",
-                content=msg.content
-            ) for msg in history.messages
-        ]
-        return ChatHistoryResponse(message_id=message_id, history=formatted_messages)
-    except Exception as e:
-        traceback_str = traceback.format_exc()
-        print(f"[Get History Error] {e}\n{traceback_str}")
-        raise HTTPException(status_code=500, detail="Failed to retrieve chat history.")
+        with db.cursor() as cursor:
+            cursor.execute("""
+                SELECT DISTINCT message_id
+                FROM messages
+                WHERE user_id = %s
+                ORDER BY message_id ASC
+            """, (user_id,))
+            rows = cursor.fetchall()
+            return [row[0] for row in rows]
+    finally:
+        db.close()
+
+# -------------------------------
+# GET full chat history by session
+# -------------------------------
+
+@chat_router.get("/chat/history/{message_id}")
+def get_chat_history(message_id: int) -> Dict:
+    db = get_db_connection()
+    try:
+        with db.cursor(dictionary=True) as cursor:
+            cursor.execute("""
+                SELECT sender, topic, created_at
+                FROM messages
+                WHERE message_id = %s
+                ORDER BY id ASC
+            """, (message_id,))
+            messages = cursor.fetchall()
+            if not messages:
+                raise HTTPException(status_code=404, detail="No conversation found for this session.")
+            return {
+                "session_id": message_id,
+                "conversation": messages
+            }
+    finally:
+        db.close()

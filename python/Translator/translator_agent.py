@@ -11,7 +11,7 @@ import os
 # Ensure parent directory (python/) is in the path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 # from db_utils import insert_message, insert_dynamic_parameter_input, insert_session
-from db_utils import insert_session_and_message, load_messages_by_agent_and_user
+from db_utils import insert_session_and_message, load_messages_by_agent_and_user, load_messages_by_session_id
 from typing import Optional
 
 
@@ -206,13 +206,41 @@ class ChatMessage(BaseModel):
         )
    
 @app.post("/chat/messages")
-async def get_translator_messages(data: ChatMessage = Depends(ChatMessage.as_form), limit: Optional[int] = None, order: str = 'asc'):
+async def get_translator_messages(data: ChatMessage = Depends(ChatMessage.as_form), limit: Optional[int] = None, order: str = 'desc'):
     return {
         "messages": load_messages_by_agent_and_user(
             agent_id=data.agent_id,
             user_id=data.user_id,
             limit=limit,
             order=order
+        )
+    }
+
+class SpecificMessageRequest(BaseModel):
+    session_id: int
+    limit: Optional[int] = None
+    order: str = 'asc'
+
+    @classmethod
+    def as_form(
+        cls,
+        session_id: int = Form(...),
+        limit: Optional[int] = Form(None),
+        order: str = Form('asc')
+    ):
+        return cls(
+            session_id=session_id,
+            limit=limit,
+            order=order
+        )
+
+@app.post("/chat/specific_messages")
+async def get_specific_translator_messages(data: SpecificMessageRequest = Depends(SpecificMessageRequest.as_form)):
+    return {
+        "messages": load_messages_by_session_id(
+            session_id=data.session_id,
+            limit=data.limit,
+            order=data.order
         )
     }
 

@@ -13,7 +13,7 @@ from typing import Optional
 #  Path setup so "db_utils" (one directory up) can be imported without hacks. #
 # --------------------------------------------------------------------------- #
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from db_utils import insert_session_and_message, load_messages_by_agent_and_user # noqa: E402  (import after path fix)
+from db_utils import insert_session_and_message, load_messages_by_agent_and_user, get_parameter_inputs_by_message_id, load_messages_by_session_id # noqa: E402  (import after path fix)
 
 # --------------------------------------------------------------------------- #
 #  FastAPI app + CORS                                                         #
@@ -30,7 +30,7 @@ app.add_middleware(
 #  Pydantic input / output models                                             #
 # --------------------------------------------------------------------------- #
 class SentenceStarterInput(BaseModel):
-    text: str
+    topic: str
     grade_level: str
     # topic: str
     mode: str  # "chat" or "single"
@@ -41,7 +41,7 @@ class SentenceStarterInput(BaseModel):
     @classmethod
     def as_form(
         cls,
-        text: str = Form(...),  # This is not used, but kept for consistency with other agents
+        topic: str = Form(...),  # This is not used, but kept for consistency with other agents
         grade_level: str = Form(...),
         # topic: str = Form(...),
         mode: str = Form(...),
@@ -50,36 +50,40 @@ class SentenceStarterInput(BaseModel):
         agent_id: int = Form(14),
     ) :
         return cls(
-            text=text,  # This is not used in the sentence starters agent
+            # text=text,  # This is not used in the sentence starters agent
             grade_level=grade_level,
-            # topic=topic,
+            topic=topic,
             mode=mode,
             user_id=user_id,
             # parameter_inputs=parameter_inputs,
             agent_id=agent_id,
         )
 
-
+system_prompt = """ You are an AI writing coach for {grade_level} students."""
 class SentenceStarterFollowupInput(BaseModel):
-    text: str
+    topic: str
+    grade_level: str   # Default to follow up
     user_id: int
     message_id: int
     # target_language: str # Default to bisaya
     agent_id: int = 14  # translator agent_id (adjust as needed)
+    agent_system_prompt: str = system_prompt
 
 
     @classmethod
     def as_form(
         cls,
-        text: str = Form(...),
+        topic: str = Form(...),
         user_id: int = Form(...),
         message_id: int = Form(...),
+        grade_level: str = Form(...),  # Default to follow up
         # target_language: str = Form(...),  # Default to bisaya
     ):
         return cls(
-            text=text,
+            topic=topic,
             user_id=user_id,
             message_id=message_id,
+            grade_level=grade_level,  # Default to follow up
             # target_language=target_language,
         )
 
@@ -110,6 +114,8 @@ Guidelines:
 - Tone and vocabulary should match the grade level:
   {instructions}
 """)
+
+
 
 # Combine into a chain
 chain = prompt_template | model
@@ -159,7 +165,7 @@ def sentence_starters(grade_level: str, topic: str) -> list[str]:
 @app.post("/sentence-starters")
 async def sentence_starters_endpoint(data: SentenceStarterInput):
     
-        output = sentence_starters(data.grade_level, data.text)
+        output = sentence_starters(data.grade_level, data.topic)
 
 
         scope_vars = {
@@ -170,7 +176,7 @@ async def sentence_starters_endpoint(data: SentenceStarterInput):
             user_id=data.user_id,
             agent_id=data.agent_id,
             sender="human",
-            topic=data.text,
+            topic=data.topic,
             scope_vars=scope_vars,
         )
 
@@ -190,9 +196,11 @@ async def sentence_starters_followup_endpoint(data:SentenceStarterFollowupInput 
     try:
         async with httpx.AsyncClient(timeout=None) as client:
             form_data = {
-                "topic": data.text,
+                "topic": data.topic,
                 "user_id": str(data.user_id),
                 "db_message_id": int(data.message_id),
+                "agent_system_prompt": data.agent_system_prompt, 
+                "context": str(get_parameter_inputs_by_message_id(data.message_id)) # <-- optional, can be set in the form
                 # "agent_system_prompt": "You are a helpful assistant.",  # <-- required
                 # "context": "",
             }
@@ -263,7 +271,33 @@ async def get_sentence_starters_messages(data: ChatMessage = Depends(ChatMessage
             order=order
         )
     }
+class SpecificMessageRequest(BaseModel):
+    session_id: int
+    limit: Optional[int] = None
+    order: str = 'asc'
 
+    @classmethod
+    def as_form(
+        cls,
+        session_id: int = Form(...),
+        limit: Optional[int] = Form(None),
+        order: str = Form('asc')
+    ):
+        return cls(
+            session_id=session_id,
+            limit=limit,
+            order=order
+        )
+
+@app.post("/chat/specific_messages")
+async def get_sentence_starter_messages(data: SpecificMessageRequest = Depends(SpecificMessageRequest.as_form)):
+    return {
+        "messages": load_messages_by_session_id(
+            session_id=data.session_id,
+            limit=data.limit,
+            order=data.order
+        )
+    }
 
 #  @app.post("/sentence-starters") 
 # async def sentence_starters_endpoint(data: SentenceStarterInput = Depends(SentenceStarterInput.as_form)):

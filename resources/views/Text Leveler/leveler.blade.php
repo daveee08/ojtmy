@@ -1,5 +1,6 @@
 @extends('layouts.bootstrap')
 @extends('layouts.historysidenav')
+@extends('layouts.header')
 
 {{-- This section will inject the title into the <title> tag in your layout --}}
 
@@ -23,6 +24,7 @@
             background: white;
             max-width: 700px;
             width: 100%;
+            margin-top: 50px;
             padding: 2.5rem 3rem;
             border-radius: 12px;
         }

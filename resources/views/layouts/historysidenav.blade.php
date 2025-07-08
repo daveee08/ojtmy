@@ -36,6 +36,7 @@
             box-shadow: 2px 0 10px rgba(0, 0, 0, 0.08);
             z-index: 1000;
             transition: width 0.3s ease;
+            padding-top: 120px;
         }
 
         .sidebar.collapsed {
@@ -47,7 +48,7 @@
             font-size: 1.5rem;
             font-weight: 700;
             color: var(--pink);
-            margin-bottom: 50px;
+            margin-bottom: 30px;
             text-align: center;
             transition: opacity 0.2s ease;
         }
@@ -60,9 +61,9 @@
             display: block;
             color: var(--dark);
             text-decoration: none;
-            margin: 12px 0;
+            margin: 5px 0;
             font-size: 1rem;
-            padding: 12px 18px;
+            padding: 10px 10px;
             border-radius: 10px;
             transition: background 0.3s ease, color 0.3s ease;
         }
@@ -167,7 +168,7 @@
                 } else {
                     data.forEach(sessionId => {
                         const link = document.createElement('a');
-                        link.href = `/translator/conversation/${sessionId}`; // Or your desired URL pattern
+                        link.href = `/chat/history/${sessionId}`; // Or your desired URL pattern
                         link.innerHTML =
                             `<i class="bi bi-chat-dots"></i> <span class="link-text">Session ${sessionId}</span>`;
                         sessionList.appendChild(link);

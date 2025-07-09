@@ -445,25 +445,53 @@ def test():
     return {"message": "Hello, FastAPI is working!"}
 
 # ------------------- Content Creator -------------------
+
+class ContentCreatorInput(BaseModel):
+    grade_level: str
+    prompt: str
+    user_id: int
+    message_id: Optional[int] = None
+    length: str
+    extra: str
+    # agent_id: int = 16  # Default agent_id for step tutor
+
+    @classmethod
+    def as_form(
+        cls,
+        grade_level: str = Form(...),
+        prompt: str = Form(...),
+        user_id: int = Form(...),
+        message_id: Optional[int] = Form(None),
+        extra: Optional[str] = Form(""),
+        length: str = Form(...),
+        
+
+    ):
+        return cls(
+            grade_level=grade_level,
+            prompt=prompt,
+            user_id=user_id,
+            message_id=message_id,
+            length=length,
+            extra=extra
+        )
+    
 @app.post("/generate-contentcreator")
 async def generate_contentcreator(
-    grade_level: str = Form(...),
-    length: str = Form(...),
-    prompt: str = Form(...),
-    extra: str = Form("")
+    data: ContentCreatorInput = Depends(ContentCreatorInput.as_form)
 ):
     full_prompt = f"""
 You are a creative and helpful content assistant.
 
-Generate educational or engaging content based on the user's request. The content should match this grade level: {grade_level}
+Generate educational or engaging content based on the user's request. The content should match this grade level: {data.grade_level}
 
 Prompt:
-{prompt}
+{data.prompt}
 
 Additional Instruction:
-{extra}
+{data.extra}
 
-Length requested: {length}
+Length requested: {data.length}
 
 Guidelines:
 - Keep the tone clear, human, and helpful.
@@ -477,7 +505,7 @@ CONTENT:
 CAPTION:
 [social media caption here]
 """
-    llm = Ollama(model="gemma3:4b")
+    llm = Ollama(model="gemma3:1b")
     prompt_template = PromptTemplate.from_template(full_prompt)
     chain = prompt_template | llm
     result = chain.invoke({})
@@ -486,9 +514,27 @@ CAPTION:
     content = sections[0].replace("CONTENT:", "").strip()
     caption = sections[1].strip() if len(sections) > 1 else ""
 
+    result = content + caption
+
+    scope_vars ={
+        "grade_level": data.grade_level,
+        "length": data.length
+    }
+
+    session_id = create_session_and_parameter_inputs(
+            user_id=data.user_id,
+            agent_id=14,  # Default agent_id for step tutor
+            scope_vars=scope_vars,
+            human_topic=data.prompt,
+            ai_output=result,
+            agent_prompt=full_prompt
+        )
+
+
     return {
         "content": content,
-        "caption": caption
+        "caption": caption,
+        "message_id": session_id
     }
 
 # # ------------------- Social Stories -------------------

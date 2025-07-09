@@ -66,7 +66,7 @@ class AgentParametersTableSeeder extends Seeder
 
             [
                 'agent_id' => $thankYouId,
-                'parameter' => 'What are you thankful for?',
+                'parameter' => 'reason',
                 'parameter_value' => '',
                 'created_at' => now(),
                 'updated_at' => now(),

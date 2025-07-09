@@ -9,6 +9,7 @@ from typing import Optional
 from chat_router import chat_router
 from db_utils import create_session_and_parameter_inputs, insert_message
 from langchain_core.messages import HumanMessage, AIMessage
+from fastapi.middleware.cors import CORSMiddleware
 
 # --- Prompt Templates ---
 manual_topic_template = """
@@ -58,6 +59,14 @@ Respond ONLY with the explanation text (no extra commentary).
 # --- FastAPI App Initialization ---
 app = FastAPI(debug=True)
 app.include_router(chat_router)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # or Laravel origin like "http://localhost:8000"
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # --- Pydantic Model for Form Input ---
 class LevelerFormInput(BaseModel):
@@ -164,7 +173,7 @@ async def leveler_api(
 
         human_topic = form_data.topic if form_data.input_type != "pdf" else "[PDF Input]"
 
-        create_session_and_parameter_inputs(
+        session_id = create_session_and_parameter_inputs(
             user_id=form_data.user_id,
             agent_id=4,
             scope_vars=scope_vars,
@@ -172,7 +181,7 @@ async def leveler_api(
             ai_output=output
         )
 
-        return {"output": output}
+        return {"output": output, "message_id": session_id}
     except Exception as e:
         traceback_str = traceback.format_exc()
         print(traceback_str)

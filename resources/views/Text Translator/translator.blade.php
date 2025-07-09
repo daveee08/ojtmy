@@ -42,7 +42,7 @@
 </head>
 <body> {{-- Displaying messages --}}
 
-@section('main-content')
+
 <div class="container my-5">
     <div class="card shadow-sm">
             
@@ -143,7 +143,6 @@
         </div>
     </div>
 </div>
-@endsection
 
 {{-- Loading Overlay --}}
 <div id="loadingOverlay" class="position-fixed top-0 start-0 w-100 h-100 d-flex d-none justify-content-center align-items-center bg-white bg-opacity-75" style="z-index: 9999;">

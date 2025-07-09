@@ -11,7 +11,6 @@ use App\Http\Controllers\ThankYouNote\ThankYouNoteController;
 use App\Http\Controllers\RealWorld\RealWorldController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\TutorController;
-use App\Http\Controllers\ChatconversationController;
 use App\Http\Controllers\TextLeveler\LevelerController;
 use App\Http\Controllers\InformationalTexts\InformationalController;
 use App\Http\Controllers\QOTDController;
@@ -32,6 +31,7 @@ use App\Http\Controllers\Explanations\ExplanationsController;
 use App\Http\Controllers\AssignmentScaffolder\AssignmentScaffolder;
 use App\Http\Controllers\MathReview\MathReviewController;
 use App\Http\Controllers\MakeItRelevant\MakeItRelevantController;
+use App\Http\Controllers\ChatconversationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -61,10 +61,6 @@ Route::middleware('guest')->group(function () {
     Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
     Route::post('/register', [AuthController::class, 'register']);
 });
-
-Route::get('/chat', [ChatconversationController::class, 'showForm']);
-Route::get('/chat/history/{session_id}', [ChatconversationController::class, 'getHistory']);
-Route::post('/chat', [ChatconversationController::class, 'sendMessage']);
 
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
@@ -208,6 +204,9 @@ Route::post('/assignmentscaffolder', [AssignmentScaffolder::class, 'processForm'
 Route::get('/mathreview', [MathReviewController::class, 'showForm'])->name('mathreview.form');
 Route::post('/mathreview', [MathReviewController::class, 'processForm'])->name('mathreview.process');
 
-// ✅ Make It Relevant Tool
 Route::get('/makeitrelevant', [MakeItRelevantController::class, 'showForm'])->name('makeitrelevant.form');
 Route::post('/makeitrelevant', [MakeItRelevantController::class, 'processForm'])->name('makeitrelevant.process');
+
+Route::get('/chat/history/{session_id}', [ChatconversationController::class, 'showForm']);
+Route::post('/chat', [ChatconversationController::class, 'sendMessage']);
+Route::get('/chat/api/history/{session_id}', [ChatconversationController::class, 'getHistory']);

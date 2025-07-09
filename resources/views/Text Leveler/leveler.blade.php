@@ -1,5 +1,6 @@
 @extends('layouts.bootstrap')
 @extends('layouts.historysidenav')
+@extends('layouts.header')
 
 {{-- This section will inject the title into the <title> tag in your layout --}}
 
@@ -9,7 +10,7 @@
 @section('styles')
     <style>
         body {
-            background: linear-gradient(135deg, #f0f2f5, #ffffff);
+            background: white;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             color: #2c3e50;
             min-height: 100vh;
@@ -23,6 +24,7 @@
             background: white;
             max-width: 700px;
             width: 100%;
+            margin-top: 50px;
             padding: 2.5rem 3rem;
             border-radius: 12px;
         }
@@ -162,11 +164,6 @@
                 <button type="submit" class="btn btn-primary">Generate</button>
             </div>
         </form>
-
-        <div class="mb-4">
-            <label for="generate_output" class="form-label">Generated Content</label>
-            <textarea id="generate_output" class="form-control" name="generate_output" rows="10" readonly>{{ $response ?? '' }}</textarea>
-        </div>
     </div>
 
     {{-- The loading overlay should ideally be in the layout, but if it's specific to this page, keep it here --}}

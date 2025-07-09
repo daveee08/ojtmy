@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends, Form, HTTPException
 from pydantic import BaseModel
 from typing import Literal, List, Dict
-from typing import List, Dict
 
 from langchain_ollama import OllamaLLM as Ollama
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
@@ -19,12 +18,13 @@ llm = Ollama(model="llama3")
 # -------------------------------
 
 class ChatRequestForm(BaseModel):
+    user_id: int
     message_id: int
     input: str
 
     @classmethod
-    def as_form(cls, message_id: int = Form(...), input: str = Form(...)):
-        return cls(message_id=message_id, input=input)
+    def as_form(cls, message_id: int = Form(...), user_id: int = Form(...), input: str = Form(...)):
+        return cls(message_id=message_id, user_id=user_id, input=input)
 
 class ChatResponse(BaseModel):
     response: str
@@ -34,7 +34,8 @@ class ChatResponse(BaseModel):
 # -------------------------------
 
 class MySQLChatMessageHistory(BaseChatMessageHistory):
-    def __init__(self, message_id: int):
+    def __init__(self, user_id: int, message_id: int):
+        self.user_id = user_id
         self.message_id = message_id
         self._ensure_session()
 
@@ -72,7 +73,6 @@ class MySQLChatMessageHistory(BaseChatMessageHistory):
                 sender = "human" if isinstance(message, HumanMessage) else "ai"
                 topic = message.content
 
-                # Try to reuse latest agent_id and parameter_inputs
                 cursor.execute("""
                     SELECT agent_id, parameter_inputs FROM messages
                     WHERE message_id = %s ORDER BY id DESC LIMIT 1
@@ -86,11 +86,10 @@ class MySQLChatMessageHistory(BaseChatMessageHistory):
                     agent_id = 1
                     parameter_inputs = self._create_default_parameter_input(cursor, agent_id)
 
-                user_id = 1  # Hardcoded or fetched per session/user
                 cursor.execute("""
                     INSERT INTO messages (user_id, agent_id, message_id, parameter_inputs, sender, topic, created_at, updated_at)
                     VALUES (%s, %s, %s, %s, %s, %s, NOW(), NOW())
-                """, (user_id, agent_id, self.message_id, parameter_inputs, sender, topic))
+                """, (self.user_id, agent_id, self.message_id, parameter_inputs, sender, topic))
                 db.commit()
         finally:
             db.close()
@@ -112,8 +111,9 @@ class MySQLChatMessageHistory(BaseChatMessageHistory):
         finally:
             db.close()
 
-def get_history_by_message_id(message_id: str) -> MySQLChatMessageHistory:
-    return MySQLChatMessageHistory(int(message_id))
+def get_history_by_message_id(session_id: str) -> MySQLChatMessageHistory:
+    user_id_str, message_id_str = session_id.split(":")
+    return MySQLChatMessageHistory(int(user_id_str), int(message_id_str))
 
 # -------------------------------
 # LangChain Setup
@@ -138,13 +138,14 @@ chat_chain = RunnableWithMessageHistory(
 
 @chat_router.post("/chat", response_model=ChatResponse)
 async def chat_api(request: ChatRequestForm = Depends(ChatRequestForm.as_form)):
+    session_id = f"{request.user_id}:{request.message_id}"
     result = await chat_chain.ainvoke(
         {"input": request.input},
-        config={"configurable": {"session_id": request.message_id}}
+        config={"configurable": {"session_id": session_id}}
     )
     return {"response": result}
 
-@chat_router.get("/session-ids/{user_id}", response_model=List[int])
+@chat_router.get("/sessions/{user_id}", response_model=List[int])
 def get_session_ids_by_user(user_id: int):
     db = get_db_connection()
     try:

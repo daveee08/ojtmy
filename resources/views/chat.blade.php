@@ -7,22 +7,31 @@
         :root {
             --sidebar-width: 240px;
             --header-height: 0px;
-            --chat-bg: #f9fafb;
-            --user-bubble: #d1f3ff;
-            --ai-bubble: #ffe4ec;
+            /* adjust if you have a fixed top header */
         }
 
         body {
             font-family: 'Inter', sans-serif;
-            background-color: var(--chat-bg);
+            background-color: #f3f4f6;
             margin: 0;
             padding: 0;
         }
 
+        /* When sidebar is collapsed */
+        body.sidebar-collapsed .chat-container {
+            left: 70px;
+            /* Width of collapsed sidebar */
+        }
+
+        /* When sidebar is expanded (default 240px) */
+        body:not(.sidebar-collapsed) .chat-container {
+            left: 240px;
+        }
+
         .chat-container {
-            position: fixed;
-            top: var(--header-height);
+            position: absolute;
             left: var(--sidebar-width);
+            top: var(--header-height);
             right: 0;
             bottom: 0;
             display: flex;
@@ -30,97 +39,92 @@
             background: white;
             border-left: 1px solid #e5e7eb;
             height: 100vh;
-            transition: left 0.3s;
-        }
-
-        body.sidebar-collapsed .chat-container {
-            left: 70px;
+            width: auto;
+            overflow: hidden;
         }
 
         .chat-header {
-            padding: 1rem 1.5rem;
+            padding: 1rem;
+            text-align: center;
             background-color: #1a202c;
             color: white;
-            font-size: 1.5rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            font-weight: 700;
+            font-size: 1.75rem;
             border-bottom: 1px solid #2d3748;
+            flex-shrink: 0;
         }
 
         .chat-body {
             flex: 1;
             overflow-y: auto;
             padding: 1.5rem;
-            background-color: var(--chat-bg);
             display: flex;
             flex-direction: column;
             gap: 1rem;
-            scroll-behavior: smooth;
+            background-color: #ffffff;
         }
 
         .message {
-            max-width: 75%;
-            padding: 0.8rem 1.25rem;
+            padding: 0.75rem 1.25rem;
             border-radius: 16px;
-            line-height: 1.6;
+            max-width: 60%;
             font-size: 1rem;
+            line-height: 1.5;
             word-wrap: break-word;
-            position: relative;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
         }
 
         .user-message {
-            background-color: var(--user-bubble);
+            background-color: #e0f2f7;
             align-self: flex-end;
-            color: #1a202c;
-            border-bottom-right-radius: 4px;
+            text-align: right;
+            color: #2c5282;
         }
 
         .ai-message {
-            background-color: var(--ai-bubble);
+            background-color: #ffe0f0;
             align-self: flex-start;
-            color: #4a1c1c;
-            border-bottom-left-radius: 4px;
+            color: #7b341e;
         }
 
         .chat-footer {
             padding: 1rem;
-            background-color: #F0F0F0;
+            border-top: 1px solid #e2e8f0;
+            background-color: #f7fafc;
             display: flex;
-            align-items: center;
             gap: 1rem;
-            border-top: 1px solid #d9e2ec;
+            align-items: center;
+            flex-shrink: 0;
         }
 
         .chat-footer textarea {
             resize: none;
             flex: 1;
             border-radius: 8px;
+            border: 1.5px solid #cbd5e0;
             padding: 0.75rem 1rem;
             font-size: 1rem;
-            border: 1px solid #cbd5e0;
+            outline: none;
             transition: border-color 0.2s;
-            height: 50px;
         }
 
         .chat-footer textarea:focus {
-            border-color: ##F5F5F5;
+            border-color: #63b3ed;
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.5);
         }
 
         .chat-footer button {
-            background-color: #e91e63;
+            background-color: #1a202c;
             color: white;
-            padding: 0.75rem 1.5rem;
             border: none;
-            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
             font-weight: 600;
+            cursor: pointer;
             transition: background-color 0.2s, transform 0.1s;
         }
 
         .chat-footer button:hover {
-            background-color: #2c5282;
+            background-color: #2d3748;
             transform: translateY(-1px);
         }
 
@@ -129,22 +133,29 @@
             cursor: not-allowed;
         }
 
-        .spinner {
+        #loading-spinner {
             display: none;
-            align-items: center;
-            justify-content: center;
-            height: 40px;
-            color: #2b6cb0;
-            font-size: 0.9rem;
+            margin-top: 20px;
         }
 
-        .spinner.show {
-            display: flex;
+        .spinner-border {
+            border: 0.25em solid currentColor;
+            border-right-color: transparent;
+            border-radius: 50%;
+            animation: spinner-border .75s linear infinite;
+            width: 2rem;
+            height: 2rem;
+        }
+
+        @keyframes spinner-border {
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         @media (max-width: 768px) {
             :root {
-                --sidebar-width: 0;
+                --sidebar-width: 0px;
             }
 
             .chat-container {
@@ -158,16 +169,20 @@
 
             .message {
                 max-width: 90%;
-                font-size: 0.95rem;
+                padding: 0.6rem 1rem;
+                font-size: 0.9rem;
             }
 
             .chat-footer {
                 flex-direction: column;
+                gap: 0.75rem;
                 padding: 0.75rem;
             }
 
             .chat-footer button {
                 width: 100%;
+                padding: 0.6rem 1rem;
+                font-size: 0.9rem;
             }
         }
     </style>
@@ -183,15 +198,18 @@
             <button id="sendBtn">Send</button>
         </div>
     </div>
-@endsection
 
-@section('scripts')
+    <div id="loading-spinner" class="mt-3 text-center">
+        <div class="spinner-border text-pink-500" role="status"></div>
+    </div>
+
     <script>
         const chatBody = document.getElementById('chatBody');
         const userInput = document.getElementById('userInput');
         const sendBtn = document.getElementById('sendBtn');
+        const spinner = document.getElementById('loading-spinner');
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-        const sessionID = "{{ $session_id ?? '1' }}";
+        const sessionID = "{{ $session_id ?? '1' }}"; // Default fallback if not passed
 
         function appendMessage(message, type) {
             const msgDiv = document.createElement('div');
@@ -201,11 +219,6 @@
             chatBody.scrollTop = chatBody.scrollHeight;
         }
 
-        function toggleSpinner(show) {
-            const overlay = document.getElementById('loading-overlay');
-            if (overlay) overlay.style.display = show ? 'flex' : 'none';
-        }
-
         async function sendMessage() {
             const message = userInput.value.trim();
             if (!message) return;
@@ -213,7 +226,7 @@
             appendMessage(message, 'user');
             userInput.value = '';
             sendBtn.disabled = true;
-            toggleSpinner(true);
+            spinner.style.display = 'block';
 
             try {
                 const formData = new FormData();
@@ -229,7 +242,9 @@
                     body: formData
                 });
 
-                if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
 
                 const data = await response.json();
                 appendMessage(data.response, 'ai');
@@ -237,7 +252,7 @@
                 appendMessage(`[Error: ${err.message}]`, 'ai');
             } finally {
                 sendBtn.disabled = false;
-                toggleSpinner(false);
+                spinner.style.display = 'none';
             }
         }
 
@@ -250,7 +265,7 @@
         });
 
         (async function loadChat() {
-            toggleSpinner(true);
+            spinner.style.display = 'block';
             try {
                 const res = await fetch(`/chat/api/history/${sessionID}`);
                 const data = await res.json();
@@ -265,7 +280,7 @@
             } catch (err) {
                 appendMessage(`[Could not load history: ${err.message}]`, 'ai');
             } finally {
-                toggleSpinner(false);
+                spinner.style.display = 'none';
             }
         })();
     </script>

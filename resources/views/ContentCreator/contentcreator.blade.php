@@ -86,16 +86,12 @@
                     <hr class="my-4">
                     <h5 class="fw-bold text-success">Generated Content:</h5>
                     <pre class="mt-3">{{ session('content') }}</pre>
-
-                    @if(session('caption'))
-                        <h6 class="fw-bold mt-4" style="color:#EC298B;">Suggested Caption:</h6>
-                        <p>{{ session('caption') }}</p>
-                    @endif
                 @endif
 
                 @if(session('error'))
                     <div class="alert alert-danger mt-3">{{ session('error') }}</div>
                 @endif
+
             </div>
         </div>
     </div>

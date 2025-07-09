@@ -41,8 +41,9 @@ class MySQLChatMessageHistory(BaseChatMessageHistory):
 
     def _ensure_session(self):
         db = get_db_connection()
-        cursor = db.cursor()
+        # cursor = db.cursor()
         try:
+            with db.cursor() as cursor:
                 cursor.execute("SELECT id FROM sessions WHERE id = %s", (self.message_id,))
                 if cursor.fetchone() is None:
                     cursor.execute("INSERT INTO sessions (id, created_at, updated_at) VALUES (%s, NOW(), NOW())", (self.message_id,))
@@ -53,9 +54,9 @@ class MySQLChatMessageHistory(BaseChatMessageHistory):
     @property
     def messages(self):
         db = get_db_connection()
-        cursor = db.cursor(dictionary=True)
+        # cursor = db.cursor(dictionary=True)
         try:
-            # with db.cursor(dictionary=True) as cursor:
+            with db.cursor(dictionary=True) as cursor:
                 cursor.execute("""
                     SELECT sender, topic FROM messages
                     WHERE message_id = %s ORDER BY id ASC
@@ -69,8 +70,10 @@ class MySQLChatMessageHistory(BaseChatMessageHistory):
 
     def add_message(self, message: BaseMessage) -> None:
         db = get_db_connection()
-        cursor = db.cursor()
+        # cursor = db.cursor()
         try:
+            with db.cursor(dictionary=True) as cursor:
+            # with db.cursor() as cursor:
                 sender = "human" if isinstance(message, HumanMessage) else "ai"
                 topic = message.content
 
@@ -81,7 +84,7 @@ class MySQLChatMessageHistory(BaseChatMessageHistory):
                 latest = cursor.fetchone()
 
                 if latest:
-                    agent_id = latest["agent_id"]
+                    agent_id = int(latest["agent_id"])
                     parameter_inputs = latest["parameter_inputs"]
                 else:
                     agent_id = 1
@@ -105,9 +108,9 @@ class MySQLChatMessageHistory(BaseChatMessageHistory):
 
     def clear(self):
         db = get_db_connection()
-        cursor = db.cursor()
+        # cursor = db.cursor()
         try:
-            # with db.cursor() as cursor:
+            with db.cursor() as cursor:
                 cursor.execute("DELETE FROM messages WHERE message_id = %s", (self.message_id,))
                 db.commit()
         finally:
@@ -138,36 +141,36 @@ chat_chain = RunnableWithMessageHistory(
 # Chat Endpoint
 # -------------------------------
 
-# @chat_router.post("/chat", response_model=ChatResponse)
-# async def chat_api(request: ChatRequestForm = Depends(ChatRequestForm.as_form)):
-#     session_id = f"{request.user_id}:{request.message_id}"
-#     result = await chat_chain.ainvoke(
-#         {"input": request.input},
-#         config={"configurable": {"session_id": session_id}}
-#     )
-    
-#     return {"response": result}
-
 @chat_router.post("/chat", response_model=ChatResponse)
 async def chat_api(request: ChatRequestForm = Depends(ChatRequestForm.as_form)):
     session_id = f"{request.user_id}:{request.message_id}"
-    
-    # 🔹 Initialize history manually
-    history = get_history_by_message_id(session_id)
-    
-    # 🔹 Add human message before the invoke
-    history.add_message(HumanMessage(content=request.input))
-    
-    # 🔹 Get model response
     result = await chat_chain.ainvoke(
         {"input": request.input},
         config={"configurable": {"session_id": session_id}}
     )
     
-    # 🔹 Add AI message after getting result
-    history.add_message(AIMessage(content=result))
-    
     return {"response": result}
+
+# @chat_router.post("/chat", response_model=ChatResponse)
+# async def chat_api(request: ChatRequestForm = Depends(ChatRequestForm.as_form)):
+#     session_id = f"{request.user_id}:{request.message_id}"
+    
+#     # 🔹 Initialize history manually
+#     history = get_history_by_message_id(session_id)
+    
+#     # 🔹 Add human message before the invoke
+#     history.add_message(HumanMessage(content=request.input))
+    
+#     # 🔹 Get model response
+#     result = await chat_chain.ainvoke(
+#         {"input": request.input},
+#         config={"configurable": {"session_id": session_id}}
+#     )
+    
+#     # 🔹 Add AI message after getting result
+#     history.add_message(AIMessage(content=result))
+    
+#     return {"response": result}
 
 
 @chat_router.get("/sessions/{user_id}", response_model=List[int])

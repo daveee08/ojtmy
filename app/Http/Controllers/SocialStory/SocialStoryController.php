@@ -5,9 +5,18 @@ namespace App\Http\Controllers\SocialStory;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Auth;
+
 
 class SocialStoryController extends Controller
 {
+
+    public function fetchUserSessions()
+    {
+        $userId = Auth::id();
+        $response = Http::get("http://localhost:5001/sessions/$userId");
+        return response()->json($response->json());
+    }
     public function showForm()
     {
         return view('SocialStory.socialstory');
@@ -17,22 +26,35 @@ class SocialStoryController extends Controller
     {
         set_time_limit(0);
 
-        $request->validate([
+        $validated = $request->validate([
             'grade_level' => 'required|string',
             'situation' => 'required|string',
         ]);
 
-        try {
-            $response = Http::asForm()->post('http://127.0.0.1:8001/generate-socialstory', [
-                'grade_level' => $request->grade_level,
-                'situation' => $request->situation,
-            ]);
+        $multipartData = [
+            ['name' => 'grade_level', 'contents' => $validated['grade_level']],
+            ['name' => 'situation', 'contents' => $validated['situation'] ?? ''],
+            ['name' => 'user_id', 'contents' => Auth::id() ?? 1],
+        ];
 
-            if ($response->successful()) {
-                return back()->with('story', $response->json()['story']);
-            } else {
-                return back()->with('error', 'Failed to generate story. Please try again.');
+        try {
+            $response = Http::asMultipart()->post('http://127.0.0.1:5001/generate-socialstory', $multipartData);
+
+            if ($response->failed()) {
+            logger()->error('FastAPI Leveler error', ['body' => $response->body()]);
+            return back()->withErrors(['error' => 'Python API failed: ' . $response->body()]);
             }
+        
+            $responseData = $response->json();
+            logger($responseData); // ✅ Log the response
+        
+            $messageId = $responseData['message_id'] ?? null;
+        
+            if ($messageId) {
+                // ✅ External redirect
+                return redirect()->to("/chat/history/{$messageId}");
+            }
+
         } catch (\Exception $e) {
             return back()->with('error', 'Error: ' . $e->getMessage());
         }

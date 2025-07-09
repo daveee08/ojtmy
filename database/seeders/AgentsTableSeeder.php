@@ -30,6 +30,7 @@ class AgentsTableSeeder extends Seeder
             ['agent' => 'sentence-starter', 'created_at' => now(), 'updated_at' => now()],
             ['agent' => 'study-habits', 'created_at' => now(), 'updated_at' => now()],
             ['agent' => 'translator', 'created_at' => now(), 'updated_at' => now()],
+            ['agent' => 'social-stories', 'created_at' => now(), 'updated_at' => now()],
 
         ]);
     }

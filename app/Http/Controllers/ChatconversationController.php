@@ -29,6 +29,9 @@ class ChatconversationController extends Controller
 
     public function sendMessage(Request $request)
     {
+
+        set_time_limit(0);
+
         $validated = $request->validate([
             'user_id' => 'required|numeric',
             'message_id' => 'required|numeric',

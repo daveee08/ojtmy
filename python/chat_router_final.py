@@ -8,7 +8,7 @@ from langchain_core.runnables import RunnableWithMessageHistory
 from langchain_core.messages import HumanMessage, AIMessage, BaseMessage
 from langchain_core.runnables.history import BaseChatMessageHistory
 
-from db_utils_final import get_db_connection
+from python.db_utils_final import get_db_connection
 
 chat_router = APIRouter()
 llm = Ollama(model="gemma3:1b")

@@ -31,6 +31,7 @@ use App\Http\Controllers\AssignmentScaffolder\AssignmentScaffolder;
 use App\Http\Controllers\MathReview\MathReviewController;
 use App\Http\Controllers\MakeItRelevant\MakeItRelevantController;
 use App\Http\Controllers\ChatconversationController;
+use App\Http\Controllers\SocialStory\SocialStoryController;
 
 /*
 |--------------------------------------------------------------------------
@@ -209,3 +210,7 @@ Route::post('/makeitrelevant', [MakeItRelevantController::class, 'processForm'])
 Route::get('/chat/history/{session_id}', [ChatconversationController::class, 'showForm']);
 Route::post('/chat', [ChatconversationController::class, 'sendMessage']);
 Route::get('/chat/api/history/{session_id}', [ChatconversationController::class, 'getHistory']);
+
+//Social Story Tool
+Route::get('/socialstory', [SocialStoryController::class, 'showForm'])->name('socialstory.form');
+Route::post('/socialstory', [SocialStoryController::class, 'generate'])->name('socialstory.generate');

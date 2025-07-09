@@ -397,3 +397,134 @@ CAPTION:
         "content": content,
         "caption": caption
     }
+
+# ------------------- Social Stories -------------------
+from fastapi import FastAPI, Form
+from fastapi.middleware.cors import CORSMiddleware
+from langchain_ollama import OllamaLLM as Ollama
+from langchain.prompts import PromptTemplate
+
+app = FastAPI()
+
+# Enable CORS for Laravel frontend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# 🧠 Final strict prompt template with profanity guidance
+prompt_template = """
+You are a professional assistant who writes realistic, age-appropriate social stories for students and professionals at different levels.
+
+Your task is to write a supportive, clear, and emotionally safe social story for someone at this level: {grade_level}
+
+Context:
+{situation}
+
+Rules:
+- DO NOT invent names of schools, universities, people, or places unless they are explicitly mentioned in the input.
+- DO NOT invent scenes, routines, or activities (e.g., waking up, recess, lunch, playing with toys) unless clearly mentioned in the input.
+- DO NOT make up examples of meals, cultural elements, or facilities (e.g., swings, adobo, uniforms).
+- DO NOT assume classroom setup, routines, or location-specific details unless provided.
+- DO NOT use markdown formatting (**, ##, headings, or bullets).
+- DO NOT use storybook structure (Page 1, illustration suggestions, headings).
+- DO NOT exaggerate, dramatize, or add fictional events.
+- DO NOT include suggestions like “maybe,” “you might,” or “perhaps,” unless uncertainty is clearly in the user input.
+- DO NOT include profanity in the story even if the user uses strong language.
+- If the user is emotionally overwhelmed or frustrated, respond with empathy and grounded advice, not judgment.
+- Do not include an introduction like "Here's your story" or "Let me tell you a story."
+
+Tone & Voice:
+- Speak gently, like a supportive teacher or counselor.
+- If grade level is Pre-K to Grade 3, use short, simple sentences.
+- If grade level is Grade 4 and above, maintain clarity with a calm, encouraging tone.
+- Mention the person’s name only if it was included in the input.
+- Focus only on what was shared by the user — avoid generalizations.
+- Model realistic coping, kindness, and self-regulation strategies.
+
+Output:
+- Return only the story as plain text in paragraph form.
+- Do not include a title, labels, or instructions.
+- Ensure the response is grounded in the user’s actual context.
+
+Now write the story.
+"""
+
+# 🧼 Profanity replacement
+def censor_input(text: str) -> str:
+    profanity_map = {
+        "fuck": "mess up",
+        "fucked": "messed up",
+        "shit": "mistake",
+        "damn": "problem",
+        "bitch": "person",
+        "asshole": "person",
+        "crap": "mistake",
+    }
+    for bad, clean in profanity_map.items():
+        text = text.replace(bad, clean).replace(bad.upper(), clean).replace(bad.capitalize(), clean)
+    return text
+
+@app.post("/generate-socialstory")
+async def generate_social_story(
+    grade_level: str = Form(...),
+    situation: str = Form(...)
+):
+    cleaned_input = censor_input(situation.strip())
+
+    prompt = PromptTemplate.from_template(prompt_template)
+    llm = Ollama(model="llama3:instruct")
+    chain = prompt | llm
+    result = chain.invoke({
+        "grade_level": grade_level,
+        "situation": cleaned_input
+    })
+    return {"story": result.strip()}
+
+# ------------------- Character Chatbot -------------------
+from fastapi import FastAPI, Form
+from fastapi.middleware.cors import CORSMiddleware
+from langchain_ollama import OllamaLLM as Ollama
+from langchain.prompts import PromptTemplate
+
+app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+character_prompt = """
+You are now roleplaying as: {character}
+
+Your task is to have a conversation with a user who is at the following grade level: {grade_level}
+
+Guidelines:
+- Speak in the voice, style, and knowledge of the selected character, author, or historical figure.
+- Your tone, vocabulary, and sentence structure must match the user's grade level.
+- If the character is fictional, keep your responses within the story’s world and personality.
+- If the character is real (like a historical figure or author), speak from their perspective using known facts and ideas from their life or works.
+- DO NOT break character or reference being an AI or language model.
+- DO NOT summarize their biography — speak as if you *are* the character.
+- DO NOT ask the user to confirm who you are. Just reply as the character naturally would.
+
+Start the first message as if the user greeted or asked you something.
+"""
+
+@app.post("/generate-characterchat")
+async def generate_character_chat(
+    grade_level: str = Form(...),
+    character: str = Form(...)
+):
+    prompt = PromptTemplate.from_template(character_prompt)
+    llm = Ollama(model="llama3:instruct")
+    chain = prompt | llm
+    result = chain.invoke({
+        "grade_level": grade_level,
+        "character": character
+    })
+    return {"response": result.strip()}

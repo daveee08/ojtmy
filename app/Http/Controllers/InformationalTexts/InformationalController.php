@@ -65,7 +65,7 @@ class InformationalController extends Controller
 
         $response = Http::timeout(0)
             ->asMultipart()
-            ->post('http://192.168.50.144:5001/informational', $multipartData);
+            ->post('http://127.0.0.1:5001/informational', $multipartData);
 
         if ($response->failed()) {
             return back()->withErrors(['error' => 'Python API failed: ' . $response->body()]);

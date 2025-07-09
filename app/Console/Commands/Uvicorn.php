@@ -147,8 +147,12 @@ $$/   $$/  $$$$$$/  $$/       $$/  $$/  $$/  $$$$$$$/ $$/
                 'file_and_app_instance' => 'translator_agent:app', // e.g., if you have main.py and `app = FastAPI()`
                 'port' => 8013
             ],
-            
-            
+             [
+                'name' => 'Sentence Starter API',
+                'path' => base_path('python/sentence_starters'), // Directory where your Python file is
+                'file_and_app_instance' => 'sentence_starters_agent:app', // e.g., if you have main.py and `app = FastAPI()`
+                'port' => 8014
+            ],            
             
             // Add more FastAPI apps as needed
         ];

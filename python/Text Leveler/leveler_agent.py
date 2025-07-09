@@ -6,10 +6,10 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_community.document_loaders.pdf import PyPDFLoader
 import shutil, os, re, tempfile, uvicorn, traceback
 from typing import Optional
-from uuid import uuid4
-from chat_router import chat_router, get_history_by_message_id
-from db_utils import insert_session_and_message
+from chat_router import chat_router
+from db_utils import create_session_and_parameter_inputs, insert_message
 from langchain_core.messages import HumanMessage, AIMessage
+from fastapi.middleware.cors import CORSMiddleware
 
 # --- Prompt Templates ---
 manual_topic_template = """
@@ -60,8 +60,17 @@ Respond ONLY with the explanation text (no extra commentary).
 app = FastAPI(debug=True)
 app.include_router(chat_router)
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # or Laravel origin like "http://localhost:8000"
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 # --- Pydantic Model for Form Input ---
 class LevelerFormInput(BaseModel):
+    user_id: int
     input_type: str
     topic: str
     grade_level: str
@@ -71,6 +80,7 @@ class LevelerFormInput(BaseModel):
     @classmethod
     def as_form(
         cls,
+        user_id: int = Form(...),
         input_type: str = Form(...),
         topic: str = Form(""),
         grade_level: str = Form(...),
@@ -78,13 +88,14 @@ class LevelerFormInput(BaseModel):
         message_id: Optional[str] = Form(default=None)
     ):
         return cls(
+            user_id=user_id,
             input_type=input_type,
             topic=topic,
             grade_level=grade_level,
             learning_speed=learning_speed,
             message_id=message_id
         )
-    
+
 # --- LangChain Setup ---
 model = Ollama(model="llama3")
 manual_prompt = ChatPromptTemplate.from_template(manual_topic_template)
@@ -155,24 +166,22 @@ async def leveler_api(
             learning_speed=form_data.learning_speed,
         )
 
-         # --- Save session and message in MySQL ---
-        user_id = 1
-        agent_id = 4
-
         scope_vars = {
             "grade_level": form_data.grade_level,
             "learning_speed": form_data.learning_speed,
         }
 
-        insert_session_and_message(
-            user_id=user_id,
-            agent_id=agent_id,
-            sender="human",
-            topic=form_data.topic if form_data.input_type != "pdf" else "[PDF Input]",
+        human_topic = form_data.topic if form_data.input_type != "pdf" else "[PDF Input]"
+
+        session_id = create_session_and_parameter_inputs(
+            user_id=form_data.user_id,
+            agent_id=4,
             scope_vars=scope_vars,
+            human_topic=human_topic,
+            ai_output=output
         )
 
-        return {"output": output}
+        return {"output": output, "message_id": session_id}
     except Exception as e:
         traceback_str = traceback.format_exc()
         print(traceback_str)

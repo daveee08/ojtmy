@@ -10,7 +10,6 @@ use App\Http\Controllers\ThankYouNote\ThankYouNoteController;
 use App\Http\Controllers\RealWorld\RealWorldController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\TutorController;
-use App\Http\Controllers\ChatconversationController;
 use App\Http\Controllers\TextLeveler\LevelerController;
 use App\Http\Controllers\InformationalTexts\InformationalController;
 use App\Http\Controllers\QOTDController;
@@ -29,6 +28,9 @@ use App\Http\Controllers\TextRewriter\RewriterController;
 use App\Http\Controllers\TextScaffolder\ScaffolderController;
 use App\Http\Controllers\Explanations\ExplanationsController;
 use App\Http\Controllers\AssignmentScaffolder\AssignmentScaffolder;
+use App\Http\Controllers\MathReview\MathReviewController;
+use App\Http\Controllers\MakeItRelevant\MakeItRelevantController;
+use App\Http\Controllers\ChatconversationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -58,10 +60,6 @@ Route::middleware('guest')->group(function () {
     Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
     Route::post('/register', [AuthController::class, 'register']);
 });
-
-Route::get('/chat', [ChatconversationController::class, 'showForm']);
-Route::get('/chat/history/{session_id}', [ChatconversationController::class, 'getHistory']);
-Route::post('/chat', [ChatconversationController::class, 'sendMessage']);
 
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
@@ -165,11 +163,16 @@ Route::post('/realworld', [RealWorldController::class, 'processForm'])->name('re
 // Sentence Starter Agent
 Route::get('/sentencestarter', [SentenceStarterController::class, 'showForm'])->name('sentencestarter.form');
 Route::post('/sentencestarter', [SentenceStarterController::class, 'processForm'])->name('sentencestarter.process');
+Route::post('/sentence-starter/followup', [SentenceStarterController::class, 'followupForm'])->name('sentencestarter.followup');
+
 
 // Translator Agent
 Route::get('/translator', [TranslatorController::class, 'showForm'])->name('translator.form');
 Route::post('/translator', [TranslatorController::class, 'processForm'])->name('translator.process');
 Route::post('/translator/followup', [TranslatorController::class, 'followUp'])->name('translator.followup');
+Route::get('/translator/session/{id}', [TranslatorController::class, 'showSession'])->name('translator.session');
+Route::get('/translator/conversation/{message_id}', [\App\Http\Controllers\Translator\TranslatorController::class, 'showSpecificMessages'])->name('translator.specific');
+
 
 
 // Study Habits Agent
@@ -195,3 +198,14 @@ Route::post('/explanations', [ExplanationsController::class, 'processForm'])->na
 // ✅ Scaffolder Tool
 Route::get('/assignmentscaffolder', [AssignmentScaffolder::class, 'showForm'])->name('assignmentscaffolder.form');
 Route::post('/assignmentscaffolder', [AssignmentScaffolder::class, 'processForm'])->name('assignmentscaffolder.process');
+
+// ✅ Math Review Tool
+Route::get('/mathreview', [MathReviewController::class, 'showForm'])->name('mathreview.form');
+Route::post('/mathreview', [MathReviewController::class, 'processForm'])->name('mathreview.process');
+
+Route::get('/makeitrelevant', [MakeItRelevantController::class, 'showForm'])->name('makeitrelevant.form');
+Route::post('/makeitrelevant', [MakeItRelevantController::class, 'processForm'])->name('makeitrelevant.process');
+
+Route::get('/chat/history/{session_id}', [ChatconversationController::class, 'showForm']);
+Route::post('/chat', [ChatconversationController::class, 'sendMessage']);
+Route::get('/chat/api/history/{session_id}', [ChatconversationController::class, 'getHistory']);

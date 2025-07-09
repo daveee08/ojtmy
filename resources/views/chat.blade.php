@@ -1,53 +1,57 @@
-<!DOCTYPE html>
-<html lang="en">
+@extends('layouts.bootstrap')
+@extends('layouts.historysidenav')
+@extends('layouts.header')
 
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Chat</title>
-    <!-- Using Tailwind CSS for modern styling -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+@section('styles')
     <style>
+        :root {
+            --sidebar-width: 240px;
+            --header-height: 0px;
+            /* adjust if you have a fixed top header */
+        }
+
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f3f4f6;
-            /* Light gray background */
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* When sidebar is collapsed */
+        body.sidebar-collapsed .chat-container {
+            left: 70px;
+            /* Width of collapsed sidebar */
+        }
+
+        /* When sidebar is expanded (default 240px) */
+        body:not(.sidebar-collapsed) .chat-container {
+            left: 240px;
         }
 
         .chat-container {
+            position: absolute;
+            left: var(--sidebar-width);
+            top: var(--header-height);
+            right: 0;
+            bottom: 0;
             display: flex;
             flex-direction: column;
-            max-width: 800px;
-            width: 100%;
             background: white;
-            border-radius: 12px;
+            border-left: 1px solid #e5e7eb;
+            height: 100vh;
+            width: auto;
             overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            /* More pronounced shadow */
-            height: 80vh;
-            border: 1px solid #e5e7eb;
-            /* Lighter border */
-            margin-top: 20px;
         }
 
         .chat-header {
             padding: 1rem;
             text-align: center;
             background-color: #1a202c;
-            /* Darker header */
             color: white;
             font-weight: 700;
             font-size: 1.75rem;
-            /* Larger font size */
             border-bottom: 1px solid #2d3748;
+            flex-shrink: 0;
         }
 
         .chat-body {
@@ -63,38 +67,33 @@
         .message {
             padding: 0.75rem 1.25rem;
             border-radius: 16px;
-            max-width: 75%;
+            max-width: 60%;
             font-size: 1rem;
             line-height: 1.5;
             word-wrap: break-word;
-            /* Ensure long words break */
         }
 
         .user-message {
             background-color: #e0f2f7;
-            /* Light blue */
             align-self: flex-end;
             text-align: right;
             color: #2c5282;
-            /* Darker text */
         }
 
         .ai-message {
             background-color: #ffe0f0;
-            /* Light pink */
             align-self: flex-start;
             color: #7b341e;
-            /* Darker text */
         }
 
         .chat-footer {
             padding: 1rem;
             border-top: 1px solid #e2e8f0;
             background-color: #f7fafc;
-            /* Lighter footer */
             display: flex;
             gap: 1rem;
             align-items: center;
+            flex-shrink: 0;
         }
 
         .chat-footer textarea {
@@ -110,13 +109,11 @@
 
         .chat-footer textarea:focus {
             border-color: #63b3ed;
-            /* Blue on focus */
             box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.5);
         }
 
         .chat-footer button {
             background-color: #1a202c;
-            /* Dark button */
             color: white;
             border: none;
             padding: 0.75rem 1.5rem;
@@ -128,7 +125,6 @@
 
         .chat-footer button:hover {
             background-color: #2d3748;
-            /* Darker on hover */
             transform: translateY(-1px);
         }
 
@@ -157,17 +153,13 @@
             }
         }
 
-        .text-pink-500 {
-            color: #ec4899;
-            /* Tailwind pink-500 equivalent */
-        }
-
-        /* Responsive adjustments */
         @media (max-width: 768px) {
+            :root {
+                --sidebar-width: 0px;
+            }
+
             .chat-container {
-                height: 90vh;
-                margin-top: 10px;
-                border-radius: 8px;
+                left: 0;
             }
 
             .chat-body {
@@ -192,25 +184,12 @@
                 padding: 0.6rem 1rem;
                 font-size: 0.9rem;
             }
-
-            .text-center .form-control {
-                width: 90% !important;
-            }
         }
     </style>
-</head>
+@endsection
 
-<body>
-
-    <div class="text-center w-full max-w-md">
-        <input type="text" id="sessionInput"
-            class="form-control w-full mx-auto p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out"
-            placeholder="Enter session ID..." />
-        <button
-            class="bg-gray-800 text-white font-semibold py-2 px-4 rounded-lg mt-2 shadow hover:bg-gray-700 transition duration-150 ease-in-out"
-            onclick="loadSession()">Load Session</button>
-    </div>
-
+@section('content')
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <div class="chat-container">
         <div class="chat-header">Chat</div>
         <div class="chat-body" id="chatBody"></div>
@@ -221,35 +200,28 @@
     </div>
 
     <div id="loading-spinner" class="mt-3 text-center">
-        <div class="spinner-border text-pink-500" role="status">
-        </div>
+        <div class="spinner-border text-pink-500" role="status"></div>
     </div>
 
     <script>
         const chatBody = document.getElementById('chatBody');
         const userInput = document.getElementById('userInput');
         const sendBtn = document.getElementById('sendBtn');
-        const sessionInput = document.getElementById('sessionInput');
         const spinner = document.getElementById('loading-spinner');
-
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-        let messageID = '';
+        const sessionID = "{{ $session_id ?? '1' }}"; // Default fallback if not passed
 
         function appendMessage(message, type) {
             const msgDiv = document.createElement('div');
             msgDiv.classList.add('message', type === 'user' ? 'user-message' : 'ai-message');
             msgDiv.textContent = message;
             chatBody.appendChild(msgDiv);
-            chatBody.scrollTop = chatBody.scrollHeight; // Auto-scroll to bottom
+            chatBody.scrollTop = chatBody.scrollHeight;
         }
 
         async function sendMessage() {
             const message = userInput.value.trim();
-            if (!message || !messageID) {
-                // Instead of alert, could display a temporary message in UI
-                console.warn("Message or session ID is empty.");
-                return;
-            }
+            if (!message) return;
 
             appendMessage(message, 'user');
             userInput.value = '';
@@ -258,8 +230,9 @@
 
             try {
                 const formData = new FormData();
-                formData.append('topic', message);
-                formData.append('session_id', sessionID);
+                formData.append('user_id', "{{ $user_id ?? 1 }}");
+                formData.append('message_id', "{{ $session_id }}");
+                formData.append('input', message);
 
                 const response = await fetch('/chat', {
                     method: 'POST',
@@ -270,73 +243,45 @@
                 });
 
                 if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+                    throw new Error(`HTTP error! Status: ${response.status}`);
                 }
 
                 const data = await response.json();
                 appendMessage(data.response, 'ai');
             } catch (err) {
-                console.error('Error sending message:', err);
-                appendMessage(`[Error: ${err.message || 'Could not contact server or process response.'}]`, 'ai');
+                appendMessage(`[Error: ${err.message}]`, 'ai');
             } finally {
                 sendBtn.disabled = false;
                 spinner.style.display = 'none';
             }
         }
 
-        async function loadSession() {
-            messageID = sessionInput.value.trim();
-            if (!messageID) {
-                // Replaced alert with a console warning and a temporary UI message
-                console.warn("Please enter a session ID.");
-                chatBody.innerHTML = '<div class="message ai-message">Please enter a session ID to load history.</div>';
-                return;
-            }
-
-            chatBody.innerHTML = ''; // Clear existing messages
-            spinner.style.display = 'block';
-
-            try {
-                const response = await fetch(`/chat/history/${messageID}`);
-
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
-                }
-
-                const data = await response.json();
-                if (data.history && data.history.length > 0) {
-                    data.history.forEach(msg => {
-                        appendMessage(msg.content, msg.type === 'human' ? 'user' : 'ai');
-                    });
-                } else {
-                    appendMessage('[No chat history found for this session. Start a new conversation!]', 'ai');
-                }
-            } catch (err) {
-                console.error('Error loading chat history:', err);
-                appendMessage(`[Failed to load chat history: ${err.message || 'Server error.'}]`, 'ai');
-            } finally {
-                spinner.style.display = 'none';
-            }
-        }
-
-        // Event Listeners
         sendBtn.addEventListener('click', sendMessage);
         userInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) { // Send on Enter, allow Shift+Enter for new line
+            if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 sendMessage();
             }
         });
 
-        // Optionally, load a default session or prompt for one on page load
-        // window.onload = () => {
-        //     // You could set a default session ID here for testing
-        //     // sessionInput.value = 'default_session_id';
-        //     // loadSession();
-        // };
-    </script>
-</body>
+        (async function loadChat() {
+            spinner.style.display = 'block';
+            try {
+                const res = await fetch(`/chat/api/history/${sessionID}`);
+                const data = await res.json();
 
-</html>
+                if (data.conversation?.length) {
+                    data.conversation.forEach(msg => {
+                        appendMessage(msg.topic, msg.sender === 'human' ? 'user' : 'ai');
+                    });
+                } else {
+                    appendMessage('[No previous messages. Start chatting!]', 'ai');
+                }
+            } catch (err) {
+                appendMessage(`[Could not load history: ${err.message}]`, 'ai');
+            } finally {
+                spinner.style.display = 'none';
+            }
+        })();
+    </script>
+@endsection

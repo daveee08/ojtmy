@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, Form, HTTPException
+from fastapi import FastAPI, APIRouter, Form, HTTPException, Depends
 from fastapi.responses import JSONResponse
 from langchain_community.llms import Ollama
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
@@ -14,13 +14,49 @@ chat_router = FastAPI(debug=True)
 
 # ====================== LangChain Setup ======================
 
+# chat_prompt = ChatPromptTemplate.from_messages([
+#     ("system", "You are a helpful assistant. Keep responses clear and concise."),
+#     MessagesPlaceholder(variable_name="history"),
+#     ("human", "{topic}")
+# ])
+
+
+from pydantic import BaseModel
+
+# ====================== Pydantic Setup ======================
+
+class ChatRequest(BaseModel):
+    agent_system_prompt: str
+    topic: str
+    user_id: int
+    db_message_id: int
+    context: str 
+    
+    @classmethod
+    def as_form(
+        cls,
+        agent_system_prompt: str = Form(...),
+        topic: str = Form(...),
+        user_id: int = Form(...),
+        db_message_id: int = Form(...),
+        context: str = Form(...)
+    ):
+        return cls(
+            agent_system_prompt=agent_system_prompt,
+            topic=topic,
+            user_id=user_id,
+            db_message_id=db_message_id,
+            context=context
+        )
+
+
 chat_prompt = ChatPromptTemplate.from_messages([
-    ("system", "You are a helpful assistant. Keep responses clear and concise."),
+    ("system", "{agent_system_prompt}"),
     MessagesPlaceholder(variable_name="history"),
-    ("human", "{topic}")
+    ("human", "{topic} context: {context}"),
 ])
 
-model = Ollama(model="gemma3:1b")
+model = Ollama(model="mistral:7b-instruct")
 chat_chain: Runnable = chat_prompt | model
 
 # ====================== DB Message History ======================
@@ -89,24 +125,28 @@ chat_with_memory = RunnableWithMessageHistory(
 
 # ====================== Endpoint ======================
 
+
+
 @chat_router.post("/chat_with_history")
 async def chat_with_history_api(
-    topic: str = Form(...),
-    user_id: int = Form(...),
-    db_message_id: int = Form(...)
+    data: ChatRequest = Depends(ChatRequest.as_form)
 ):
     try:
-        print("[DEBUG] user_id:", user_id)
-        print("[DEBUG] db_message_id:", db_message_id)
-        print("[DEBUG] topic:", topic)
+        print("[DEBUG] user_id:", data.user_id)
+        print("[DEBUG] db_message_id:", data.db_message_id)
+        print("[DEBUG] topic:", data.topic)
 
         # Use colon-encoded session_id
-        session_key = f"{user_id}:{db_message_id}"
+        session_key = f"{data.user_id}:{data.db_message_id}"
 
         result = await chat_with_memory.ainvoke(
-            {"topic": topic},
+            {
+            "topic": data.topic,
+            "agent_system_prompt": data.agent_system_prompt,
+            "context": data.context,
+            },
             config={"configurable": {
-                "session_id": session_key
+            "session_id": session_key
             }}
         )
 

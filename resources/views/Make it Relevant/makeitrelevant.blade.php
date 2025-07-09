@@ -1,16 +1,15 @@
-@extends('layouts.bootstrap')
-@extends('layouts.historysidenav')
-@extends('layouts.header')
+<!DOCTYPE html>
+<html lang="en">
 
-{{-- This section will inject the title into the <title> tag in your layout --}}
-
-@section('title', 'AI Text Leveler')
-
-{{-- This section will inject the CSS into the @yield('styles') in your layout --}}
-@section('styles')
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Make it Relevant!</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous" />
     <style>
         body {
-            background: white;
+            background: linear-gradient(135deg, #f0f2f5, #ffffff);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             color: #2c3e50;
             min-height: 100vh;
@@ -24,7 +23,6 @@
             background: white;
             max-width: 700px;
             width: 100%;
-            margin-top: 50px;
             padding: 2.5rem 3rem;
             border-radius: 12px;
         }
@@ -94,20 +92,15 @@
             margin-bottom: 1.8rem;
         }
 
-        #adaptive_content {
-            background-color: #ffffff !important;
-            color: #2c3e50;
-        }
-
         .spinner-border.text-pink {
             color: #EC298B;
         }
     </style>
-@endsection
+</head>
 
-@section('content')
+<body>
     <div class="container">
-        <h2>AI Text Leveler</h2>
+        <h2>Make it Relevant!</h2>
 
         @if ($errors->any())
             <div class="alert alert-danger">
@@ -115,26 +108,26 @@
             </div>
         @endif
 
-        <form id="levelerForm" method="POST" action="/leveler" enctype="multipart/form-data">
+        <form id="relevanceForm" method="POST" action="/makeitrelevant" enctype="multipart/form-data">
             @csrf
 
             <div class="mb-4">
                 <label for="input_type" class="form-label">Select Input Type</label>
                 <select class="form-select" id="input_type" name="input_type" required onchange="toggleInputFields()">
                     <option value="" disabled selected>Choose input method</option>
-                    <option value="topic">Text</option>
+                    <option value="text">Text</option>
                     <option value="pdf">PDF</option>
                 </select>
             </div>
 
             <div class="mb-4" id="text_input_group" style="display: none;">
-                <label for="topic" class="form-label">Enter Text</label>
-                <textarea class="form-control" id="topic" name="topic" rows="6"
-                    placeholder="Paste or type text here if you're not uploading a PDF..."></textarea>
+                <label for="learning_topic" class="form-label">What You're Learning</label>
+                <textarea class="form-control" id="learning_topic" name="learning_topic" rows="5"
+                    placeholder="Type or paste what you're currently learning (topic, standard, or description)..."></textarea>
             </div>
 
             <div class="mb-4" id="pdf_input_group" style="display: none;">
-                <label for="pdf" class="form-label">Upload PDF</label>
+                <label for="pdf_file" class="form-label">Upload Learning Material (PDF)</label>
                 <input type="file" class="form-control" id="pdf_file" name="pdf_file" accept="application/pdf" />
             </div>
 
@@ -143,47 +136,55 @@
                 <select class="form-select" id="grade_level" name="grade_level" required>
                     <option value="" disabled selected>Select grade level</option>
                     <option value="kinder">Kindergarten</option>
-                    <option value="elementary">Elementary</option>
-                    <option value="middle">Middle School</option>
-                    <option value="high">High School</option>
+                    <option value="grade 1">Grade 1</option>
+                    <option value="grade 2">Grade 2</option>
+                    <option value="grade 3">Grade 3</option>
+                    <option value="grade 4">Grade 4</option>
+                    <option value="grade 5">Grade 5</option>
+                    <option value="grade 6">Grade 6</option>
+                    <option value="grade 7">Grade 7</option>
+                    <option value="grade 8">Grade 8</option>
+                    <option value="grade 9">Grade 9</option>
+                    <option value="grade 10">Grade 10</option>
+                    <option value="grade 11">Grade 11</option>
+                    <option value="grade 12">Grade 12</option>
                     <option value="college">College</option>
+                </select>
                 </select>
             </div>
 
             <div class="mb-4">
-                <label for="learning_speed" class="form-label">Learning Type</label>
-                <select class="form-select" id="learning_speed" name="learning_speed" required>
-                    <option value="" disabled selected>Select learning speed</option>
-                    <option value="slow">Slow Learner</option>
-                    <option value="average">Average Learner</option>
-                    <option value="fast">Fast Learner</option>
-                </select>
+                <label for="interests" class="form-label">Describe Your Interests</label>
+                <textarea class="form-control" id="interests" name="interests" rows="4"
+                    placeholder="What are your hobbies, favorite topics, or things you love doing?"></textarea>
             </div>
 
             <div class="mb-4 text-center">
                 <button type="submit" class="btn btn-primary">Generate</button>
             </div>
         </form>
+
+        <div class="mb-4">
+            <label for="generate_output" class="form-label">Generated Connection</label>
+            <textarea id="generate_output" class="form-control" name="generate_output" rows="10" readonly>{{ $response ?? '' }}</textarea>
+        </div>
     </div>
 
-    {{-- The loading overlay should ideally be in the layout, but if it's specific to this page, keep it here --}}
     <div id="loading-overlay"
         style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background-color:rgba(255,255,255,0.8); z-index:9999; align-items:center; justify-content:center; flex-direction: column;">
         <div class="spinner-border text-pink" role="status" style="width: 3rem; height: 3rem;">
             <span class="visually-hidden">Loading...</span>
         </div>
-        <p class="mt-3 text-center fw-bold" style="color:#EC298B;">Generating your response...</p>
+        <p class="mt-3 text-center fw-bold" style="color:#EC298B;">Connecting your learning to your world...</p>
     </div>
-@endsection
 
-@section('scripts')
     <script>
         function toggleInputFields() {
             const mode = document.getElementById('input_type').value;
             const textGroup = document.getElementById('text_input_group');
             const pdfGroup = document.getElementById('pdf_input_group');
 
-            if (mode === 'topic') {
+            if (mode === 'text') {
                 textGroup.style.display = 'block';
                 pdfGroup.style.display = 'none';
             } else if (mode === 'pdf') {
@@ -195,10 +196,11 @@
             }
         }
 
-        // Show spinner on form submit
-        document.getElementById('levelerForm').addEventListener('submit', function() {
+        document.getElementById('relevanceForm').addEventListener('submit', function() {
             document.getElementById('loading-overlay').style.display = 'flex';
             this.querySelector('button[type="submit"]').disabled = true;
         });
     </script>
-@endsection
+</body>
+
+</html>

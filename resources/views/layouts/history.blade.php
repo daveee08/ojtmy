@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>@yield('title', 'CK AI Tools')</title>
-    @yield('styles')
+    <title>CK AI Tools</title>
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
@@ -82,7 +82,6 @@
         .sidebar a i {
             margin-right: 10px;
             font-size: 1.2rem;
-            transition: margin 0.3s ease, font-size 0.3s ease
         }
 
         .sidebar.collapsed a i {
@@ -102,10 +101,6 @@
         .sidebar.collapsed .link-text {
             opacity: 0;
             width: 0;
-        }
-
-        .sidebar:not(.collapsed) a[data-bs-toggle="tooltip"] .link-text {
-            pointer-events: none;
         }
 
         .content {
@@ -137,69 +132,63 @@
 
 <body>
 
-    <!-- Toggle Sidebar Button -->
     <button id="toggleSidebar">☰</button>
 
-    <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
-        <h2>CK AI Tools</h2>
-
-        <a href="{{ url('/tools') }}" data-bs-toggle="tooltip" title="Tools">
-            <i class="bi bi-tools"></i>
-            <span class="link-text">Tools</span>
-        </a>
-        <a href="{{ url('/') }}" data-bs-toggle="tooltip" title="Home">
-            <i class="bi bi-house-door"></i>
-            <span class="link-text">Home</span>
-        </a>
-        <a href="#tool-About" data-bs-toggle="tooltip" title="About">
-            <i class="bi bi-people"></i>
-            <span class="link-text">About</span>
-        </a>
-        <a href="#tool-Contact" data-bs-toggle="tooltip" title="Contact">
-            <i class="bi bi-envelope"></i>
-            <span class="link-text">Contact</span>
-
-            @auth
-                <form method="POST" action="{{ url('/logout') }}" style="margin-top: 30px;">
-                    @csrf
-                    <button type="submit" class="btn btn-link"
-                        style="color: #e91e63; text-decoration: none; font-weight: 600;">
-                        <span class="link-text">Logout</span>
-                    </button>
-                </form>
-            @else
-                <a href="{{ url('/login') }}" style="color: #e91e63; font-weight: 600;">
-                    <span class="link-text">Login</span>
-                </a>
-                <a href="{{ url('/register') }}" style="color: #e91e63; font-weight: 600;">
-                    <span class="link-text">Register</span>
-                </a>
-            @endauth
+        <h2>History</h2>
+        <div id="sessionList">
+            <!-- Session links will be injected here -->
+        </div>
     </div>
 
-    <!-- Content -->
-    <div class="content" id="mainContent">
-        @yield('content')
-    </div>
-
-    <!-- Scripts -->
     <script>
         const toggleBtn = document.getElementById("toggleSidebar");
         const sidebar = document.getElementById("sidebar");
-        const content = document.getElementById("mainContent");
+        const content = document.querySelector(".content");
+        const sessionList = document.getElementById("sessionList");
 
         toggleBtn.addEventListener("click", () => {
             sidebar.classList.toggle("collapsed");
-            content.classList.toggle("expanded");
+            if (content) {
+                content.classList.toggle("expanded");
+            }
         });
 
-        const tooltipTriggerlist = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        tooltipTriggerlist.forEach(el => {
-            new bootstrap.Tooltip(el, {});
-        })
-    </script>
+        // Replace with actual logged-in user ID and agent ID
+        const userId = {{ Auth::id() ?? 1 }};
+        const agentId = {{ $agentId }}; // Replace with the actual agent_id for the translator
 
+        const formData = new FormData();
+        formData.append('user_id', userId);
+        formData.append('agent_id', agentId);
+
+        fetch('http://192.168.50.10:8013/chat/messages', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            sessionList.innerHTML = '';
+            if (!data.messages || data.messages.length === 0) {
+                sessionList.innerHTML = '<p>No sessions yet.</p>';
+            } else {
+                data.messages.forEach(msg => {
+                    const link = document.createElement('a');
+                    link.href = `/translator/conversation/${msg.message_id}`; // Or adjust to your route
+                    link.innerHTML = `
+                        <i class="bi bi-chat-dots"></i>
+                        <span class="link-text">Session ${msg.message_id}</span>
+                    `;
+                    sessionList.appendChild(link);
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching sessions:', error);
+            sessionList.innerHTML = '<p>Error loading sessions.</p>';
+        });
+
+    </script>
 </body>
 
 </html>

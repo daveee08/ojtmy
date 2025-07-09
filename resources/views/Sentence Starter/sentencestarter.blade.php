@@ -54,7 +54,7 @@
 
                 <div class="mb-3">
                     <label for="topic" class="form-label">Describe what you're learning about (be specific):</label>
-                    <textarea class="form-control" name="topic" id="topic" rows="4" required>{{ old('topic', $old['topic'] ?? '') }}</textarea>
+                   <textarea class="form-control" name="topic" id="topic" rows="4" required>{{ old('topic', $old['topic'] ?? '') }}</textarea>
                 </div>
 
                 <div class="d-grid d-md-flex justify-content-md-end">
@@ -65,11 +65,11 @@
                 </div>
             </form>
              {{-- ---------------- Output ---------------- --}}   
-            @if(isset($output) && count($output))
-                <div class="mt-5">
-                    <h5 class="text-highlight">Sentence Starters:</h5>
-                    <ul class="mb-0">
-                        @foreach($output as $sentence)
+            @if(isset($sentence_starters) && is_array($sentence_starters) && count($sentence_starters))
+    <div class="mt-5">
+        <h5 class="text-highlight">Sentence Starters:</h5>
+
+        @foreach($sentence_starters as $sentence)
             <div class="d-flex justify-content-between align-items-start bg-light p-3 mb-3 rounded shadow-sm position-relative border border-1">
                 <p class="mb-0 me-3 flex-grow-1" style="word-break: break-word;">{{ $sentence }}</p>
                 <button onclick="copyToClipboard(this)" class="btn btn-sm btn-outline-secondary" title="Copy">
@@ -77,8 +77,22 @@
                 </button>
             </div>
         @endforeach
+
+        {{-- One Follow-Up Box --}}
+        <form action="{{ route('sentencestarter.followup') }}" method="POST" class="mt-4">
+            @csrf
+            <input type="hidden" name="message_id" value="{{ $message_id ?? '' }}">
+            <input type="hidden" name="grade_level" value="{{ old('grade_level', $old['grade_level'] ?? 'college') }}">
+
+            <label for="followup" class="form-label">Ask a follow-up question about the topic or one of the starters:</label>
+            <div class="input-group">
+                <input type="text" name="followup" id="followup" class="form-control" placeholder="Enter your follow-up question here..." required>
+                <button type="submit" class="btn btn-outline-primary">Ask</button>
+            </div>
+        </form>
     </div>
 @endif
+
             {{-- ---------------- Error ---------------- --}}
             @if($errors->has('error'))
                 <div class="alert alert-danger mt-4">

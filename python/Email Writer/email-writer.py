@@ -1,16 +1,141 @@
+# from fastapi import FastAPI, Form
+# from fastapi.middleware.cors import CORSMiddleware
+# from langchain_ollama import OllamaLLM as Ollama
+# from langchain_core.chat_history import BaseChatMessageHistory
+# from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
+# from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+# from langchain_core.runnables import RunnableWithMessageHistory, ConfigurableFieldSpec
+# from pydantic import BaseModel
+# from typing import List
+
+# app = FastAPI()
+
+# # CORS setup for Laravel frontend
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=["*"],  # For development; restrict for prod
+#     allow_methods=["*"],
+#     allow_headers=["*"],
+# )
+
+# # --- In-Memory Chat Store ---
+# class InMemoryHistory(BaseChatMessageHistory, BaseModel):
+#     messages: List[BaseMessage] = []
+
+#     def add_messages(self, messages: List[BaseMessage]) -> None:
+#         self.messages.extend(messages)
+
+#     def clear(self) -> None:
+#         self.messages = []
+
+# store = {}
+# def get_by_session_id(session_id: str) -> BaseChatMessageHistory:
+#     if session_id not in store:
+#         store[session_id] = InMemoryHistory()
+#     return store[session_id]
+
+# # --- Prompt + Chain ---
+# prompt = ChatPromptTemplate.from_messages([
+#     ("system", "You are a helpful and professional email writing assistant. Respond politely, and make edits or generate emails."),
+#     MessagesPlaceholder(variable_name="messages")
+# ])
+
+# llm = Ollama(model="gemma3:4b")
+
+# chat_chain = RunnableWithMessageHistory(
+#     prompt | llm,
+#     get_by_session_id,
+#     input_messages_key="messages",
+#     history_messages_key="messages"
+# ).with_configurable_fields(configurable_fields={
+#     "session_id": ConfigurableFieldSpec(id="session_id", annotation=str, default="default-session")
+# })
+
+# # --- Email Writer (original) ---
+# @app.post("/generate-email")
+# async def generate_email(content: str = Form(...)):
+#     prompt_text = f"""
+# You are an expert at writing professional and polite emails.
+
+# Your task is to generate a formal, respectful email using the user's input.
+
+# Details:
+# {content}
+
+# Write an email that:
+# - Has a clear subject
+# - Starts with a greeting
+# - Explains the situation clearly
+# - Ends with a polite closing
+
+# Return only the email text. No notes or explanations.
+# """
+#     result = Ollama(model="gemma3:4b").invoke(prompt_text.strip())
+#     return {"email": result.strip()}
+
+# # --- Chat Follow-up Endpoint ---
+# @app.post("/chat")
+# async def continue_chat(content: str = Form(...), session_id: str = Form(default="default-session")):
+#     history = get_by_session_id(session_id)
+#     user_msg = HumanMessage(content=content)
+#     full_response = chat_chain.invoke(
+#         {"messages": history.messages + [user_msg]},
+#         config={"configurable": {"session_id": session_id}}
+#     )
+#     return {"response": full_response.content}
+
+
+# from fastapi import FastAPI, Form
+# from fastapi.middleware.cors import CORSMiddleware
+# from langchain_ollama import OllamaLLM as Ollama
+# from langchain.prompts import PromptTemplate
+
+# app = FastAPI()
+
+# # Enable CORS for frontend (like Laravel)
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=["*"],  # OK for local dev
+#     allow_methods=["*"],
+#     allow_headers=["*"],
+# )
+
+# @app.post("/generate-email")
+# async def generate_email(content: str = Form(...)):
+#     prompt_template = """
+# You are an expert at writing professional and polite emails.
+
+# Your task is to generate a formal, respectful email using the user's input.
+
+# Details:
+# {content}
+
+# Write an email that:
+# - Has a clear subject
+# - Starts with a greeting
+# - Explains the situation clearly
+# - Ends with a polite closing
+
+# Return only the email text. No notes or explanations.
+# """
+#     prompt = PromptTemplate.from_template(prompt_template)
+#     llm = Ollama(model="gemma3:4b")  # Match your model
+#     chain = prompt | llm
+#     result = chain.invoke({"content": content.strip()})
+#     return {"email": result.strip()}
+
 from fastapi import FastAPI, Form, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from langchain_ollama import OllamaLLM as Ollama
 from langchain.prompts import PromptTemplate
 from langchain_community.document_loaders import PyPDFLoader
 import tempfile, os
-import httpx
 
 app = FastAPI()
 
 # Enable CORS for frontend (like Laravel)
 app.add_middleware(
-    CORSMiddleware, 
+    CORSMiddleware,
     allow_origins=["*"],  # OK for local dev
     allow_methods=["*"],
     allow_headers=["*"],
@@ -46,36 +171,9 @@ Important:
     return {"email": result.strip()}
 
 # ------------------- Summarizer -------------------
-from fastapi import FastAPI, UploadFile, Form, HTTPException, Request, Depends, File
-from fastapi.responses import JSONResponse
-from pydantic import BaseModel
-import tempfile, traceback, os, re
-from typing import Optional
-from langchain_core.prompts import PromptTemplate
-from langchain_ollama import OllamaLLM as Ollama
-from langchain_community.document_loaders import PyPDFLoader
-
-app = FastAPI(debug=True)
-
-# ==================== Pydantic Model ====================
-
-class SummarizerRequest(BaseModel):
-    summary_instructions: str
-    text: Optional[str] = ""
-    mode: Optional[str] = "manual"
-
-    @classmethod
-    def as_form(
-        cls,
-        summary_instructions: str = Form(...),
-        text: str = Form(""),
-        mode: str = Form("manual")
-    ):
-        return cls(summary_instructions=summary_instructions, text=text, mode=mode)
-
-# ==================== Prompt + LLM Setup ====================
-
-summary_template = """
+def summarize_text(text: str, conditions: str) -> str:
+    clean_text = " ".join(text.strip().replace("\n", " ").replace("\r", "").split())[:3000]
+    prompt_template = """
 You are an intelligent and precise summarization assistant.
 
 Your task is to summarize the following content based on the user's exact instructions.
@@ -96,153 +194,130 @@ Important:
 
 Now generate the summary below:
 """
-
-prompt = PromptTemplate.from_template(summary_template)
-model = Ollama(model="gemma3:4b")
-
-# ==================== Helpers ====================
-
-def clean_text(text: str) -> str:
-    return " ".join(text.strip().replace("\n", " ").replace("\r", "").split())[:3000]
-
-def clean_output(text: str) -> str:
-    text = re.sub(r"\*\*(.*?)\*\*", r"\1", text)
-    text = re.sub(r"\*(.*?)\*", r"\1", text)
-    text = re.sub(r"^\s*[\*\-]\s*", "- ", text, flags=re.MULTILINE)
-    return text.strip()
-
-def extract_text_from_pdf(file: UploadFile) -> str:
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
-        tmp.write(file.file.read())
-        tmp_path = tmp.name
-    loader = PyPDFLoader(tmp_path)
-    pages = loader.load()
-    os.remove(tmp_path)
-    return "\n".join([page.page_content for page in pages])
-
-# ==================== Route ====================
+    prompt = PromptTemplate.from_template(prompt_template)
+    llm = Ollama(model="gemma3:1b") 
+    chain = prompt | llm
+    result = chain.invoke({"text": clean_text, "conditions": conditions})
+    return result.strip()
 
 @app.post("/summarize")
 async def summarize(
-    data: SummarizerRequest = Depends(SummarizerRequest.as_form),
-    pdf: Optional[UploadFile] = File(None),
-    request: Request = None
+    conditions: str = Form(...),
+    text: str = Form(""),
+    pdf: UploadFile = File(None)
 ):
-    try:
-        content = data.text.strip()
+    if pdf and pdf.filename and pdf.content_type == "application/pdf":
+        contents = await pdf.read()
+        if contents:
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+                tmp.write(contents)
+                tmp_path = tmp.name
 
-        if pdf and pdf.filename:
-            content = extract_text_from_pdf(pdf)
+            loader = PyPDFLoader(tmp_path)
+            pages = loader.load()
+            os.remove(tmp_path)
+            text = "\n".join([page.page_content for page in pages])
 
-        if not content:
-            return {"summary": "No valid text provided."}
+    if not text.strip():
+        return {"summary": "No valid text provided."}
 
-        user_input = {
-            "text": clean_text(content),
-            "conditions": data.summary_instructions
-        }
-
-        if data.mode =="chat":
-            async with httpx.AsyncClient(timeout=None) as client:
-                form_data = {
-                    "topic": data.text,
-                    # "history": data.history,
-                    "user_id": str(data.user_id),
-                    "db_message_id": int(data.message_id),
-                }
-                chat_url = "http://192.168.50.10:8001/chat_with_history"
-                try:
-                    print("[DEBUG] Sending chat request:", form_data, flush=True)
-                    resp = await client.post(chat_url, data=form_data)
-                    print("[DEBUG] Response status:", resp.status_code, flush=True)
-                    print("[DEBUG] Response body:", await resp.aread(), flush=True)
-                except Exception as e:
-                    import traceback
-                    print("[ERROR] Failed to contact chat_url", flush=True)
-                    print(traceback.format_exc(), flush=True)
-                    raise
-
-                resp.raise_for_status()
-                result = resp.json()
-                output = result.get("response", "No output")
-
-        else:
-            chain = prompt | model
-            result = chain.invoke(user_input)
-
-            return {"summary": clean_output(result)}
-
-    except Exception as e:
-        return JSONResponse(
-            status_code=500,
-            content={"detail": str(e), "trace": traceback.format_exc()}
-        )
+    summary = summarize_text(text, conditions)
+    return {"summary": summary}
 
 # ------------------- Thank You Note Generator -------------------
-# 🔍 Tone Detection Helper
-def detect_tone(reason: str) -> str:
-    reason_lower = reason.lower()
-    if any(w in reason_lower for w in ["crayon", "blocks", "snack", "story", "game", "coloring", "stickers", "play"]):
-        return "child"
-    elif any(w in reason_lower for w in ["project", "science", "essay", "math", "presentation", "exam", "class"]):
-        return "student"
-    elif any(w in reason_lower for w in ["client", "proposal", "review", "feedback", "deadline", "meeting", "support"]):
-        return "professional"
-    elif len(reason.split()) <= 6:
-        return "casual"
-    return "neutral"
+import re
+def is_childlike_input(reason: str) -> bool:
+    reason = reason.strip()
+    words = reason.split()
 
-# 🧽 Output Cleaner Helper
-def clean_output(text: str, tone_hint: str) -> str:
+    # Case 1: Very short message + known playful misspellings
+    if len(words) <= 6:
+        if re.search(r"\b(tank|yu|yur|beri|gud|sooo|plai|luv|hap|fun+|wanna)\b", reason.lower()):
+            return True
+
+    # Case 2: Repeated letters (e.g., "sooo", "yayyyy", "funnnn")
+    if re.search(r"(.)\1{2,}", reason.lower()):
+        return True
+
+    # Case 3: Multiple emojis or exclamations
+    if reason.count("!") >= 2 or any(e in reason for e in [":)", "❤️", "💖", "😁"]):
+        return True
+
+    # Case 4: All lowercase + no punctuation + short = likely informal
+    if reason.islower() and len(words) <= 8 and not re.search(r"[.?!]", reason):
+        return True
+
+    return False
+
+# -------------------------------------------------------
+# 🧽 Clean up formal closings if they feel inappropriate
+# -------------------------------------------------------
+def clean_output(text: str) -> str:
     closings = ["Best regards", "Sincerely", "Kind regards", "Warm wishes", "With appreciation"]
-    if tone_hint in ["child", "casual", "student"]:
-        for phrase in closings:
-            if phrase in text:
-                text = text.replace(phrase, "").strip()
+    for phrase in closings:
+        if phrase in text:
+            text = text.replace(phrase, "").strip()
     return text
 
-# 🚀 Main Route
+# ----------------------------------------------------------------
+# 🚀 Main Route: LLM writes thank-you note with inferred tone/age
+# ----------------------------------------------------------------
 @app.post("/generate-thankyou")
 async def generate_thank_you(reason: str = Form(...)):
-    tone_hint = detect_tone(reason)
+    if not reason.strip():
+        return {"thank_you_note": "Please enter a valid message."}
 
+    # Soft tone guidance (invisible to user)
+    if is_childlike_input(reason):
+        reason += " (This message seems to be written by a young child with playful or informal spelling)"
+
+    # Prompt that tells the LLM to do age and tone inference
     prompt_template = """
 You are a thoughtful assistant who writes thank-you notes for users of all ages — from young children to working professionals.
 
-Your task is to write a thank-you note that matches the user's age and tone as best as possible based only on what they wrote.
+Your task is to read the user's message and infer their likely age group (such as child, student, or professional) based solely on the way they wrote their message — their vocabulary, spelling, punctuation, tone, sentence structure, and emotional expression.
+
+Then, write a thank-you note that:
+- Matches the user's likely age and tone
+- Uses simple, cheerful language if they sound like a child
+- Uses clear and polite language for students or casual users
+- Uses polished and respectful tone for professionals
+- Mentions only what is clearly stated or implied
+- Ends with a natural and emotionally fitting closing
+- Only mention what is explicitly stated. Do not assume how items were used unless clearly described.
+- Read and interpret the user's message as a human would — including spelling variations, playful grammar, or childlike phrasing — and infer their age group based on how it’s written.
+
+
+Rules:
+- DO NOT include made-up names, sender names, or signature lines
+- DO NOT assume or invent extra context, relationships, or events
+- DO NOT reference places, times, or actions not present in the input
+- DO NOT include overly formal closings like “Best regards” unless truly appropriate
+- Return ONLY the thank-you message — no labels, commentary, or metadata
+- DO NOT assume the purpose or use of anything (e.g., what the paper was for) unless explicitly stated
+- The user’s message may contain phonetic or childlike spelling 
+- You are expected to interpret these as natural human expressions and rewrite them clearly and correctly in the thank-you note.
+- Preserve names or references even if they appear noisy or misspelled.
+- Focus on understanding what the user meant, not just what they typed.
+
+
 
 Reason for thanks:
 {reason}
-
-Tone hint (inferred): {tone_hint}
-
-Write a thank-you note that:
-- Uses tone, sentence structure, and vocabulary appropriate for the user's likely age or level, based only on the language of the reason
-- Expresses genuine appreciation in a clear, kind, and natural way
-- Mentions only what is directly included or implied in the reason
-- Ends with a warm and suitable closing
-
-Rules:
-- Do NOT include made-up names, sender names, or signature lines
-- Do NOT assume or invent extra context, events, relationships, or scenarios
-- Do NOT refer to time, places, or actions unless they are clearly stated in the input
-- Keep the message short and age-appropriate
-- Return only the thank-you note text — no explanations, no formatting, no labels
-- If the user sounds like a child, end the note with a cheerful, friendly phrase that a child might naturally say (like “Thanks again!” or “You’re awesome!”)
-- If the user sounds like an adult, end the note with a more formal closing only if the tone is clearly professional
 """
 
-    prompt = PromptTemplate.from_template(prompt_template)
-    llm = Ollama(model="gemma3:4b")
-    chain = prompt | llm
+    try:
+        # Generate the thank-you note
+        prompt = PromptTemplate.from_template(prompt_template)
+        llm = Ollama(model="gemma3:4b")
+        chain = prompt | llm
+        result = chain.invoke({"reason": reason.strip()})
 
-    result = chain.invoke({
-        "reason": reason.strip(),
-        "tone_hint": tone_hint
-    })
+        final_note = clean_output(result.strip())
+        return {"thank_you_note": final_note}
 
-    final_note = clean_output(result.strip(), tone_hint)
-    return {"thank_you_note": final_note}
+    except Exception as e:
+        return {"thank_you_note": f"Error generating note: {str(e)}"}
 
 # ------------------- Idea Generator -------------------
 @app.post("/generate-idea")
@@ -277,7 +352,7 @@ Only return the list of ideas using the specified format.
     return {"idea": result.strip()}
 
 # ------------------- Content Creator -------------------
-@app.post("/contentcreator")
+@app.post("/generate-contentcreator")
 async def generate_contentcreator(
     grade_level: str = Form(...),
     length: str = Form(...),
@@ -285,33 +360,40 @@ async def generate_contentcreator(
     extra: str = Form("")
 ):
     full_prompt = f"""
-You are a helpful educational content writer.
+You are a creative and helpful content assistant.
 
-Your task is to write general content for a user who is in {grade_level}.
-Make sure the tone and language matches the cognitive understanding of that grade level.
+Generate educational or engaging content based on the user's request. The content should match this grade level: {grade_level}
 
-Topic:
+Prompt:
 {prompt}
 
-Additional Instructions:
+Additional Instruction:
 {extra}
 
-Content Length:
-{length}
+Length requested: {length}
 
-Write clearly and accurately.
+Guidelines:
+- Keep the tone clear, human, and helpful.
+- Match the length closely (e.g., 1 paragraph, 2 paragraphs, 1 page, etc.)
+- At the end, also write a catchy social media caption based on the generated content.
+
+Output format:
+CONTENT:
+[full content here]
+
+CAPTION:
+[social media caption here]
 """
+    llm = Ollama(model="gemma3:4b")
+    prompt_template = PromptTemplate.from_template(full_prompt)
+    chain = prompt_template | llm
+    result = chain.invoke({})
 
-    try:
-        llm = Ollama(model="gemma3:4b")
-        prompt_template = PromptTemplate.from_template(full_prompt)
-        chain = prompt_template | llm
-        result = chain.invoke({})
+    sections = result.strip().split("CAPTION:")
+    content = sections[0].replace("CONTENT:", "").strip()
+    caption = sections[1].strip() if len(sections) > 1 else ""
 
-        return {
-            "content": result.strip()
-        }
-    except Exception as e:
-        return {
-            "error": f"Generation failed: {str(e)}"
-        }
+    return {
+        "content": content,
+        "caption": caption
+    }

@@ -222,10 +222,11 @@ Important:
         )
     return {"email": result.strip(), "message_id": session_id}
 
+
+
 # ------------------- Summarizer -------------------
-def summarize_text(text: str, conditions: str) -> str:
-    clean_text = " ".join(text.strip().replace("\n", " ").replace("\r", "").split())[:3000]
-    prompt_template = """
+
+summarize_prompt_template = """
 You are an intelligent and precise summarization assistant.
 
 Your task is to summarize the following content based on the user's exact instructions.
@@ -246,18 +247,40 @@ Important:
 
 Now generate the summary below:
 """
-    prompt = PromptTemplate.from_template(prompt_template)
+def summarize_text(text: str, conditions: str) -> str:
+    clean_text = " ".join(text.strip().replace("\n", " ").replace("\r", "").split())[:3000]
+    
+    prompt = PromptTemplate.from_template(summarize_prompt_template)
     llm = Ollama(model="gemma3:1b") 
     chain = prompt | llm
     result = chain.invoke({"text": clean_text, "conditions": conditions})
     return result.strip()
 
+class SummarizeInput(BaseModel):
+    conditions: str
+    text: str
+    user_id: int
+    message_id: Optional[int] = None
+    # agent_id: int = 16  # Default agent_id for step tutor
+
+    @classmethod
+    def as_form(
+        cls,
+        conditions: str = Form(...),
+        text: str = Form(...),
+        user_id: int = Form(...),
+        message_id: Optional[int] = Form(None)
+    ):
+        return cls(
+            conditions=conditions,
+            text=text,
+            user_id=user_id,
+            message_id=message_id
+        )
+
 @app.post("/summarize")
-async def summarize(
-    conditions: str = Form(...),
-    text: str = Form(""),
-    pdf: UploadFile = File(None)
-):
+async def summarize(data: SummarizeInput = Depends(SummarizeInput.as_form),
+                    pdf: UploadFile = File(None) ):
     if pdf and pdf.filename and pdf.content_type == "application/pdf":
         contents = await pdf.read()
         if contents:
@@ -268,13 +291,28 @@ async def summarize(
             loader = PyPDFLoader(tmp_path)
             pages = loader.load()
             os.remove(tmp_path)
-            text = "\n".join([page.page_content for page in pages])
+            data.text = "\n".join([page.page_content for page in pages])
 
-    if not text.strip():
+    if not data.text.strip():
         return {"summary": "No valid text provided."}
+    
+    summary = summarize_text(data.text, data.conditions)
 
-    summary = summarize_text(text, conditions)
-    return {"summary": summary}
+    scope_vars = {
+            "conditions": data.conditions,
+        }
+    filled_prompt = summarize_prompt_template.format(text=data.text.strip(), conditions=data.conditions.strip())
+    session_id = create_session_and_parameter_inputs(
+            user_id=data.user_id,
+            agent_id=4,
+            scope_vars=scope_vars,
+            human_topic=data.text,
+            ai_output=summary,
+            agent_prompt=filled_prompt
+        )
+
+
+    return {"summary": summary, "message_id": session_id}
 
 # ------------------- Thank You Note Generator -------------------
 import re

@@ -50,7 +50,7 @@ class AgentParametersTableSeeder extends Seeder
             ],
             [
                 'agent_id' => $summarizerId,
-                'parameter' => 'Summary Instructions',
+                'parameter' => 'conditions',
                 'parameter_value' => '',
                 'created_at' => now(),
                 'updated_at' => now(),

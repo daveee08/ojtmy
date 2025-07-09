@@ -10,15 +10,15 @@ def get_db_connection():
         database="ck_agent"
     )
 
-def insert_message(cursor, user_id, agent_id, session_id, parameter_inputs_id, sender, topic):
+def insert_message(cursor, user_id, agent_id, session_id, parameter_inputs_id, sender, topic, agent_prompt_id):
     cursor.execute(
         """
-        INSERT INTO messages (user_id, agent_id, message_id, parameter_inputs, sender, topic, created_at, updated_at)
-        VALUES (%s, %s, %s, %s, %s, %s, NOW(), NOW())
+        INSERT INTO messages (user_id, agent_id, message_id, parameter_inputs, sender, topic, created_at, updated_at, agent_prompt_id)
+        VALUES (%s, %s, %s, %s, %s, %s, NOW(), NOW(), %s)
         """,
-        (user_id, agent_id, session_id, parameter_inputs_id, sender, topic)
+        (user_id, agent_id, session_id, parameter_inputs_id, sender, topic, agent_prompt_id)
     )
-def create_session_and_parameter_inputs(user_id, agent_id, scope_vars, human_topic, ai_output):
+def create_session_and_parameter_inputs(user_id, agent_id, scope_vars, human_topic, ai_output, agent_prompt):
     db = get_db_connection()
     cursor = db.cursor()
 
@@ -46,6 +46,18 @@ def create_session_and_parameter_inputs(user_id, agent_id, scope_vars, human_top
             raise Exception("No parameter_reference found for this agent.")
         parameter_id = param[0]
 
+        #step 4.5 insert orignal agent prompt for referencing the original agent prompt
+
+        cursor.execute(
+            """
+            INSERT INTO agent_prompts (agent_id, prompt, created_at, updated_at)
+            VALUES (%s, %s, NOW(), NOW())
+            """,
+            (agent_id, agent_prompt)
+        )
+
+        agent_prompt_id = cursor.lastrowid
+
         # 🔹 Step 5: Insert into parameter_inputs with message_id (aka session_id)
         cursor.execute(
             """
@@ -57,8 +69,8 @@ def create_session_and_parameter_inputs(user_id, agent_id, scope_vars, human_top
         parameter_inputs_id = cursor.lastrowid
 
         # 🔹 Step 6: Insert both human and AI messages
-        insert_message(cursor, user_id, agent_id, session_id, parameter_inputs_id, "human", human_topic)
-        insert_message(cursor, user_id, agent_id, session_id, parameter_inputs_id, "ai", ai_output)
+        insert_message(cursor, user_id, agent_id, session_id, parameter_inputs_id, "human", human_topic, agent_prompt_id)
+        insert_message(cursor, user_id, agent_id, session_id, parameter_inputs_id, "ai", ai_output, agent_prompt_id)
 
         db.commit()
         return session_id

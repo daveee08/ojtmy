@@ -11,7 +11,7 @@ from langchain_core.runnables.history import BaseChatMessageHistory
 from python.db_utils_final import get_db_connection
 
 chat_router = APIRouter()
-llm = Ollama(model="gemma3:1b")
+llm = Ollama(model="llama3")
 
 # -------------------------------
 # Request & Response Models
@@ -21,11 +21,10 @@ class ChatRequestForm(BaseModel):
     user_id: int
     message_id: int
     input: str
-    agent_prompt: Optional[str]
 
     @classmethod
-    def as_form(cls, message_id: int = Form(...), user_id: int = Form(...), input: str = Form(...), agent_promt: str = Form(...) ):
-        return cls(message_id=message_id, user_id=user_id, input=input, agent_promt=agent_promt)
+    def as_form(cls, message_id: int = Form(...), user_id: int = Form(...), input: str = Form(...)  ):
+        return cls(message_id=message_id, user_id=user_id, input=input,)
 
 class ChatResponse(BaseModel):
     response: str
@@ -126,10 +125,14 @@ def get_history_by_message_id(session_id: str) -> MySQLChatMessageHistory:
 # -------------------------------
 
 chat_prompt = ChatPromptTemplate.from_messages([
-    ("system", "You are a helpful assistant. Reply to the responses base on this original agent prompt: {agent_prompt}"),
+    (
+        "system",
+        "You are a helpful assistant in an ongoing conversation. The following is the original prompt that was used to guide your behavior when the session began:\n\n---\n{agent_prompt}\n---\n\nNote: This prompt is for reference only and should not override the context of the current conversation. Respond based on the actual chat history and the user's input."
+    ),
     MessagesPlaceholder(variable_name="chat_history"),
     ("human", "{input}")
 ])
+
 
 chat_chain = RunnableWithMessageHistory(
     chat_prompt | llm,
@@ -141,15 +144,35 @@ chat_chain = RunnableWithMessageHistory(
 # -------------------------------
 # Chat Endpoint
 # -------------------------------
+def get_agent_prompt_by_message_id(message_id: int) -> str:
+    db = get_db_connection()
+    try:
+        with db.cursor(dictionary=True) as cursor:
+            cursor.execute("""
+                SELECT ap.prompt
+                FROM messages m
+                JOIN agent_prompts ap ON m.agent_prompt_id = ap.id
+                WHERE m.message_id = %s AND m.agent_prompt_id IS NOT NULL
+                ORDER BY m.id ASC
+                LIMIT 1
+            """, (message_id,))
+            result = cursor.fetchone()
+            return result["prompt"] if result else "You are a helpful assistant."  # fallback
+    finally:
+        db.close()
 
 @chat_router.post("/chat", response_model=ChatResponse)
 async def chat_api(request: ChatRequestForm = Depends(ChatRequestForm.as_form)):
     session_id = f"{request.user_id}:{request.message_id}"
+
+    # ✅ Fetch original agent prompt dynamically from DB
+    agent_prompt = get_agent_prompt_by_message_id(request.message_id)
+
     result = await chat_chain.ainvoke(
         # {"agent_prompt": request.agent_prompt},
         # {"input": request.input},
         {
-        "agent_prompt": request.agent_prompt,
+        "agent_prompt": agent_prompt,
         "input": request.input
         },
         config={"configurable": {"session_id": session_id}}

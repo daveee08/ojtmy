@@ -153,6 +153,9 @@
             if (content) {
                 content.classList.toggle("expanded");
             }
+
+            // Add this line to affect chat layout globally
+            document.body.classList.toggle("sidebar-collapsed");
         });
 
         // Replace with actual logged-in user ID from Laravel

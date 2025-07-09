@@ -12,15 +12,16 @@
 
     <style>
         :root {
-            --pink: #EC298B;
+            --pink: #e91e63;
             --white: #ffffff;
             --dark: #191919;
-            --light-grey: #f5f5f5;
+            --light-grey: #f8f9fa;
+            --hover-grey: #f1f3f5;
         }
 
         body {
-            font-family: 'Poppins', system-ui, sans-serif;
-            background-color: var(--white);
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--light-grey);
             color: var(--dark);
             margin: 0;
         }
@@ -32,23 +33,22 @@
             height: 100vh;
             width: 240px;
             background-color: var(--white);
-            padding: 40px 20px;
-            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.08);
+            padding: 100px 10px 30px;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.06);
             z-index: 1000;
-            transition: width 0.3s ease;
-            padding-top: 120px;
+            transition: width 0.3s ease, padding 0.3s ease;
         }
 
         .sidebar.collapsed {
             width: 70px;
-            padding: 40px 10px;
+            padding: 120px 10px 40px;
         }
 
         .sidebar h2 {
-            font-size: 1.5rem;
+            font-size: 1.2rem;
             font-weight: 700;
-            color: var(--pink);
-            margin-bottom: 30px;
+            color: black;
+            margin-bottom: 20px;
             text-align: center;
             transition: opacity 0.2s ease;
         }
@@ -58,45 +58,42 @@
         }
 
         .sidebar a {
-            display: block;
+            display: flex;
+            align-items: center;
+            gap: 10px;
             color: var(--dark);
             text-decoration: none;
-            margin: 5px 0;
+            margin: 6px 0;
             font-size: 1rem;
-            padding: 10px 10px;
-            border-radius: 10px;
+            padding: 10px 12px;
+            border-radius: 8px;
             transition: background 0.3s ease, color 0.3s ease;
         }
 
         .sidebar a:hover {
-            background-color: var(--light-grey);
+            background-color: var(--hover-grey);
             color: var(--pink);
         }
 
+        .sidebar a.active {
+            background-color: #F5F5F5;
+        }
+
         .sidebar.collapsed a {
-            text-align: center;
-            padding: 10px 5px;
-            font-size: 0.85rem;
-            overflow: hidden;
+            justify-content: center;
+            font-size: 0.9rem;
+            padding: 10px 8px;
         }
 
         .sidebar a i {
-            margin-right: 10px;
             font-size: 1.2rem;
         }
 
-        .sidebar.collapsed a i {
-            margin-right: 0;
-            font-size: 1rem;
-        }
-
         .link-text {
-            display: inline;
-            transition: opacity 0.3s ease, width 0.3s ease;
-            opacity: 1;
-            width: auto;
             white-space: nowrap;
             overflow: hidden;
+            opacity: 1;
+            transition: opacity 0.3s ease, width 0.3s ease;
         }
 
         .sidebar.collapsed .link-text {
@@ -106,9 +103,7 @@
 
         .content {
             margin-left: 240px;
-            padding: 50px 30px;
-            background-color: var(--light-grey);
-            min-height: 100vh;
+            padding: 30px;
             transition: margin-left 0.3s ease;
         }
 
@@ -118,27 +113,37 @@
 
         #toggleSidebar {
             position: fixed;
-            top: 15px;
-            left: 15px;
+            top: 20px;
+            left: 20px;
             z-index: 1100;
-            border: none;
             background: var(--white);
-            color: rgb(90, 89, 89);
+            border: 1px solid #dee2e6;
             padding: 8px 12px;
             border-radius: 5px;
-            font-size: 1rem;
+            font-size: 1.1rem;
+            color: var(--dark);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        #toggleSidebar:hover {
+            background-color: var(--hover-grey);
+        }
+
+        #sessionList p {
+            font-size: 0.95rem;
+            color: #6c757d;
         }
     </style>
 </head>
 
 <body>
-
-    <button id="toggleSidebar">☰</button>
+    <button id="toggleSidebar"><i class="bi bi-list"></i></button>
 
     <div class="sidebar" id="sidebar">
         <h2>History</h2>
         <div id="sessionList">
-            <!-- Session links will be injected here -->
+            <p>Loading sessions...</p>
         </div>
     </div>
 
@@ -150,30 +155,31 @@
 
         toggleBtn.addEventListener("click", () => {
             sidebar.classList.toggle("collapsed");
-            if (content) {
-                content.classList.toggle("expanded");
-            }
-
-            // Add this line to affect chat layout globally
+            if (content) content.classList.toggle("expanded");
             document.body.classList.toggle("sidebar-collapsed");
         });
 
-        // Replace with actual logged-in user ID from Laravel
         const userId = {{ Auth::id() ?? 1 }};
+        const currentPath = window.location.pathname;
 
-        // Fetch session data from FastAPI
-        fetch(`http://localhost:5001/sessions/${userId}`)
+        fetch(`http://192.168.50.144:5001/sessions/${userId}`)
             .then(response => response.json())
             .then(data => {
                 sessionList.innerHTML = '';
-                if (data.length === 0) {
+                if (!data.length) {
                     sessionList.innerHTML = '<p>No sessions yet.</p>';
                 } else {
                     data.forEach(sessionId => {
                         const link = document.createElement('a');
-                        link.href = `/chat/history/${sessionId}`; // Or your desired URL pattern
+                        link.href = `/chat/history/${sessionId}`;
                         link.innerHTML =
                             `<i class="bi bi-chat-dots"></i> <span class="link-text">Session ${sessionId}</span>`;
+
+                        // Add active class if this is the current session
+                        if (currentPath.includes(`/chat/history/${sessionId}`)) {
+                            link.classList.add('active');
+                        }
+
                         sessionList.appendChild(link);
                     });
                 }

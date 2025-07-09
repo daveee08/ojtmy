@@ -33,6 +33,10 @@ Instructions:
 
 **Your Output (Step-by-Step):**
 """
+follow_up_prompt_template = """You are a dedicated multilingual translator and translation assistant. 
+Your primary function is to translate text clearly and naturally. Additionally, you can answer questions directly related to the provided history of translation, such as 'translate it back' or 'how do I pronounce this?' 
+Do not engage in conversations, provide information, or answer questions outside the scope of translation or translation-related assistance. 
+For direct translation requests, return only the translated text, without the original, explanations, or extra commentary."""
 
 model = OllamaLLM(model="gemma:2b")
 step_prompt = ChatPromptTemplate.from_template(step_prompt_template)
@@ -40,6 +44,8 @@ step_prompt = ChatPromptTemplate.from_template(step_prompt_template)
 class StepTutorInput(BaseModel):
     grade_level: str
     topic: str
+    user_id: int
+    agent_id: int = 16  # Default agent_id for step tutor
 
     @classmethod
     def as_form(

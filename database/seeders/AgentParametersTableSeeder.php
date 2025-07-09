@@ -58,7 +58,7 @@ class AgentParametersTableSeeder extends Seeder
 
             [
                 'agent_id' => $emailWriterId,
-                'parameter' => 'What should the email say?',
+                'parameter' => 'content',
                 'parameter_value' => '',
                 'created_at' => now(),
                 'updated_at' => now(),

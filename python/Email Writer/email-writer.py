@@ -160,15 +160,36 @@ app.add_middleware(
 )
 llm = Ollama(model="gemma3:1b")
 # ------------------- Email Writer -------------------
+
+class EmailWriterInput(BaseModel):
+    content: str
+    user_id: int
+    message_id: Optional[int] = None
+    # agent_id: int = 16  # Default agent_id for step tutor
+
+    @classmethod
+    def as_form(
+        cls,
+        content: str = Form(...),
+        user_id: int = Form(...),
+        message_id: Optional[int] = Form(None)
+    ):
+        return cls(
+            content=content,
+            user_id=user_id,
+            message_id=message_id
+        )
+    
+
 @app.post("/generate-email")
-async def generate_email(content: str = Form(...)):
-    prompt_template = """
+async def generate_email(data: EmailWriterInput = Depends(EmailWriterInput.as_form)):
+    email_prompt_template = f"""
 You are an expert in writing professional and polite emails.
 
 Your task is to generate a formal and respectful email based on the user's input.
 
 Context:
-{content}
+{data.content}
 
 The email must:
 - Include a clear and relevant subject line
@@ -182,11 +203,24 @@ Important:
 - Return only the final email text
 """
 
-    prompt = PromptTemplate.from_template(prompt_template)
+    prompt = PromptTemplate.from_template(email_prompt_template)
     llm = Ollama(model="gemma3:1b")
     chain = prompt | llm
-    result = chain.invoke({"content": content.strip()})
-    return {"email": result.strip()}
+    result = chain.invoke({})
+
+    scope_vars = {
+            "content": data.content
+        }
+    
+    session_id = create_session_and_parameter_inputs(
+            user_id=data.user_id,
+            agent_id=4,  # Default agent_id for step tutor
+            scope_vars=scope_vars,
+            human_topic=data.content,
+            ai_output=result,
+            agent_prompt=email_prompt_template
+        )
+    return {"email": result.strip(), "message_id": session_id}
 
 # ------------------- Summarizer -------------------
 def summarize_text(text: str, conditions: str) -> str:

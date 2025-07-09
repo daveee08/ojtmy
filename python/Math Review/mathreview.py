@@ -9,15 +9,27 @@ import re, traceback, uvicorn
 
 # --- Prompt Template ---
 math_review_template = """
-You are a helpful and knowledgeable math tutor.
+You are an expert math educator and problem designer. Your goal is to create engaging, clear, and precisely leveled math review problems.
 
-Your task is to generate a set of clear, well-structured math review problems in numbered word-problem format.
+Your output must consist *only* of a numbered list of word problems, with no introductory text, titles, explanations, or solutions.
 
 Parameters:
 - Grade Level: {grade_level}
 - Number of Problems: {number_of_problems}
 - Math Content: {math_content}
 - Additional Criteria: {additional_criteria}
+
+General Instructions:
+- DO NOT include any labels, titles, headers, solutions, hints, or explanations.
+- Incorporate all provided Additional Criteria into the design of the problems.
+- Vary problem types, numerical values, and contexts to build conceptual flexibility.
+- When using objects or physical units (e.g., tiles, planks), clearly state size, quantity, and coverage.
+- Use consistent and grade-appropriate units (metric or imperial) based on context.
+- Include conversions or approximations (e.g., 12 inches = 1 foot, π ≈ 3.14) where necessary.
+- Use superscript characters like ² or ³ for powers (e.g., area in cm², volume in m³).
+- Use multi-step reasoning only when developmentally appropriate.
+- Keep language clear, concise, and suitable for the grade level.
+- Do not include any labels, titles, headers, solutions, hints, or explanations—only the numbered problems.
 
 Grade-Level Guidelines:
 (Adjust language, complexity, and structure based on the student's grade level.)
@@ -58,33 +70,32 @@ Grade-Level Guidelines:
     - Use technical vocabulary and academic or industry-based applications.
 
 Math Content Adaptation:
-(Adjust formatting and context based on the specified math topic.)
 
-- Division:
-    - Use fair-sharing or equal-grouping contexts (bags, boxes, teams).
-    - Avoid multi-step or remainder-based problems unless suitable for the grade level.
-- Area/Geometry:
-    - Use real-world objects with dimensions (gardens, rooms, tiles).
-    - Always specify units and what is being measured or covered.
-- Fractions:
-    - Use relatable examples (pizza, cake, clocks).
-    - Emphasize part-whole reasoning and equal sharing.
-- Algebra/Equations:
-    - Use real-world variables, unknowns, and simple expressions.
-    - Provide context that allows students to form and solve equations.
-- Data/Statistics:
-    - Use number sets or visual data (charts, tables).
-    - Ask for interpretation (average, mode, comparisons, trends).
+- Arithmetic (Addition, Subtraction, Multiplication, Division):
+    - Frame problems around combining, separating, scaling, or sharing.
+    - Specify if remainders are expected or if answers should be whole numbers/decimals.
+- Fractions/Decimals/Percentages:
+    - Use relatable quantities (food, money, measurements).
+    - Clearly indicate if answers should be simplified, converted, or rounded.
+    - For percentages, specify if it's a part of a whole, increase/decrease, or finding the original amount.
+- Algebra/Equations/Expressions:
+    - Introduce clear unknowns or variables in context.
+    - For expressions, ask for simplification or evaluation.
+    - For equations, provide a scenario that naturally leads to forming an equation to solve for an unknown.
+    - For systems, ensure two distinct unknowns requiring multiple equations.
+- Geometry/Measurement (Area, Perimeter, Volume, Angles):
+    - Clearly define the shape(s) and relevant dimensions.
+    - Specify units of measure and the unit expected for the answer.
+    - Provide any necessary constants (e.g., $\pi \approx 3.14$ or use $\pi$).
+    - For composite shapes, explicitly state how they are combined.
+- Data/Statistics/Probability:
+    - Provide raw data, a scenario for data collection, or a visual representation (describe it if you can't draw it).
+    - Clearly define the statistical measure requested (mean, median, mode, range, probability, etc.).
+    - For probability, clearly define the sample space and events.
+- Powers and Exponents:
+    - Integrate naturally into problems involving growth, repeated multiplication (e.g., volume of cubes, exponential growth/decay, scientific notation, binary systems).
+    - Ensure the context makes the use of exponents logical.
 
-General Instructions:
-- Incorporate all provided Additional Criteria into the design of the problems.
-- Vary problem types, numerical values, and contexts to build conceptual flexibility.
-- When using objects or physical units (e.g., tiles, planks), clearly state size, quantity, and coverage.
-- Use consistent and grade-appropriate units (metric or imperial) based on context.
-- Include conversions or approximations (e.g., 12 inches = 1 foot, π ≈ 3.14) where necessary.
-- Use multi-step reasoning only when developmentally appropriate.
-- Keep language clear, concise, and suitable for the grade level.
-- Do not include any labels, titles, headers, solutions, hints, or explanations—only the numbered problems.
 """
 
 
@@ -98,6 +109,9 @@ def clean_output(text: str) -> str:
     text = re.sub(r"\*\*(.*?)\*\*", r"\1", text)
     text = re.sub(r"\*(.*?)\*", r"\1", text)
     text = re.sub(r"^\s*[\*\-]\s*", "", text, flags=re.MULTILINE)
+    text = re.sub(r"\^2\b", "²", text)
+    text = re.sub(r"\^3\b", "³", text)
+
     return text.strip()
 
 # --- Pydantic Model ---

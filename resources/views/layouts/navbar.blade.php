@@ -19,6 +19,10 @@
             --light-grey: #f5f5f5;
         }
 
+        a {
+            text-decoration: none;
+        }
+
         body {
             font-family: 'Poppins', system-ui, sans-serif;
             background-color: var(--white);
@@ -153,6 +157,23 @@
             <i class="bi bi-envelope"></i>
             <span class="link-text">Contact</span>
         </a>
+
+            @auth
+                <form method="POST" action="{{ url('/logout') }}" style="margin-top: 30px;">
+                    @csrf
+                    <button type="submit" class="btn btn-link"
+                        style="color: #e91e63; text-decoration: none; font-weight: 600;">
+                        <span class="link-text">Logout</span>
+                    </button>
+                </form>
+            @else
+                <a href="{{ url('/login') }}" style="color: #e91e63; font-weight: 600;">
+                    <span class="link-text">Login</span>
+                </a>
+                <a href="{{ url('/register') }}" style="color: #e91e63; font-weight: 600;">
+                    <span class="link-text">Register</span>
+                </a>
+            @endauth
     </div>
 
     <!-- Content -->

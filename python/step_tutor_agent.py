@@ -7,11 +7,23 @@ from langchain_ollama import OllamaLLM
 from langchain_core.prompts import ChatPromptTemplate
 from fastapi import Form, Depends, FastAPI, HTTPException
 from typing import Optional
+import sys
 
+from db_utils_final import create_session_and_parameter_inputs, insert_message
+from fastapi.middleware.cors import CORSMiddleware
+from chat_router_final import chat_router
 
 
 app = FastAPI(debug=True)
+app.include_router(chat_router)
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # or Laravel origin like "http://localhost:8000"
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 
@@ -45,17 +57,22 @@ class StepTutorInput(BaseModel):
     grade_level: str
     topic: str
     user_id: int
-    agent_id: int = 16  # Default agent_id for step tutor
+    message_id: Optional[int] = None
+    # agent_id: int = 16  # Default agent_id for step tutor
 
     @classmethod
     def as_form(
         cls,
         grade_level: str = Form(...),
-        topic: str = Form(...)
+        topic: str = Form(...),
+        user_id: int = Form(...),
+        message_id: Optional[int] = Form(None)
     ):
         return cls(
             grade_level=grade_level,
-            topic=topic
+            topic=topic,
+            user_id=user_id,
+            message_id=message_id
         )
 
 async def explain_topic_step_by_step(grade_level: str, topic: str) -> str:
@@ -80,7 +97,19 @@ async def explain_step_by_step_endpoint(data: StepTutorInput = Depends(StepTutor
 
     try:
         explanation = await explain_topic_step_by_step(data.grade_level, data.topic)
-        return {"explanation": explanation}
+
+        scope_vars = {
+            "grade_level": data.grade_level
+        }
+        
+        session_id = create_session_and_parameter_inputs(
+            user_id=data.user_id,
+            agent_id=16,  # Default agent_id for step tutor
+            scope_vars=scope_vars,
+            human_topic=data.topic,
+            ai_output=explanation
+        )
+        return {"explanation": explanation, "message_id":  session_id}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

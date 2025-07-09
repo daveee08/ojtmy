@@ -13,8 +13,8 @@ def get_db_connection():
 def insert_message(cursor, user_id, agent_id, session_id, parameter_inputs_id, sender, topic):
     cursor.execute(
         """
-        INSERT INTO messages (user_id, agent_id, message_id, parameter_inputs, sender, topic)
-        VALUES (%s, %s, %s, %s, %s, %s)
+        INSERT INTO messages (user_id, agent_id, message_id, parameter_inputs, sender, topic, created_at, updated_at)
+        VALUES (%s, %s, %s, %s, %s, %s, NOW(), NOW())
         """,
         (user_id, agent_id, session_id, parameter_inputs_id, sender, topic)
     )

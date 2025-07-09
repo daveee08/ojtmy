@@ -18,6 +18,10 @@
             --light-grey: #f5f5f5;
         }
 
+        a {
+            text-decoration: none;
+        }
+
         body {
             font-family: 'Poppins', system-ui, sans-serif;
             background-color: var(--white);
@@ -159,6 +163,7 @@
         <a href="#tool-Contact" data-bs-toggle="tooltip" title="Contact">
             <i class="bi bi-envelope"></i>
             <span class="link-text">Contact</span>
+        </a>
 
             @auth
                 <form method="POST" action="{{ url('/logout') }}" style="margin-top: 30px;">

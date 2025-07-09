@@ -2,33 +2,45 @@
 @extends('layouts.historysidenav')
 @extends('layouts.header')
 
-@section('title', 'Chat')
-
 @section('styles')
     <style>
+        :root {
+            --sidebar-width: 240px;
+            --header-height: 0px;
+            /* adjust if you have a fixed top header */
+        }
+
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f3f4f6;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* When sidebar is collapsed */
+        body.sidebar-collapsed .chat-container {
+            left: 70px;
+            /* Width of collapsed sidebar */
+        }
+
+        /* When sidebar is expanded (default 240px) */
+        body:not(.sidebar-collapsed) .chat-container {
+            left: 240px;
         }
 
         .chat-container {
+            position: absolute;
+            left: var(--sidebar-width);
+            top: var(--header-height);
+            right: 0;
+            bottom: 0;
             display: flex;
             flex-direction: column;
-            max-width: 800px;
-            width: 100%;
             background: white;
-            border-radius: 12px;
+            border-left: 1px solid #e5e7eb;
+            height: 100vh;
+            width: auto;
             overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            height: 80vh;
-            border: 1px solid #e5e7eb;
-            margin-top: 20px;
         }
 
         .chat-header {
@@ -39,6 +51,7 @@
             font-weight: 700;
             font-size: 1.75rem;
             border-bottom: 1px solid #2d3748;
+            flex-shrink: 0;
         }
 
         .chat-body {
@@ -54,7 +67,7 @@
         .message {
             padding: 0.75rem 1.25rem;
             border-radius: 16px;
-            max-width: 75%;
+            max-width: 60%;
             font-size: 1rem;
             line-height: 1.5;
             word-wrap: break-word;
@@ -80,6 +93,7 @@
             display: flex;
             gap: 1rem;
             align-items: center;
+            flex-shrink: 0;
         }
 
         .chat-footer textarea {
@@ -139,15 +153,13 @@
             }
         }
 
-        .text-pink-500 {
-            color: #ec4899;
-        }
-
         @media (max-width: 768px) {
+            :root {
+                --sidebar-width: 0px;
+            }
+
             .chat-container {
-                height: 90vh;
-                margin-top: 10px;
-                border-radius: 8px;
+                left: 0;
             }
 
             .chat-body {

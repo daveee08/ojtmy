@@ -43,15 +43,19 @@ use App\Http\Controllers\SocialStory\SocialStoryController;
 
 // Landing Page
 Route::get('/', function () {
-    return view('login');
+    return view('home');
 });
 
 Route::get('/tools', function () {
     return view('tool');
 });
 
-Route::get('/home', function () {
+Route::get('/', function () {
     return view('home');
+});
+
+Route::get('/about', function () {
+    return view('about');
 });
 
 // Authentication Routes

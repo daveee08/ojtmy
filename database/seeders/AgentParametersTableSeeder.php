@@ -14,6 +14,8 @@ class AgentParametersTableSeeder extends Seeder
         $summarizerId = DB::table('agents')->where('agent', 'summarizer')->value('id');         
         $informationalTextId = DB::table('agents')->where('agent', 'informational')->value('id');
         $chatWithDocsId = DB::table('agents')->where('agent', 'chatwithdocs')->value('id');
+        $mathReviewId = DB::table('agents')->where('agent', 'mathreview')->value('id');
+        $makeitRelevantId = DB::table('agents')->where('agent', 'makeitrelevant')->value('id');
         $rewriterId = DB::table('agents')->where('agent', 'rewriter')->value('id');
         $scaffolderId = DB::table('agents')->where('agent', 'scaffolder')->value('id');
         $explanationsId = DB::table('agents')->where('agent', 'explanations')->value('id');
@@ -30,8 +32,6 @@ class AgentParametersTableSeeder extends Seeder
         $studyhabitsID = DB::table('agents')->where('agent', 'study-habits')->value('id');
         $translatorId = DB::table('agents')->where('agent', 'translator')->value('id');
         $socialStoriesId = DB::table('agents')->where('agent', 'social-stories')->value('id');
-        
-        
 
         DB::table('agent_parameters')->insert([
             [
@@ -132,6 +132,48 @@ class AgentParametersTableSeeder extends Seeder
             [
                 'agent_id' => $chatWithDocsId,
                 'parameter' => 'custom_instruction',
+                'parameter_value' => '',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'agent_id' => $mathReviewId,
+                'parameter' => 'grade_level',
+                'parameter_value' => 'Kindergarten,Elementary,Middle School,High School,College',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'agent_id' => $mathReviewId,
+                'parameter' => 'number_of_problems',
+                'parameter_value' => '',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],            
+            [
+                'agent_id' => $mathReviewId,
+                'parameter' => 'math_content',
+                'parameter_value' => '',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ], 
+            [
+                'agent_id' => $mathReviewId,
+                'parameter' => 'additional_criteria',
+                'parameter_value' => '',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'agent_id' => $makeitRelevantId,
+                'parameter' => 'grade_level',
+                'parameter_value' => 'Kindergarten,Elementary,Middle School,High School,College',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'agent_id' => $makeitRelevantId,
+                'parameter' => 'interests',
                 'parameter_value' => '',
                 'created_at' => now(),
                 'updated_at' => now(),

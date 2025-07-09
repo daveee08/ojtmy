@@ -6,9 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>@yield('title', 'CK AI Tools')</title>
     @yield('styles')
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
 
     <style>
         :root {
@@ -76,36 +77,28 @@
             text-align: center;
             padding: 10px 5px;
             font-size: 0.85rem;
-            overflow: hidden;
         }
 
         .sidebar a i {
             margin-right: 10px;
             font-size: 1.2rem;
-            transition: margin 0.3s ease, font-size 0.3s ease
+            transition: margin 0.3s ease;
         }
 
         .sidebar.collapsed a i {
             margin-right: 0;
-            font-size: 1rem;
         }
 
         .link-text {
             display: inline;
             transition: opacity 0.3s ease, width 0.3s ease;
             opacity: 1;
-            width: auto;
             white-space: nowrap;
-            overflow: hidden;
         }
 
         .sidebar.collapsed .link-text {
             opacity: 0;
             width: 0;
-        }
-
-        .sidebar:not(.collapsed) a[data-bs-toggle="tooltip"] .link-text {
-            pointer-events: none;
         }
 
         .content {
@@ -127,7 +120,7 @@
             z-index: 1100;
             border: none;
             background: var(--white);
-            color: rgb(90, 89, 89);
+            color: #5a5959;
             padding: 8px 12px;
             border-radius: 5px;
             font-size: 1rem;
@@ -159,23 +152,7 @@
         <a href="#tool-Contact" data-bs-toggle="tooltip" title="Contact">
             <i class="bi bi-envelope"></i>
             <span class="link-text">Contact</span>
-
-            @auth
-                <form method="POST" action="{{ url('/logout') }}" style="margin-top: 30px;">
-                    @csrf
-                    <button type="submit" class="btn btn-link"
-                        style="color: #e91e63; text-decoration: none; font-weight: 600;">
-                        <span class="link-text">Logout</span>
-                    </button>
-                </form>
-            @else
-                <a href="{{ url('/login') }}" style="color: #e91e63; font-weight: 600;">
-                    <span class="link-text">Login</span>
-                </a>
-                <a href="{{ url('/register') }}" style="color: #e91e63; font-weight: 600;">
-                    <span class="link-text">Register</span>
-                </a>
-            @endauth
+        </a>
     </div>
 
     <!-- Content -->
@@ -183,7 +160,10 @@
         @yield('content')
     </div>
 
-    <!-- Scripts -->
+    <!-- Bootstrap Bundle (includes Popper for tooltips) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Sidebar & Tooltip JS -->
     <script>
         const toggleBtn = document.getElementById("toggleSidebar");
         const sidebar = document.getElementById("sidebar");
@@ -194,10 +174,9 @@
             content.classList.toggle("expanded");
         });
 
-        const tooltipTriggerlist = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        tooltipTriggerlist.forEach(el => {
-            new bootstrap.Tooltip(el, {});
-        })
+        // Enable Bootstrap tooltips
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.forEach(el => new bootstrap.Tooltip(el));
     </script>
 
 </body>

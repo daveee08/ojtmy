@@ -1,10 +1,20 @@
-from fastapi import FastAPI, HTTPException, UploadFile, Form, File # type: ignore
-from fastapi.responses import JSONResponse # type: ignore
-from pydantic import BaseModel, ValidationError # type: ignore
-from langchain_community.llms import Ollama # type: ignore
-from langchain_core.prompts import ChatPromptTemplate # type: ignore
-from langchain_community.document_loaders.pdf import PyPDFLoader # type: ignore
-import shutil, os, re, tempfile, uvicorn, traceback # type: ignore
+from fastapi import FastAPI, HTTPException, UploadFile, Form, File, Depends
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
+from langchain_community.llms import Ollama
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_community.document_loaders.pdf import PyPDFLoader
+import shutil, os, re, tempfile, uvicorn, traceback, sys
+from typing import Optional
+from langchain_core.messages import HumanMessage, AIMessage
+from fastapi.middleware.cors import CORSMiddleware
+
+current_script_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.join(current_script_dir, '..', '..')
+sys.path.insert(0, project_root)
+
+from python.chat_router import chat_router
+from python.db_utilss import create_session_and_parameter_inputs, insert_message
 
 prompt = """
 You are a helpful and student-friendly tutor. Your job is to explain the following topics clearly and simply, as if you're teaching a student.
@@ -21,13 +31,45 @@ Instructions:
 Only provide the explanation. Do not include introductions, conclusions, or phrases like "Sure, here's the explanation".
 """
 
-model = Ollama(model="llama3")
-prompt = ChatPromptTemplate.from_template(prompt)
+app = FastAPI(debug=True)
+app.include_router(chat_router)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # or Laravel origin like "http://localhost:8000"
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class InformationalInput(BaseModel):
+    user_id: int
     input_type: str
-    topic: str = ""
-    pdf_path: str = ""
+    input_type_1: Optional[str] = None
+    topic: str
+    topic_1: Optional[str] = None
+    message_id: Optional[str] = None
+
+    @classmethod
+    def as_form(
+        cls,
+        user_id: int = Form(...),
+        input_type: str = Form(...),
+        input_type_1: str = Form(...),
+        topic: str = Form(""),
+        topic_1: str = Form(""),
+        message_id: Optional[str] = Form(None),
+    ):
+        return cls(
+            user_id=user_id,
+            input_type=input_type,
+            input_type_1=input_type_1,
+            topic_1=topic_1,
+            message_id=message_id
+        )
+
+model = Ollama(model="llama3")
+prompt = ChatPromptTemplate.from_template(prompt)
 
 def load_pdf_content(pdf_path: str) -> str:
     if not os.path.exists(pdf_path):
@@ -90,28 +132,39 @@ app = FastAPI()
 
 @app.post("/chatwithdocs")
 async def chatwithdocs_api(
-    input_type: str = Form(...),
-    input_type_1: str = Form(""),
-    topic: str = Form(""),
-    topic_1: str = Form(""),
+    form_data: InformationalInput = Depends(InformationalInput.as_form),
     pdf_file: UploadFile = File(None),
     pdf_file_1: UploadFile = File(None)
 ):
     
     try:
-        if input_type == "pdf" and not pdf_file:
+        if form_data.input_type == "pdf" and not pdf_file:
             raise HTTPException(status_code=400, detail="PDF file required for PDF input_type")
 
         output = await generate_output(
-            input_type=input_type,
-            input_type_1=input_type_1,
-            topic=topic,
-            topic_1=topic_1,
+            input_type=form_data.input_type,
+            input_type_1=form_data.input_type_1,
+            topic=form_data.topic,
+            topic_1=form_data.topic_1,
             pdf_file=pdf_file,
             pdf_file_1=pdf_file_1
         )
 
-        return {"output": output}
+        scope_vars = {
+            ""
+        }
+
+        human_topic = form_data.topic if form_data.input_type != "pdf" else "[PDF Input]"
+
+        session_id = create_session_and_parameter_inputs(
+            user_id=form_data.user_id,
+            agent_id=7,
+            scope_vars=scope_vars,
+            human_topic=human_topic,
+            ai_output=output
+        )
+
+        return {"output": output, 'message_id': session_id}
     except Exception as e:
         traceback_str = traceback.format_exc()
         print(traceback_str)

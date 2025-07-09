@@ -11,14 +11,18 @@ class AgentParametersTableSeeder extends Seeder
     {
         $tutorId = DB::table('agents')->where('agent', 'tutor')->value('id');
         $stepTutorId = DB::table('agents')->where('agent', 'step-tutor')->value('id');
-        $summarizerId = DB::table('agents')->where('agent', 'summarizer')->value('id');
-        $textLevelerId = DB::table('agents')->where('agent', 'leveler')->value('id');
+        $summarizerId = DB::table('agents')->where('agent', 'summarizer')->value('id');         
         $informationalTextId = DB::table('agents')->where('agent', 'informational')->value('id');
         $chatWithDocsId = DB::table('agents')->where('agent', 'chatwithdocs')->value('id');
         $rewriterId = DB::table('agents')->where('agent', 'rewriter')->value('id');
         $scaffolderId = DB::table('agents')->where('agent', 'scaffolder')->value('id');
         $explanationsId = DB::table('agents')->where('agent', 'explanations')->value('id');
         $responderId = DB::table('agents')->where('agent', 'responder')->value('id');
+        $emailWriterId = DB::table('agents')->where('agent', 'emailwriter')->value('id');
+        $textLevelerId = DB::table('agents')->where('agent', 'leveler')->value('id');
+        $thankYouId = DB::table('agents')->where('agent', 'thankyou')->value('id');
+        $ideaGeneratorId = DB::table('agents')->where('agent', 'ideagenerator')->value('id');
+        $contentCreatorId = DB::table('agents')->where('agent', 'contentcreator')->value('id');
         $fivequestionId = DB::table('agents')->where('agent', 'five-question')->value('id');
         $proofreaderId = DB::table('agents')->where('agent', 'proofreader')->value('id');
         $realworldId = DB::table('agents')->where('agent', 'realworld')->value('id');
@@ -45,11 +49,50 @@ class AgentParametersTableSeeder extends Seeder
             ],
             [
                 'agent_id' => $summarizerId,
-                'parameter' => 'grade_level',
-                'parameter_value' => '1st Grade',
+                'parameter' => 'Summary Instructions',
+                'parameter_value' => '',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
+
+            [
+                'agent_id' => $emailWriterId,
+                'parameter' => 'What should the email say?',
+                'parameter_value' => '',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+
+            [
+                'agent_id' => $thankYouId,
+                'parameter' => 'What are you thankful for?',
+                'parameter_value' => '',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+
+            [
+                'agent_id' => $ideaGeneratorId,
+                'parameter' => 'Grade level',
+                'parameter_value' => 'Pre-K,Kindergarten,Grade 1,Grade 2,Grade 3,Grade 4,Grade 5,Grade 6,Grade 7,Grade 8,Grade 9,Grade 10,Grade 11,Grade 12,University,Professional Staff',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'agent_id' => $contentCreatorId,
+                'parameter' => 'grade_level',
+                'parameter_value' => 'Pre-K,Kindergarten,Grade 1,Grade 2,Grade 3,Grade 4,Grade 5,Grade 6,Grade 7,Grade 8,Grade 9,Grade 10,Grade 11,Grade 12,University,Professional Staff',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'agent_id' => $contentCreatorId,
+                'parameter' => 'length',
+                'parameter_value' => '1 paragraph,2 paragraphs,3 paragraphs,1 page,2 pages',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+          
             [
                 'agent_id' => $textLevelerId,
                 'parameter' => 'grade_level',

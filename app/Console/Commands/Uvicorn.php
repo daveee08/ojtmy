@@ -226,23 +226,23 @@ $$/   $$/  $$$$$$/  $$/       $$/  $$/  $$/  $$$$$$$/ $$/
      * Called when the command is terminated (e.g., by Ctrl+C).
      * Stops all running FastAPI processes gracefully.
      */
-    public function __destruct()
-    {
-        if (!empty($this->fastApiProcesses)) {
-            $this->info('Attempting to stop all FastAPI services...');
-            foreach ($this->fastApiProcesses as $process) {
-                if ($process->isRunning()) {
-                    try {
-                        $process->stop(5); // Give the process 5 seconds to gracefully stop
-                        $this->info("Stopped FastAPI process (PID: {$process->getPid()})");
-                    } catch (\Exception $e) {
-                        $this->warn("Could not stop process {$process->getPid()}: " . $e->getMessage());
-                    }
-                }
-            }
-            $this->info('All FastAPI services have been instructed to stop.');
-        } else {
-            $this->info('No FastAPI processes were running to stop.');
-        }
-    }
+    // public function __destruct()
+    // {
+    //     if (!empty($this->fastApiProcesses)) {
+    //         $this->info('Attempting to stop all FastAPI services...');
+    //         foreach ($this->fastApiProcesses as $process) {
+    //             if ($process->isRunn ing()) {
+    //                 try {
+    //                     $process->stop(5); // Give the process 5 seconds to gracefully stop
+    //                     $this->info("Stopped FastAPI process (PID: {$process->getPid()})");
+    //                 } catch (\Exception $e) {
+    //                     $this->warn("Could not stop process {$process->getPid()}: " . $e->getMessage());
+    //                 }
+    //             }
+    //         }
+    //         $this->info('All FastAPI services have been instructed to stop.');
+    //     } else {
+    //         $this->info('No FastAPI processes were running to stop.');
+    //     }
+    // }
 }

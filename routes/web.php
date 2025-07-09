@@ -1,7 +1,6 @@
 <?php
-
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\SummarizeController;
+use App\Http\Controllers\Summarizer\SummarizeController;
 use App\Http\Controllers\Proofreader\ProofreaderController;
 use App\Http\Controllers\QuizmeController;
 use App\Http\Controllers\StepTutorController;
@@ -32,6 +31,7 @@ use App\Http\Controllers\AssignmentScaffolder\AssignmentScaffolder;
 use App\Http\Controllers\MathReview\MathReviewController;
 use App\Http\Controllers\MakeItRelevant\MakeItRelevantController;
 use App\Http\Controllers\ChatconversationController;
+use App\Http\Controllers\SocialStory\SocialStoryController;
 
 /*
 |--------------------------------------------------------------------------
@@ -164,6 +164,8 @@ Route::post('/realworld', [RealWorldController::class, 'processForm'])->name('re
 // Sentence Starter Agent
 Route::get('/sentencestarter', [SentenceStarterController::class, 'showForm'])->name('sentencestarter.form');
 Route::post('/sentencestarter', [SentenceStarterController::class, 'processForm'])->name('sentencestarter.process');
+Route::post('/sentence-starter/followup', [SentenceStarterController::class, 'followupForm'])->name('sentencestarter.followup');
+
 
 // Translator Agent
 Route::get('/translator', [TranslatorController::class, 'showForm'])->name('translator.form');
@@ -208,3 +210,7 @@ Route::post('/makeitrelevant', [MakeItRelevantController::class, 'processForm'])
 Route::get('/chat/history/{session_id}', [ChatconversationController::class, 'showForm']);
 Route::post('/chat', [ChatconversationController::class, 'sendMessage']);
 Route::get('/chat/api/history/{session_id}', [ChatconversationController::class, 'getHistory']);
+
+//Social Story Tool
+Route::get('/socialstory', [SocialStoryController::class, 'showForm'])->name('socialstory.form');
+Route::post('/socialstory', [SocialStoryController::class, 'generate'])->name('socialstory.generate');

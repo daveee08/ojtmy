@@ -163,7 +163,7 @@ def sentence_starters(grade_level: str, topic: str) -> list[str]:
 #  Endpoint                                                                   #
 # --------------------------------------------------------------------------- #
 @app.post("/sentence-starters")
-async def sentence_starters_endpoint(data: SentenceStarterInput):
+async def sentence_starters_endpoint(data: SentenceStarterInput = Depends(SentenceStarterInput.as_form)):
     
         output = sentence_starters(data.grade_level, data.topic)
 
@@ -227,7 +227,7 @@ async def sentence_starters_followup_endpoint(data:SentenceStarterFollowupInput 
             user_id=data.user_id,
             agent_id=data.agent_id,
             sender="human",
-            topic=data.text,
+            topic=data.topic,
             scope_vars=scope_vars,
             message_id=data.message_id,
         )

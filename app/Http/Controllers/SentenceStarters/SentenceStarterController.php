@@ -141,19 +141,25 @@ class SentenceStarterController extends Controller
             ['name' => 'grade_level', 'contents' => $validated['grade_level']], // Use the correct key
             ['name' => 'mode', 'contents' => 'manual'], // Default for testing
             ['name' => 'user_id', 'contents' => auth()->id() ?: 1],
+
         ];
+        Log::info('Processing sentence starter request', [
+            'topic' => $validated['topic'],
+            'grade_level' => $validated['grade_level'],
+            'user_id' => auth()->id() ?: 1,
+        ]);
 
         $response = Http::timeout(0)->asMultipart()
-            ->post('http://127.0.0.1:8014/sentence-starters', $multipartData);
+            ->post('http://192.168.50.40:8014/sentence-starters', $multipartData);
 
         Log::info('sentence starter request sent', [
-            'text' => $validated['topic'],
+            'topic' => $validated['topic'],
             'grade_level' => $validated['grade_level'],
             'response_status' => $response->status(),
             'response_body' => $response->body(),
         ]);
 
-        if ($response->failed() || !$response->json() || !isset($response->json()['Sentence Starter'])) {
+        if ($response->failed() || !$response->json() || !isset($response->json()['sentence_starters'])) {
         return back()->withErrors(['error' => 'Sentence Starter Failed.'])->withInput();
     }
         $data = $response->json();
@@ -191,11 +197,14 @@ class SentenceStarterController extends Controller
         ]);
 
         $multipartData = [
-            ['name' => 'text', 'contents' => $validated['followup']],
+            ['name' => 'topic', 'contents' => $validated['followup']],
             ['name' => 'message_id', 'contents' => $validated['message_id']],
             ['name' => 'user_id', 'contents' => auth()->id() ?: 1],
             ['name' => 'grade_level', 'contents' => $validated['grade_level'] ?? 'not provided'], // Optional, can be used if needed
         ];
+        Log::info('Preparing multipart data for follow-up', [
+        'multipart_data' => $multipartData,
+    ]);
 
         $response = Http::timeout(0)->asMultipart()
             ->post('http://192.168.50.40:8014/sentence-starters/followup', $multipartData);

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, Form, HTTPException
 from pydantic import BaseModel
-from typing import Literal, List, Dict
+from typing import Literal, List, Dict, Optional
 
 from langchain_ollama import OllamaLLM as Ollama
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
@@ -21,10 +21,11 @@ class ChatRequestForm(BaseModel):
     user_id: int
     message_id: int
     input: str
+    agent_prompt: Optional[str]
 
     @classmethod
-    def as_form(cls, message_id: int = Form(...), user_id: int = Form(...), input: str = Form(...)):
-        return cls(message_id=message_id, user_id=user_id, input=input)
+    def as_form(cls, message_id: int = Form(...), user_id: int = Form(...), input: str = Form(...), agent_promt: str = Form(...) ):
+        return cls(message_id=message_id, user_id=user_id, input=input, agent_promt=agent_promt)
 
 class ChatResponse(BaseModel):
     response: str
@@ -125,7 +126,7 @@ def get_history_by_message_id(session_id: str) -> MySQLChatMessageHistory:
 # -------------------------------
 
 chat_prompt = ChatPromptTemplate.from_messages([
-    ("system", "You are a helpful assistant."),
+    ("system", "You are a helpful assistant. Reply to the responses base on this original agent prompt: {agent_prompt}"),
     MessagesPlaceholder(variable_name="chat_history"),
     ("human", "{input}")
 ])
@@ -145,7 +146,12 @@ chat_chain = RunnableWithMessageHistory(
 async def chat_api(request: ChatRequestForm = Depends(ChatRequestForm.as_form)):
     session_id = f"{request.user_id}:{request.message_id}"
     result = await chat_chain.ainvoke(
-        {"input": request.input},
+        # {"agent_prompt": request.agent_prompt},
+        # {"input": request.input},
+        {
+        "agent_prompt": request.agent_prompt,
+        "input": request.input
+        },
         config={"configurable": {"session_id": session_id}}
     )
     

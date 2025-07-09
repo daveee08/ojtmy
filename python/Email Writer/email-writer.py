@@ -280,8 +280,29 @@ def clean_output(text: str) -> str:
 # ----------------------------------------------------------------
 # 🚀 Main Route: LLM writes thank-you note with inferred tone/age
 # ----------------------------------------------------------------
+
+class GenerateThankyou(BaseModel):
+    reason: str
+    user_id: int
+    message_id: Optional[int] = None
+    # agent_id: int = 16  # Default agent_id for step tutor
+
+    @classmethod
+    def as_form(
+        cls,
+        reason: str = Form(...),
+        user_id: int = Form(...),
+        message_id: Optional[int] = Form(None)
+    ):
+        return cls(
+            reason=reason,
+            user_id=user_id,
+            message_id=message_id
+        )
+
 @app.post("/generate-thankyou")
-async def generate_thank_you(reason: str = Form(...)):
+async def generate_thank_you(data: GenerateThankyou = Depends(GenerateThankyou.as_form)):
+    reason = data.reason
     if not reason.strip():
         return {"thank_you_note": "Please enter a valid message."}
 
@@ -327,12 +348,24 @@ Reason for thanks:
     try:
         # Generate the thank-you note
         prompt = PromptTemplate.from_template(prompt_template)
-        llm = Ollama(model="gemma3:4b")
+        llm = Ollama(model="gemma3:1b")
         chain = prompt | llm
         result = chain.invoke({"reason": reason.strip()})
 
         final_note = clean_output(result.strip())
-        return {"thank_you_note": final_note}
+
+        scope_vars = {
+        "reason": data.reason
+        }
+        session_id = create_session_and_parameter_inputs(
+                user_id=data.user_id,
+                agent_id=12,  # Default agent_id for thankyou
+                scope_vars=scope_vars,
+                human_topic=data.reason,
+                ai_output=result
+        )
+    
+        return {"thank_you_note": final_note ,"message_id": session_id}
 
     except Exception as e:
         return {"thank_you_note": f"Error generating note: {str(e)}"}

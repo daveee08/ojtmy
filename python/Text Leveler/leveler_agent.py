@@ -97,7 +97,7 @@ class LevelerFormInput(BaseModel):
         )
 
 # --- LangChain Setup ---
-model = Ollama(model="llama3")
+model = Ollama(model="gemma3:1b")
 manual_prompt = ChatPromptTemplate.from_template(manual_topic_template)
 pdf_prompt = ChatPromptTemplate.from_template(pdf_topic_template)
 

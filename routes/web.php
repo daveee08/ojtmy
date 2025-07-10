@@ -43,7 +43,7 @@ use App\Http\Controllers\SocialStory\SocialStoryController;
 
 // Landing Page
 Route::get('/', function () {
-    return view('login');
+    return view('home');
 });
 
 Route::get('/tools', function () {
@@ -52,6 +52,10 @@ Route::get('/tools', function () {
 
 Route::get('/home', function () {
     return view('home');
+});
+
+Route::get('/about', function () {
+    return view('about');
 });
 
 // Authentication Routes

@@ -18,6 +18,10 @@
             --light-grey: #f5f5f5;
         }
 
+        a {
+            text-decoration: none;
+        }
+
         body {
             font-family: 'Poppins', system-ui, sans-serif;
             background-color: var(--white);
@@ -30,7 +34,7 @@
             top: 0;
             left: 0;
             height: 100vh;
-            width: 240px;
+            width: 250px;
             background-color: var(--white);
             padding: 40px 20px;
             box-shadow: 2px 0 10px rgba(0, 0, 0, 0.08);
@@ -57,6 +61,8 @@
         }
 
         .sidebar a {
+            align-items: center;
+            justify-content: flex-start;
             display: block;
             color: var(--dark);
             text-decoration: none;
@@ -142,40 +148,37 @@
 
     <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
-        <h2>CK AI Tools</h2>
+        <h2></h2>
 
-        <a href="{{ url('/tools') }}" data-bs-toggle="tooltip" title="Tools">
-            <i class="bi bi-tools"></i>
-            <span class="link-text">Tools</span>
-        </a>
-        <a href="{{ url('/') }}" data-bs-toggle="tooltip" title="Home">
+        <a href="{{ url('/') }}" data-bs-toggle="tooltip" title="Tools">
             <i class="bi bi-house-door"></i>
             <span class="link-text">Home</span>
         </a>
-        <a href="#tool-About" data-bs-toggle="tooltip" title="About">
+        <a href="{{ url('/tools') }}" data-bs-toggle="tooltip" title="Home">
+            <i class="bi bi-tools"></i>
+            <span class="link-text">Tools</span>
+        </a>
+        <a href="{{ url('/about') }}" data-bs-toggle="tooltip" title="About">
             <i class="bi bi-people"></i>
             <span class="link-text">About</span>
         </a>
-        <a href="#tool-Contact" data-bs-toggle="tooltip" title="Contact">
-            <i class="bi bi-envelope"></i>
-            <span class="link-text">Contact</span>
 
-            @auth
-                <form method="POST" action="{{ url('/logout') }}" style="margin-top: 30px;">
-                    @csrf
-                    <button type="submit" class="btn btn-link"
-                        style="color: #e91e63; text-decoration: none; font-weight: 600;">
-                        <span class="link-text">Logout</span>
-                    </button>
-                </form>
-            @else
-                <a href="{{ url('/login') }}" style="color: #e91e63; font-weight: 600;">
-                    <span class="link-text">Login</span>
-                </a>
-                <a href="{{ url('/register') }}" style="color: #e91e63; font-weight: 600;">
-                    <span class="link-text">Register</span>
-                </a>
-            @endauth
+        @auth
+            <form method="POST" action="{{ url('/logout') }}" style="margin-top: 30px;">
+                @csrf
+                <button type="submit" class="btn btn-link"
+                    style="color: #e91e63; text-decoration: none; font-weight: 600;">
+                    <span class="link-text">Logout</span>
+                </button>
+            </form>
+        @else
+            <a href="{{ url('/login') }}" style="color: #e91e63; font-weight: 600;">
+                <span class="link-text">Login</span>
+            </a>
+            <a href="{{ url('/register') }}" style="color: #e91e63; font-weight: 600;">
+                <span class="link-text">Register</span>
+            </a>
+        @endauth
     </div>
 
     <!-- Content -->

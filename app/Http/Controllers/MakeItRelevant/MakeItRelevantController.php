@@ -14,7 +14,7 @@ class MakeItRelevantController extends Controller
     public function fetchUserSessions()
     {
         $userId = Auth::id();
-        $response = Http::get("http://192.168.50.144:5001/sessions/$userId");
+        $response = Http::get("http://localhost:5001/sessions/$userId");
         return response()->json($response->json());
     }
 
@@ -57,7 +57,7 @@ class MakeItRelevantController extends Controller
 
         $response = Http::timeout(0)
             ->asMultipart()
-            ->post('http://192.168.50.144:5001/makeitrelevant', $multipartData);
+            ->post('http://localhost:5001/makeitrelevant', $multipartData);
 
         if ($response->failed()) {
             logger()->error('FastAPI Make It Relevant error', ['body' => $response->body()]);
@@ -65,12 +65,11 @@ class MakeItRelevantController extends Controller
         }
 
         $responseData = $response->json();
-        logger($responseData); // ✅ Log the response
+        logger($responseData);
 
         $messageId = $responseData['message_id'] ?? null;
 
         if ($messageId) {
-            // ✅ External redirect
             return redirect()->to("/chat/history/{$messageId}");
         }
 

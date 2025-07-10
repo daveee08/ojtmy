@@ -13,7 +13,7 @@
 
     <style>
         :root {
-            --pink: #EC298B;
+            --pink: #e91e63;
             --white: #ffffff;
             --dark: #191919;
             --light-grey: #f5f5f5;
@@ -31,7 +31,6 @@
         }
 
         .sidebar {
-            position: fixed;
             top: 0;
             left: 0;
             height: 100vh;
@@ -62,9 +61,10 @@
         }
 
         .sidebar a {
+            display: flex;
+            /* Change from block to flex */
             align-items: center;
             justify-content: flex-start;
-            display: block;
             color: var(--dark);
             text-decoration: none;
             margin: 12px 0;
@@ -72,23 +72,24 @@
             padding: 12px 18px;
             border-radius: 10px;
             transition: background 0.3s ease, color 0.3s ease;
-        }
-
-        .sidebar a:hover {
-            background-color: var(--light-grey);
-            color: var(--pink);
+            white-space: nowrap;
+            /* Prevent text from wrapping */
+            overflow: hidden;
         }
 
         .sidebar.collapsed a {
-            text-align: center;
-            padding: 10px 5px;
-            font-size: 0.85rem;
+            justify-content: center;
+            padding-left: 12px;
+            padding-right: 12px;
         }
 
         .sidebar a i {
-            margin-right: 10px;
+            margin-right: 12px;
             font-size: 1.2rem;
-            transition: margin 0.3s ease;
+            min-width: 24px;
+            width: 24px;
+            text-align: center;
+            transition: margin 0.3s ease, font-size 0.3s ease;
         }
 
         .sidebar.collapsed a i {
@@ -96,27 +97,48 @@
         }
 
         .link-text {
-            display: inline;
-            transition: opacity 0.3s ease, width 0.3s ease;
+            display: inline-block;
             opacity: 1;
-            white-space: nowrap;
+            width: auto;
+            max-width: 200px;
+            transition: opacity 0.3s ease, max-width 0.3s ease;
+            overflow: hidden;
         }
 
         .sidebar.collapsed .link-text {
             opacity: 0;
-            width: 0;
+            max-width: 0;
         }
 
+        .sidebar:not(.collapsed) a[data-bs-toggle="tooltip"] .link-text {
+            pointer-events: none;
+        }
+        
         .content {
-            margin-left: 240px;
+            flex: 1;
             padding: 50px 30px;
             background-color: var(--light-grey);
-            min-height: 100vh;
-            transition: margin-left 0.3s ease;
+            transition: all 0.3s ease;
+            overflow-x: hidden;
         }
 
-        .content.expanded {
-            margin-left: 70px;
+        .layout {
+            display: flex;
+            height: 100vh;
+            width: 100%;
+        }
+
+        .sidebar a.active-link {
+            background-color: rgba(221, 175, 198, 0.15);
+
+        }
+
+        .sidebar a.active-link i {
+            color: inherit !important;
+        }
+
+        .sidebar a:hover {
+            background-color: rgba(221, 175, 198, 0.15);
         }
 
         #toggleSidebar {
@@ -131,6 +153,10 @@
             border-radius: 5px;
             font-size: 1rem;
         }
+
+        #toggleSidebar:hover {
+            color: var(--pink);
+        }
     </style>
 </head>
 
@@ -140,25 +166,26 @@
     <button id="toggleSidebar">☰</button>
 
     <!-- Sidebar -->
-    <div class="sidebar" id="sidebar">
-        <h2></h2>
+    <div class="layout">
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <h2></h2>
 
-        <a href="{{ url('/') }}" data-bs-toggle="tooltip" title="Tools">
-            <i class="bi bi-house-door"></i>
-            <span class="link-text">Home</span>
-        </a>
-        <a href="{{ url('/tools') }}" data-bs-toggle="tooltip" title="Home">
-            <i class="bi bi-tools"></i>
-            <span class="link-text">Tools</span>
-        </a>
-        <a href="{{ url('/about') }}" data-bs-toggle="tooltip" title="About">
-            <i class="bi bi-people"></i>
-            <span class="link-text">About</span>
-        </a>
-        <a href="#tool-Contact" data-bs-toggle="tooltip" title="Contact">
-            <i class="bi bi-envelope"></i>
-            <span class="link-text">Contact</span>
-        </a>
+            <a href="{{ url('/') }}" class="{{ request()->is('/') ? 'active-link' : '' }}" data-bs-toggle="tooltip"
+                title="Home">
+                <i class="bi bi-house-door"></i>
+                <span class="link-text">Home</span>
+            </a>
+            <a href="{{ url('/tools') }}" class="{{ request()->is('tools*') ? 'active-link' : '' }}"
+                data-bs-toggle="tooltip" title="Tools">
+                <i class="bi bi-tools"></i>
+                <span class="link-text">Tools</span>
+            </a>
+            <a href="{{ url('/about') }}" class="{{ request()->is('about') ? 'active-link' : '' }}"
+                data-bs-toggle="tooltip" title="About">
+                <i class="bi bi-people"></i>
+                <span class="link-text">About</span>
+            </a>
 
             @auth
                 <form method="POST" action="{{ url('/logout') }}" style="margin-top: 30px;">
@@ -176,31 +203,29 @@
                     <span class="link-text">Register</span>
                 </a>
             @endauth
-    </div>
+        </div>
 
-    <!-- Content -->
-    <div class="content" id="mainContent">
-        @yield('content')
-    </div>
+        <!-- Content -->
+        <div class="content" id="mainContent">
+            @yield('content')
+        </div>
 
-    <!-- Bootstrap Bundle (includes Popper for tooltips) -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+        <!-- Scripts -->
+        <script>
+            const toggleBtn = document.getElementById("toggleSidebar");
+            const sidebar = document.getElementById("sidebar");
+            const content = document.getElementById("mainContent");
 
-    <!-- Sidebar & Tooltip JS -->
-    <script>
-        const toggleBtn = document.getElementById("toggleSidebar");
-        const sidebar = document.getElementById("sidebar");
-        const content = document.getElementById("mainContent");
+            toggleBtn.addEventListener("click", () => {
+                sidebar.classList.toggle("collapsed");
+                content.classList.toggle("expanded");
+            });
 
-        toggleBtn.addEventListener("click", () => {
-            sidebar.classList.toggle("collapsed");
-            content.classList.toggle("expanded");
-        });
-
-        // Enable Bootstrap tooltips
-        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        tooltipTriggerList.forEach(el => new bootstrap.Tooltip(el));
-    </script>
+            const tooltipTriggerlist = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerlist.forEach(el => {
+                new bootstrap.Tooltip(el, {});
+            })
+        </script>
 
 </body>
 

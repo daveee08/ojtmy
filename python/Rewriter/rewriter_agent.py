@@ -1,10 +1,20 @@
-from fastapi import FastAPI, HTTPException, UploadFile, Form, File 
-from fastapi.responses import JSONResponse 
-from pydantic import BaseModel 
-from langchain_community.llms import Ollama 
-from langchain_core.prompts import ChatPromptTemplate 
-from langchain_community.document_loaders.pdf import PyPDFLoader 
-import shutil, os, re, tempfile, uvicorn, traceback 
+from fastapi import FastAPI, HTTPException, UploadFile, Form, File, Depends
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
+from langchain_community.llms import Ollama
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_community.document_loaders.pdf import PyPDFLoader
+import shutil, os, re, tempfile, uvicorn, traceback, sys
+from typing import Optional
+from langchain_core.messages import HumanMessage, AIMessage
+from fastapi.middleware.cors import CORSMiddleware
+
+current_script_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.join(current_script_dir, '..', '..')
+sys.path.insert(0, project_root)
+
+from python.chat_router import chat_router
+from python.db_utilss import create_session_and_parameter_inputs, insert_message
 
 manual_topic_template = """
 You are a precise and reliable rewriting tool. Your job is to rewrite the original input exactly according to the user's instructions — without adding, explaining, simplifying, or removing any key content.
@@ -90,16 +100,44 @@ Instructions:
 Return the rewritten version only. Do not include any labels, notes, headings, or commentary — just the clean, rewritten text.
 """
 
+app = FastAPI(debug=True)
+app.include_router(chat_router)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # or Laravel origin like "http://localhost:8000"
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+class RewriterInput(BaseModel):
+    user_id: int
+    input_type: str
+    topic: str
+    custom_instruction: str
+    message_id: Optional[str] = None
+
+    @classmethod
+    def as_form(
+        cls,
+        user_id: int = Form(...),
+        input_type: str = Form(...),
+        topic: str = Form(""),
+        custom_instruction: str = Form(""),
+        message_id: Optional[str] = Form(default=None)
+    ):
+        return cls(
+            user_id=user_id,
+            input_type=input_type,
+            topic=topic,
+            custom_instruction=custom_instruction,
+            message_id=message_id
+        )
 
 model = Ollama(model="llama3")
 manual_prompt = ChatPromptTemplate.from_template(manual_topic_template)
 pdf_prompt = ChatPromptTemplate.from_template(pdf_topic_template)
-
-class RewriterInput(BaseModel):
-    input_type: str
-    topic: str = ""
-    pdf_path: str = ""
-    custom_instruction: str = ""
 
 def load_pdf_content(pdf_path: str) -> str:
     if not os.path.exists(pdf_path):
@@ -138,35 +176,45 @@ async def generate_output(
 
     # Compose input dict for prompt
     prompt_input = {
-        "custom_instruction": custom_instruction,
-        "topic": topic
+        "topic": topic,
+        "custom_instruction": custom_instruction
     }
 
     chain = prompt | model
     result = chain.invoke(prompt_input)
     return clean_output(result)
 
-app = FastAPI()
-
 @app.post("/rewriter")
 async def rewriter_api(
-    input_type: str = Form(...),
-    topic: str = Form(""),
-    pdf_file: UploadFile = File(None),
-    custom_instruction: str = Form(...),
+    form_data: RewriterInput = Depends(RewriterInput.as_form),
+    pdf_file: UploadFile = File(None)
 ):
     try:
-        if input_type == "pdf" and not pdf_file:
+        if form_data.input_type == "pdf" and not pdf_file:
             raise HTTPException(status_code=400, detail="PDF file required for PDF input_type")
         
         output = await generate_output(
-            input_type=input_type,
-            topic=topic,
-            pdf_file=pdf_file,
-            custom_instruction=custom_instruction
+            input_type=form_data.input_type,
+            topic=form_data.topic,
+            custom_instruction=form_data.custom_instruction,
+            pdf_file=pdf_file
+        )
+
+        scope_vars = {
+            "custom_instruction": form_data.custom_instruction
+        }
+
+        human_topic = form_data.topic if form_data.input_type != "pdf" else "[PDF Input]"
+
+        session_id = create_session_and_parameter_inputs(
+            user_id=form_data.user_id,
+            agent_id=8,
+            scope_vars=scope_vars,
+            human_topic=human_topic,
+            ai_output=output
         )
         
-        return {"output": output}
+        return {"output": output, "message_id": session_id}
     except Exception as e:
         traceback_str = traceback.format_exc()
         print(traceback_str)

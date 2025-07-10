@@ -41,7 +41,7 @@ PROFILES = {
         "instructions": "Keep the corrected text as concise as possible, trimming unnecessary words."
     }
 }
-prompt_template = ChatPromptTemplate.from_template("""
+prompt_template = """
 You are a professional proofreader. Proofread the following text and:
 1. Correct grammar errors
 2. Fix spelling mistakes
@@ -50,7 +50,7 @@ You are a professional proofreader. Proofread the following text and:
 5. Return the corrected version and a list of changes
 
 Tone guide:
-{instructions}
+{profile}
 
 Text:
 {text}
@@ -66,9 +66,10 @@ Changes made:
 [List of major changes]
 
 ===END_CHANGES===
-""")
+"""
 
 model = OllamaLLM(model="gemma3:1b")
+proofreader_prompt = ChatPromptTemplate.from_template(prompt_template)
 
 
 class ProofreadInput(BaseModel):
@@ -92,12 +93,12 @@ class ProofreadInput(BaseModel):
             message_id=message_id
         )
 async def proofread_agent(profile: str, text: str) -> str:
-    if profile not in PROFILES:
-        raise ValueError(f"Unknown profile '{profile}'. Must be one of: {', '.join(PROFILES.keys())}")
-
-    chain = prompt_template | model
+    # if profile not in PROFILES:
+    #     raise ValueError(f"Unknown profile '{profile}'. Must be one of: {', '.join(PROFILES.keys())}")
+    chain = proofreader_prompt | model
     result = chain.invoke({
-        "instructions": PROFILES[profile]["instructions"],
+        # "instructions": PROFILES[profile]["instructions"],
+        "profile": profile,
         "text": text
     })
 
@@ -115,8 +116,11 @@ async def proofread_endpoint(data: ProofreadInput = Depends(ProofreadInput.as_fo
         raise HTTPException(status_code=400, detail="Profile and text are required.")
     try:
         explanation = await proofread_agent(data.profile, data.text)
+        filled_prompt = prompt_template.format(profile=data.profile, text=data.text)
+
         scope_vars = {
             "profile": data.profile,
+            "text": data.text
         }
 
         session_id = create_session_and_parameter_inputs(
@@ -124,7 +128,8 @@ async def proofread_endpoint(data: ProofreadInput = Depends(ProofreadInput.as_fo
             agent_id=12,  # Default agent_id for proofreader
             scope_vars=scope_vars,
             human_topic=data.text,
-            ai_output=explanation
+            ai_output=explanation,
+            agent_prompt=filled_prompt
         )
         return {"corrected": explanation, "message_id": session_id}
     except Exception as e:

@@ -3,13 +3,18 @@
 namespace App\Http\Controllers\TextScaffolder;
 
 use Illuminate\Http\Request;
-use Symfony\Component\Process\Process;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\Controller;
-
+use Illuminate\Support\Facades\Auth;
 class ScaffolderController extends Controller
 {
+    public function fetchUserSessions()
+    {
+        $userId = Auth::id();
+        $response = Http::get("http://localhost:5001/sessions/$userId");
+        return response()->json($response->json());
+    }
+
     public function showForm()
     {
         return view('Text Scaffolder.scaffolder');
@@ -34,6 +39,7 @@ class ScaffolderController extends Controller
             ['name' => 'literal_questions', 'contents' => $validated['literal_questions'] ?? 0],
             ['name' => 'vocab_limit', 'contents' => $validated['vocab_limit'] ?? 0],
             ['name' => 'topic', 'contents' => $validated['topic'] ?? ''],
+            ['name' => 'user_id', 'contents' => Auth::id() ?? 1],
         ];
 
         if ($request->hasFile('pdf_file')) {
@@ -48,18 +54,25 @@ class ScaffolderController extends Controller
             ];
         }
 
-        try {
-            $response = Http::timeout(0)
-                ->asMultipart()
-                ->post('http://192.168.50.123:5001/scaffolder', $multipartData);
+        $response = Http::timeout(0)
+            ->asMultipart()
+            ->post('http://localhost:5001/scaffolder', $multipartData);
 
-            if ($response->failed()) {
-                return back()->withErrors(['error' => 'Python API failed: ' . $response->body()]);
-            }
-
-            return view('Text Scaffolder.scaffolder', ['response' => $response->json()['output'] ?? 'No output']);
-        } catch (\Exception $e) {
-            return back()->withErrors(['error' => 'Request error: ' . $e->getMessage()]);
+        if ($response->failed()) {
+            logger()->error('FastAPI Leveler error', ['body' => $response->body()]);
+            return back()->withErrors(['error' => 'Python API failed: ' . $response->body()]);
         }
+    
+        $responseData = $response->json();
+        logger($responseData);
+        $messageId = $responseData['message_id'] ?? null;
+    
+        if ($messageId) {
+            return redirect()->to("/chat/history/{$messageId}");
+        }
+
+        return view('Text Scaffolder.scaffolder', [
+            'response' => $response->json()['output'] ?? 'No output'
+        ]);
     }
 }

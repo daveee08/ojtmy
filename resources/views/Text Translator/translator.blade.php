@@ -1,4 +1,4 @@
-@extends('layouts.history')
+
     
 <!DOCTYPE html>
 <html lang="en">
@@ -124,20 +124,6 @@
                     </button>
                 </div>
             </form>
-
-            {{-- ✅ Follow-Up Form (not nested!) --}}
-            @if (!empty($translation))
-            <div class="mt-4">
-                <label class="form-label fw-semibold">Send a message:</label>
-                <form action="{{ route('translator.followup') }}" method="POST">
-                    @csrf
-                    <p class="text-muted small">DEBUG message_id: {{ $message_id ?? 'NULL' }}</p>
-                    <input type="hidden" name="message_id" value="{{ $message_id ?? '' }}">
-                    <textarea name="followup" rows="3" class="form-control mb-2" placeholder="Ask a follow-up..."></textarea>
-                    <button type="submit" class="btn btn-outline-primary">Send Message</button>
-                </form>
-            </div>
-            @endif
 
 
         </div>

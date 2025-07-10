@@ -5,9 +5,17 @@ namespace App\Http\Controllers\AssignmentScaffolder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 
-class AssignmentScaffolder extends Controller
+class AssignmentScaffolderController extends Controller
 {
+    public function fetchUserSessions()
+    {
+        $userId = Auth::id();
+        $response = Http::get("http://localhost:5001/sessions/$userId");
+        return response()->json($response->json());
+    }
+
     public function showForm()
     {
         return view('Assignment Scaffolder.assignmentscaffolder');
@@ -27,6 +35,7 @@ class AssignmentScaffolder extends Controller
         $multipartData = [
             ['name' => 'input_type', 'contents' => $validated['input_type']],
             ['name' => 'grade_level', 'contents' => $validated['grade_level']],
+            ['name' => 'user_id', 'contents' => Auth::id() ?? 1],
         ];
 
         if ($validated['input_type'] === 'topic') {
@@ -45,18 +54,26 @@ class AssignmentScaffolder extends Controller
             ];
         }
 
-        try {
-            $response = Http::timeout(0)
-                ->asMultipart()
-                ->post('http://192.168.50.123:5001/assignmentscaffolder', $multipartData);
+        $response = Http::timeout(0)
+            ->asMultipart()
+            ->post('http://localhost:5001/assignmentscaffolder', $multipartData);
 
-            if ($response->failed()) {
-                return back()->withErrors(['error' => 'Python API failed: ' . $response->body()]);
-            }
-
-            return view('Assignment Scaffolder.assignmentscaffolder', ['response' => $response->json()['output'] ?? 'No output']);
-        } catch (\Exception $e) {
-            return back()->withErrors(['error' => 'Request error: ' . $e->getMessage()]);
+        if ($response->failed()) {
+            logger()->error('FastAPI Leveler error', ['body' => $response->body()]);
+            return back()->withErrors(['error' => 'Python API failed: ' . $response->body()]);
         }
+    
+        $responseData = $response->json();
+        logger($responseData);
+    
+        $messageId = $responseData['message_id'] ?? null;
+    
+        if ($messageId) {
+            return redirect()->to("/chat/history/{$messageId}");
+        }
+
+        return view('Assignment Scaffolder.assignmentscaffolder', [
+            'response' => $responseData['output'] ?? 'No output (no message ID)'
+        ]);
     }
 }

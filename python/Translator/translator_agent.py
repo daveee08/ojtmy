@@ -11,7 +11,7 @@ import os
 # Ensure parent directory (python/) is in the path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 # from db_utils import insert_message, insert_dynamic_parameter_input, insert_session
-from db_utils import insert_session_and_message, load_messages_by_agent_and_user, load_messages_by_session_id, get_parameter_inputs_by_message_id
+from db_utils_final import create_session_and_parameter_inputs
 from typing import Optional
 
 
@@ -31,7 +31,7 @@ class TranslationInput(BaseModel):
     target_language: str
     user_id: int
     # parameter_inputs: int = 1  # default
-    agent_id: int = 16         # translator agent_id (adjust as needed)
+    # agent_id: int = 16         # translator agent_id (adjust as needed)
     # message_id: Optional[int]         # Laravel-generated session thread ID
 
     @classmethod
@@ -41,7 +41,7 @@ class TranslationInput(BaseModel):
         target_language: str = Form(...),
         user_id: int = Form(...),
         # parameter_inputs: int = Form(1),
-        agent_id: int = Form(16),
+        # agent_id: int = Form(16),
         # message_id: int = Form(...)
     ):
         return cls(
@@ -49,7 +49,7 @@ class TranslationInput(BaseModel):
             target_language=target_language,
             user_id=user_id,
             # parameter_inputs=parameter_inputs,
-            agent_id=agent_id,
+            # agent_id=agent_id,
             # message_id=message_id
         )
 
@@ -72,29 +72,6 @@ Do not engage in conversations, provide information, or answer questions outside
 For direct translation requests, return only the translated text, without the original, explanations, or extra commentary."""
 
 
-class TranslationFollowupInput(BaseModel):
-    text: str
-    user_id: int
-    message_id: int
-    # target_language: str # Default to bisaya
-    agent_id: int = 16  # translator agent_id (adjust as needed)
-    agent_system_prompt: str = follow_up_prompt_template
-
-
-    @classmethod
-    def as_form(
-        cls,
-        text: str = Form(...),
-        user_id: int = Form(...),
-        message_id: int = Form(...),
-        # target_language: str = Form(...),  # Default to bisaya
-    ):
-        return cls(
-            text=text,
-            user_id=user_id,
-            message_id=message_id,
-            # target_language=target_language,
-        )
 
 # Combine into a chain
 chain = prompt_template | model
@@ -123,139 +100,19 @@ async def translate_endpoint(data: TranslationInput = Depends(TranslationInput.a
             "target_language": data.target_language
         }
 
-        message_id =insert_session_and_message(
+        filled_prompt = prompt_template.format(language=data.target_language.strip(), text=data.text.strip())
+
+        session_id = create_session_and_parameter_inputs(
             user_id=data.user_id,
-            agent_id=data.agent_id,
-            sender="human",
-            topic=data.text,
+            agent_id=20,  # Default agent_id for step tutor
             scope_vars=scope_vars,
+            human_topic=data.text,
+            ai_output=output,
+            agent_prompt=filled_prompt
         )
 
-        insert_session_and_message(
-            user_id=data.user_id,
-            agent_id=data.agent_id,
-            sender="ai",
-            topic=output,
-            scope_vars=scope_vars,
-            message_id=message_id,
-        )
         
-        return {"translation": output, "message_id": message_id}
+        return {"translation": output, "message_id": session_id}
     # except Exception as e:
     #     raise HTTPException(status_code=500, detail=str(e))
     
-@app.post("/translate/followup")
-async def translate_followup_endpoint(data: TranslationFollowupInput = Depends(TranslationFollowupInput.as_form)):
-    try:
-        async with httpx.AsyncClient(timeout=None) as client:
-            form_data = {
-                "topic": data.text,
-                "user_id": str(data.user_id),
-                "db_message_id": int(data.message_id),
-                "agent_system_prompt": data.agent_system_prompt,
-                "context": str(get_parameter_inputs_by_message_id(data.message_id)),
-            }
-            chat_url = "http://192.168.50.10:8001/chat_with_history"
-            try:
-                print("[DEBUG] Sending chat request:", form_data, flush=True)
-                resp = await client.post(chat_url, data=form_data)
-                print("[DEBUG] Response status:", resp.status_code, flush=True)
-                print("[DEBUG] Response body:", await resp.aread(), flush=True)
-            except Exception as e:
-                import traceback
-                print("[ERROR] Failed to contact chat_url", flush=True)
-                print(traceback.format_exc(), flush=True)
-                raise
-            resp.raise_for_status()
-            result = resp.json()
-            output = result.get("response", "No output")
-
-        scope_vars = {
-            "target_language": "follow up"
-        }
-
-        insert_session_and_message(
-            user_id=data.user_id,
-            agent_id=data.agent_id,
-            sender="human",
-            topic=data.text,
-            scope_vars=scope_vars,
-            message_id=data.message_id,
-        )
-
-        insert_session_and_message(
-            user_id=data.user_id,
-            agent_id=data.agent_id,
-            sender="ai",
-            topic=output,
-            scope_vars=scope_vars,
-            message_id=data.message_id,
-        )
-        
-
-        return {"translation": output}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-class ChatMessage(BaseModel):
-    user_id: int
-    agent_id: int
-
-    @classmethod
-    def as_form(
-        cls,
-        user_id: int = Form(...),
-        agent_id: int = Form(...),
-    ):
-        return cls(
-            user_id=user_id,
-            agent_id=agent_id
-        )
-   
-@app.post("/chat/messages")
-async def get_translator_messages(data: ChatMessage = Depends(ChatMessage.as_form), limit: Optional[int] = None, order: str = 'desc'):
-    return {
-        "messages": load_messages_by_agent_and_user(
-            agent_id=data.agent_id,
-            user_id=data.user_id,
-            limit=limit,
-            order=order
-        )
-    }
-
-class SpecificMessageRequest(BaseModel):
-    session_id: int
-    limit: Optional[int] = None
-    order: str = 'asc'
-
-    @classmethod
-    def as_form(
-        cls,
-        session_id: int = Form(...),
-        limit: Optional[int] = Form(None),
-        order: str = Form('asc')
-    ):
-        return cls(
-            session_id=session_id,
-            limit=limit,
-            order=order
-        )
-
-@app.post("/chat/specific_messages")
-async def get_specific_translator_messages(data: SpecificMessageRequest = Depends(SpecificMessageRequest.as_form)):
-    return {
-        "messages": load_messages_by_session_id(
-            session_id=data.session_id,
-            limit=data.limit,
-            order=data.order
-        )
-    }
-
-
-# @app.post("/translate")
-# async def translate_endpoint(data: TranslationInput = Depends(TranslationInput.as_form)):
-#     try:
-#         output = translate_text(data.text, data.target_language)
-#         return {"translation": output}
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=str(e))

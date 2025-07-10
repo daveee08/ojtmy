@@ -12,7 +12,7 @@ class InformationalController extends Controller
     public function fetchUserSessions()
     {
         $userId = Auth::id();
-        $response = Http::get("http://192.168.50.144:5001/sessions/$userId");
+        $response = Http::get("http://localhost:5001/sessions/$userId");
         return response()->json($response->json());
     }
 
@@ -57,7 +57,7 @@ class InformationalController extends Controller
 
         $response = Http::timeout(0)
             ->asMultipart()
-            ->post('http://192.168.50.144:5001/informational', $multipartData);
+            ->post('http://localhost:5001/informational', $multipartData);
 
         if ($response->failed()) {
             logger()->error('FastAPI Informational Text error', ['body' => $response->body()]);

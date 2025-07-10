@@ -1,6 +1,23 @@
 @extends('layouts.app')
 
 @section('content')
+
+@if ($errors->any())
+    <div class="alert alert-danger">
+        <ul class="mb-0">
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
+
+@if (session('error'))
+    <div class="alert alert-danger">
+        {{ session('error') }}
+    </div>
+@endif
+
     <!-- Loading Spinner -->
     <div id="loading-overlay">
         <div class="spinner-border text-pink" role="status" style="width: 3rem; height: 3rem;">
@@ -108,23 +125,7 @@
         }
     </style>
 
-    <div class="row">
-        <div class="col-md-3">
-            <h5 class="fw-bold mb-3">    Conceptual Understanding Sessions</h5>
-            <ul class="list-group">
-                @foreach ($threads as $thread)
-                    <li class="list-group-item {{ $thread->id == $activeThread ? 'active' : '' }}">
-                        <a href="{{ url('/tutor?thread_id=' . $thread->id) }}" class="text-decoration-none text-dark">
-                            {{ \Illuminate\Support\Str::limit($thread->topic, 50) }}
-                        </a>
-                    </li>
-                @endforeach
-            </ul>
-        </div>
-        <div class="col-md-9">
-            <!-- existing tutor form and chat box go here -->
-        </div>
-    </div>
+    
 
     <div class="container py-5">
         <div class="row justify-content-center">
@@ -132,47 +133,14 @@
                 <div class="ck-card">
                     <h2 class="ck-title">Conceptual Understanding </h2>
 
-                    <!-- Chat Display -->
-                    @if (isset($history) && count($history) > 0)
-                        <div class="chat-box" style="background:#f8f9fb;">
-                            @foreach ($history as $entry)
-                                <div
-                                    class="message d-flex {{ $entry['role'] === 'human' ? 'justify-content-end' : 'justify-content-start' }}">
-                                    <div class="w-75">
-                                        <div
-                                            class="fw-bold mb-1 {{ $entry['role'] === 'human' ? 'text-end text-primary' : 'text-start text-pink' }}">
-                                            {{ $entry['role'] === 'human' ? 'You' : 'Tutor' }}
-                                        </div>
-                                        <div class="message-content p-3 mb-2 {{ $entry['role'] === 'human' ? 'bg-white border border-primary' : 'bg-light border border-pink' }}"
-                                            style="border-radius:12px;">
-                                            {{ $entry['content'] }}
-                                        </div>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    @endif
-
-
-
-
 
                     <!-- Tutor Form -->
                     <form id="tutor-form" action="{{ url('/tutor') }}" method="POST" enctype="multipart/form-data">
                         @csrf
 
-                        @if (!isset($history) || count($history) === 0)
                             <div class="mb-3">
                                 <label class="form-label">Grade Level</label>
                                 <input type="text" class="form-control" name="grade_level">
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label">Input Type</label>
-                                <select class="form-select" name="input_type" id="input_type">
-                                    <option value="topic">Topic</option>
-                                    <option value="pdf">PDF</option>
-                                </select>
                             </div>
 
                             <div class="mb-3" id="topic-input">
@@ -181,29 +149,10 @@
                                     placeholder="Enter your topic or question...">
                             </div>
 
-                            <div class="mb-3 d-none" id="pdf-input">
-                                <label class="form-label">Upload PDF</label>
-                                <input type="file" class="form-control" name="pdf_file" accept="application/pdf">
-                            </div>
-
                             <div class="mb-3">
                                 <label class="form-label">Additional Context (optional)</label>
                                 <textarea class="form-control" name="add_cont" rows="3" placeholder="Anything else the tutor should know?"></textarea>
                             </div>
-                        @else
-                            <input type="hidden" name="grade_level"
-                                value="{{ isset($history) && count($history) > 0 ? $history[0]['grade_level'] ?? '' : '' }}">
-                            <input type="hidden" name="input_type" value="topic">
-                            <input type="hidden" name="add_cont" value="">
-                            @if (isset($activeThread))
-                                <input type="hidden" name="message_id" value="{{ $activeThread }}">
-                            @endif
-                            <div class="mb-3">
-                                <label class="form-label">Follow Up Message</label>
-                                <input type="text" class="form-control" name="topic"
-                                    placeholder="Continue the conversation..." required>
-                            </div>
-                        @endif
 
                         <div class="text-center mt-4">
                             <button type="submit" class="ck-btn">Send</button>
@@ -232,15 +181,9 @@
 
 
     <script>
-        // Toggle topic and PDF inputs based on selected input type
-        document.getElementById('input_type')?.addEventListener('change', function() {
-            const type = this.value;
-            document.getElementById('topic-input').classList.toggle('d-none', type === 'pdf');
-            document.getElementById('pdf-input').classList.toggle('d-none', type === 'topic');
-        });
 
         // Handle form submission asynchronously (AJAX)
-        document.getElementById('tutor-form').addEventListener('submit', function(event) {
+        document.getElementById('tutor-form').addEventListener('submit', function(event)) {
             event.preventDefault();
 
             const form = this;
@@ -248,113 +191,8 @@
             const loadingOverlay = document.getElementById('loading-overlay');
 
             loadingOverlay.style.display = 'flex';
-
-            fetch(form.action, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'Accept': 'application/json'
-                    }
-                })
-                .then(response => {
-                    if (!response.ok) throw new Error('Network response was not OK');
-                    return response.json();
-                })
-                .then(data => {
-                    loadingOverlay.style.display = 'none';
-
-                    // Inject chat-box if not present
-                    let chatBox = document.querySelector('.chat-box');
-                    if (!chatBox) {
-                        const newBox = document.createElement('div');
-                        newBox.className = 'chat-box';
-                        newBox.style.background = '#f8f9fb';
-                        newBox.style.maxHeight = '300px';
-                        newBox.style.overflowY = 'auto';
-                        newBox.style.padding = '15px';
-                        newBox.style.border = '1px solid #e4e8f0';
-                        newBox.style.borderRadius = '12px';
-                        newBox.style.marginBottom = '20px';
-
-                        const formCard = document.querySelector('.ck-card');
-                        formCard.insertBefore(newBox, formCard.querySelector('form'));
-                        chatBox = newBox;
-                    }
-
-                    // Append messages
-                    const userMessage = `
-        <div class="message d-flex justify-content-end">
-          <div class="w-75">
-            <div class="fw-bold mb-1 text-end text-primary">You</div>
-            <div class="message-content p-3 mb-2 bg-white border border-primary" style="border-radius:12px;">
-              ${formData.get('topic')}
-            </div>
-          </div>
-        </div>
-      `;
-
-                    const assistantMessage = `
-        <div class="message d-flex justify-content-start">
-          <div class="w-75">
-            <div class="fw-bold mb-1 text-start text-pink">Tutor</div>
-            <div class="message-content p-3 mb-2 bg-light border border-pink" style="border-radius:12px;">
-              ${data.message}
-            </div>
-          </div>
-        </div>
-      `;
-
-                    chatBox.innerHTML += userMessage + assistantMessage;
-                    chatBox.scrollTop = chatBox.scrollHeight;
-
-                    // 🔄 Replace form with follow-up version if it's still initial
-                    if (form.querySelector('select[name="input_type"]')) {
-                        const gradeLevel = formData.get('grade_level') || 'Not set';
-                        const csrfToken = document.querySelector('input[name="_token"]')?.value || '';
-                        const messageId = data.message_id; // ✅ This comes from server response
-
-                        form.innerHTML = `
-        <input type="hidden" name="_token" value="${csrfToken}">
-        <input type="hidden" name="grade_level" value="${gradeLevel}">
-        <input type="hidden" name="input_type" value="topic">
-        <input type="hidden" name="add_cont" value="">
-        <input type="hidden" name="message_id" value="${messageId}"> <!-- ✅ persist -->
-        <div class="mb-3">
-          <label class="form-label">Follow Up Message</label>
-          <input type="text" class="form-control" name="topic" placeholder="Continue the conversation..." required>
-        </div>
-        <div class="text-center mt-4">
-          <button type="submit" class="ck-btn">Send</button>
-        </div>
-      `;
-                    } else {
-                        const topicInput = form.querySelector('[name="topic"]');
-                        if (topicInput) topicInput.value = '';
-
-                        // 🧠 Reuse the message_id if already present
-                        const existingMessageId = form.querySelector('[name="message_id"]');
-                        if (!existingMessageId && data.message_id) {
-                            const hiddenField = document.createElement('input');
-                            hiddenField.setAttribute('type', 'hidden');
-                            hiddenField.setAttribute('name', 'message_id');
-                            hiddenField.setAttribute('value', data.message_id);
-                            form.appendChild(hiddenField);
-                        }
-                    }
-                })
-                .catch(async (error) => {
-                    loadingOverlay.style.display = 'none';
-                    try {
-                        const errorText = await error?.response?.text?.();
-                        console.error('Server error:', errorText || error.message);
-                        alert('Server error:\n' + (errorText || error.message));
-                    } catch (e) {
-                        console.error('Unhandled Error:', error);
-                        alert('Something went wrong. Check console.');
-                    }
-                });
-        });
+        }
+            
     </script>
 
 @endsection

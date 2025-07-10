@@ -8,6 +8,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
+
 
 class CharacterChatController extends Controller
 {
@@ -26,30 +28,38 @@ class CharacterChatController extends Controller
             'character'   => 'required|string',
         ]);
 
-        try {
+    
             $multipartData = [
                 ['name' => 'grade_level', 'contents' => $validated['grade_level']],
                 ['name' => 'character', 'contents' => $validated['character']],
+                ['name' => 'user_id', 'contents' => Auth::id() ?? 1],
             ];
 
-            $response = Http::timeout(0)
-                            ->asMultipart()
-                            ->post('http://127.0.0.1:8001/generate-characterchat', $multipartData);
+        try{
+
+            $response = Http::Timeout(0)
+            ->asMultipart()
+            ->post('http://127.0.0.1:5001/generate-characterchat', $multipartData);
+
+
+            Log::info('Thank you generator response:', ['response' => $response -> body()]);
 
             if ($response->failed()) {
-                Log::error('CharacterChat API failed', [
-                    'status' => $response->status(),
-                    'body'   => $response->body(),
-                ]);
-                return back()->with('response', 'No character response received.');
+            logger()->error('FastAPI Leveler error', ['body' => $response->body()]);
+            return back()->withErrors(['error' => 'Python API failed: ' . $response->body()]);
             }
-
-            $data = $response->json();
-
-            return back()->with('response', $data['response'] ?? 'No character response received.');
-        } catch (\Exception $e) {
-            Log::error('CharacterChat Exception', ['message' => $e->getMessage()]);
-            return back()->withErrors(['error' => 'Server error. Please try again later.'])->withInput();
+        
+            $responseData = $response->json();
+            logger($responseData); // ✅ Log the response
+        
+            $messageId = $responseData['message_id'] ?? null;
+            if ($messageId) {
+                // ✅ External redirect
+                return redirect()->to("/chat/history/{$messageId}");
+            }
+        }
+        catch (\Exception $e) {
+            return back()->with('error', 'An error occurred while generating ideas: ' . $e->getMessage());
         }
     }
 }

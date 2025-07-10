@@ -162,7 +162,7 @@
         const userId = {{ Auth::id() ?? 1 }};
         const currentPath = window.location.pathname;
 
-        fetch(`http://localhost:5001/sessions/${userId}`)
+        fetch(`http://192.168.50.144:5001/sessions/${userId}`)
             .then(response => response.json())
             .then(data => {
                 sessionList.innerHTML = '';
@@ -186,7 +186,10 @@
             })
             .catch(error => {
                 console.error('Error fetching sessions:', error);
-                sessionList.innerHTML = '<p>Error loading sessions.</p>';
+                sessionList.innerHTML = `
+                    <p>Error loading sessions.</p>
+                    <p>Auth ID is ${userId}</p>
+                `;
             });
     </script>
 </body>

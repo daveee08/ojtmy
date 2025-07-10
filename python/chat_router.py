@@ -7,11 +7,6 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables import RunnableWithMessageHistory
 from langchain_core.messages import HumanMessage, AIMessage, BaseMessage
 from langchain_core.runnables.history import BaseChatMessageHistory
-import os, sys
-
-current_script_dir = os.path.dirname(os.path.abspath(__file__))
-project_root = os.path.join(current_script_dir, '..', '..')
-sys.path.insert(0, project_root)
 
 from python.db_utilss import get_db_connection
 

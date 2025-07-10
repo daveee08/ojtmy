@@ -1,11 +1,20 @@
-from fastapi import FastAPI, HTTPException, UploadFile, Form, File
+from fastapi import FastAPI, HTTPException, UploadFile, Form, File, Depends
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from langchain_community.llms import Ollama
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_community.document_loaders.pdf import PyPDFLoader
-import shutil, os, re, tempfile, traceback
-import uvicorn
+import shutil, os, re, tempfile, uvicorn, traceback, sys
+from typing import Optional
+from langchain_core.messages import HumanMessage, AIMessage
+from fastapi.middleware.cors import CORSMiddleware
+
+current_script_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.join(current_script_dir, '..', '..')
+sys.path.insert(0, project_root)
+
+from python.chat_router import chat_router
+from python.db_utilss import create_session_and_parameter_inputs, insert_message
 
 # Instruction template
 template = """
@@ -36,6 +45,44 @@ Instructions:
 Respond with the email only — no labels, commentary, or explanation.
 """
 
+app = FastAPI(debug=True)
+app.include_router(chat_router)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # or Laravel origin like "http://localhost:8000"
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+class ResponderInput(BaseModel):
+    user_id: int
+    author: str
+    email: str
+    intent: str
+    tone: str
+    message_id: Optional[str] = None
+
+    @classmethod
+    def as_form(
+        cls,
+        user_id: int = Form(...),
+        author: str = Form(""),
+        email: str = Form(""),
+        intent: str = Form(""),
+        tone: str = Form(...),
+        message_id: Optional[str] = Form(default=None)
+    ):
+        return cls(
+            user_id=user_id,
+            author=author,
+            email=email,
+            intent=intent,
+            tone=tone,
+            message_id=message_id
+        )
+
 # LangChain setup
 model = Ollama(model="llama3")
 concept_template = ChatPromptTemplate.from_template(template)
@@ -64,10 +111,10 @@ def clean_output(text: str) -> str:
 
 # Email generation logic
 async def generate_output(
-    author: str,
-    email: str,
-    intent: str,
     tone: str,
+    author: str = "",
+    email: str = "",
+    intent: str = "",
 ):
     prompt_input = {
         "author": author,
@@ -80,24 +127,35 @@ async def generate_output(
     result = chain.invoke(prompt_input)
     return clean_output(result)
 
-# FastAPI app
-app = FastAPI()
-
 @app.post("/responder")
 async def responder_api(
-    author: str = Form(...),
-    email: str = Form(...),
-    intent: str = Form(...),
-    tone: str = Form(...),
+    form_data: ResponderInput = Depends(ResponderInput.as_form),
+    pdf_file: UploadFile = File(None)
 ):
     try:
         output = await generate_output(
-            author=author,
-            email=email,
-            intent=intent,
-            tone=tone,
+            author=form_data.author,
+            email=form_data.email,
+            intent=form_data.intent,
+            tone=form_data.tone,
         )
-        return {"output": output}
+
+        scope_vars = {
+            "author": form_data.author,
+            "email": form_data.email,
+            "intent": form_data.intent,
+            "tone": form_data.tone
+        }
+
+        session_id = create_session_and_parameter_inputs(
+            user_id=form_data.user_id,
+            agent_id=11,
+            scope_vars=scope_vars,
+            human_topic=form_data.intent,
+            ai_output=output
+        )
+
+        return {"output": output, "message_id": session_id}
     except Exception as e:
         traceback_str = traceback.format_exc()
         print(traceback_str)

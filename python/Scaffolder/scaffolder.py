@@ -1,10 +1,20 @@
-from fastapi import FastAPI, HTTPException, UploadFile, Form, File
+from fastapi import FastAPI, HTTPException, UploadFile, Form, File, Depends
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from langchain_community.llms import Ollama
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_community.document_loaders.pdf import PyPDFLoader
-import shutil, os, re, tempfile, uvicorn, traceback
+import shutil, os, re, tempfile, uvicorn, traceback, sys
+from typing import Optional
+from langchain_core.messages import HumanMessage, AIMessage
+from fastapi.middleware.cors import CORSMiddleware
+
+current_script_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.join(current_script_dir, '..', '..')
+sys.path.insert(0, project_root)
+
+from python.chat_router import chat_router
+from python.db_utilss import create_session_and_parameter_inputs, insert_message
 
 manual_topic_template = """
 You are an educational assistant.
@@ -96,17 +106,50 @@ Formatting Rules:
 Return only the formatted output. Do not add headings, titles, or instructional notes.
 """
 
-model = Ollama(model="llama3")
-manual_prompt = ChatPromptTemplate.from_template(manual_topic_template)
-pdf_prompt = ChatPromptTemplate.from_template(pdf_topic_template)
+app = FastAPI(debug=True)
+app.include_router(chat_router)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # or Laravel origin like "http://localhost:8000"
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class ScaffolderInput(BaseModel):
+    user_id: int
     input_type: str
-    topic: str = ""
-    pdf_path: str = ""
+    topic: str
     grade_level: str
     literal_questions: int
     vocab_limit: int
+    message_id: Optional[str] = None
+
+    @classmethod
+    def as_form(
+        cls,
+        user_id: int = Form(...),
+        input_type: str = Form(...),
+        topic: str = Form(""),
+        grade_level: str = Form(...),
+        literal_questions: int = Form(...),
+        vocab_limit: int = Form(...),
+        message_id: Optional[str] = Form(default=None)
+    ):
+        return cls(
+            user_id=user_id,
+            input_type=input_type,
+            topic=topic,
+            grade_level=grade_level,
+            literal_questions=literal_questions,
+            vocab_limit=vocab_limit,
+            message_id=message_id
+        )
+
+model = Ollama(model="llama3")
+manual_prompt = ChatPromptTemplate.from_template(manual_topic_template)
+pdf_prompt = ChatPromptTemplate.from_template(pdf_topic_template)
 
 def load_pdf_content(pdf_path: str) -> str:
     if not os.path.exists(pdf_path):
@@ -121,7 +164,6 @@ def clean_output(text: str) -> str:
     text = re.sub(r"^\s*[\*\-]\s*", "", text, flags=re.MULTILINE)
     return text.strip()
     
-
 async def generate_output(
     input_type: str,
     grade_level: str,
@@ -145,41 +187,51 @@ async def generate_output(
         prompt = manual_prompt
 
     prompt_input = {
+        "topic": topic,
         "grade_level": grade_level,
         "literal_questions": literal_questions,
-        "vocab_limit": vocab_limit,
-        "topic": topic
+        "vocab_limit": vocab_limit
     }
 
     chain = prompt | model
     result = chain.invoke(prompt_input)
     return clean_output(result)
 
-app = FastAPI()
-
 @app.post("/scaffolder")
 async def scaffolder_api(
-    input_type: str = Form(...),
-    topic: str = Form(""),
-    pdf_file: UploadFile = File(None),
-    grade_level: str = Form(...),
-    literal_questions: int = Form(...),
-    vocab_limit: int = Form(...)
+    form_data: ScaffolderInput = Depends(ScaffolderInput.as_form),
+    pdf_file: UploadFile = File(None)
 ):
     try:
-        if input_type == "pdf" and not pdf_file:
+        if form_data.input_type == "pdf" and not pdf_file:
             raise HTTPException(status_code=400, detail="PDF file required for PDF input_type")
 
         output = await generate_output(
-            input_type=input_type,
-            topic=topic,
-            pdf_file=pdf_file,
-            grade_level=grade_level,
-            literal_questions=literal_questions,
-            vocab_limit=vocab_limit
+            input_type=form_data.input_type,
+            topic=form_data.topic,
+            grade_level=form_data.grade_level,
+            literal_questions=form_data.literal_questions,
+            vocab_limit=form_data.vocab_limit,
+            pdf_file=pdf_file
         )
 
-        return {"output": output}
+        scope_vars = {
+            "grade_level": form_data.grade_level,
+            "literal_questions": form_data.literal_questions,
+            'vocab_limit': form_data.vocab_limit
+        }
+
+        human_topic = form_data.topic if form_data.input_type != "pdf" else "[PDF Input]"
+
+        session_id = create_session_and_parameter_inputs(
+            user_id=form_data.user_id,
+            agent_id=9,
+            scope_vars=scope_vars,
+            human_topic=human_topic,
+            ai_output=output
+        )
+
+        return {"output": output, "message_id": session_id}
     except Exception as e:
         traceback_str = traceback.format_exc()
         print(traceback_str)

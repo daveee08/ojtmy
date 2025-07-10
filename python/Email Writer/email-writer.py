@@ -719,24 +719,62 @@ Guidelines:
 Start the first message as if the user greeted or asked you something.
 """
 
+class CharacterBotInput(BaseModel):
+    grade_level: str
+    character: str
+    user_id: int
+    message_id: Optional[int] = None
+    # agent_id: int = 16  # Default agent_id for step tutor
+
+    @classmethod
+    def as_form(
+        cls,
+        grade_level: str = Form(...),
+        character: str = Form(...),
+        user_id: int = Form(...),
+        message_id: Optional[int] = Form(None)
+    ):
+        return cls(
+            grade_level=grade_level,
+            character=character,
+            user_id=user_id,
+            message_id=message_id
+        )
+    
 @app.post("/generate-characterchat")
-async def generate_character_chat(
-    grade_level: str = Form(...),
-    character: str = Form(...)
+async def generate_character_chat( data: CharacterBotInput = Depends(CharacterBotInput.as_form)
 ):
     try:
         prompt = character_prompt.format(
-            grade_level=grade_level,
-            character=character
+            grade_level=data.grade_level,
+            character=data.character
         )
 
-        llm = Ollama(model="llama3:instruct")
+        llm = Ollama(model="gemma3:1b")
         result = llm.invoke(prompt)
 
-        return {"response": result.strip()}
+        scope_vars = {
+        "grade_level": data.grade_level,
+        "character": data.character,
+        }
+
+        filled_prompt = character_prompt.format(character=data.character.strip(), grade_level=data.grade_level.strip()) #step 1
+
+
+        session_id = create_session_and_parameter_inputs(
+                user_id=data.user_id,
+                agent_id=28,  # Default agent_id for thankyou
+                scope_vars=scope_vars,
+                human_topic=data.character,
+                ai_output=result,
+                agent_prompt=filled_prompt
+        )
+    
+
+        return {"response": result.strip(), "message_id": session_id}
     except Exception as e:
         return {"error": "Character generation failed", "details": str(e)}
 
-# Optional if running directly
-if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8001)
+# # Optional if running directly
+# if __name__ == "__main__":
+#     uvicorn.run(app, host="0.0.0.0", port=8001)

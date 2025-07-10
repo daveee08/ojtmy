@@ -22,6 +22,7 @@ class FiveQuestionsController extends Controller
 
     public function processForm(Request $request)
     {
+        set_time_limit(0);
         // Only validate topic, not grade_level
         $validated = $request->validate([
             'topic' => 'nullable|string',

@@ -1,5 +1,7 @@
 <?php
 
+// app/Http/Controllers/CharacterChat/CharacterChatController.php
+
 namespace App\Http\Controllers\CharacterChat;
 
 use App\Http\Controllers\Controller;
@@ -14,35 +16,40 @@ class CharacterChatController extends Controller
         return view('CharacterChat.characterchat');
     }
 
+
     public function generate(Request $request)
     {
+
+        set_time_limit(0); // Allow script to run indefinitely
         $validated = $request->validate([
             'grade_level' => 'required|string',
-            'character' => 'required|string',
+            'character'   => 'required|string',
         ]);
 
         try {
-            $response = Http::timeout(60)->post('http://127.0.0.1:8001/generate-characterchat', [
-                'grade_level' => $validated['grade_level'],
-                'character' => $validated['character'],
-            ]);
+            $multipartData = [
+                ['name' => 'grade_level', 'contents' => $validated['grade_level']],
+                ['name' => 'character', 'contents' => $validated['character']],
+            ];
+
+            $response = Http::timeout(0)
+                            ->asMultipart()
+                            ->post('http://127.0.0.1:8001/generate-characterchat', $multipartData);
 
             if ($response->failed()) {
-                return response()->json([
-                    'error' => 'Character generation failed. Please try again.',
-                    'details' => $response->body(),
-                ], 500);
+                Log::error('CharacterChat API failed', [
+                    'status' => $response->status(),
+                    'body'   => $response->body(),
+                ]);
+                return back()->with('response', 'No character response received.');
             }
 
-            return response()->json([
-                'response' => $response->json()['response'] ?? 'No response received.',
-            ]);
+            $data = $response->json();
+
+            return back()->with('response', $data['response'] ?? 'No character response received.');
         } catch (\Exception $e) {
-            Log::error('CharacterChat Error: ' . $e->getMessage());
-            return response()->json([
-                'error' => 'Server error. Please try again later.',
-                'exception' => $e->getMessage(),
-            ], 500);
+            Log::error('CharacterChat Exception', ['message' => $e->getMessage()]);
+            return back()->withErrors(['error' => 'Server error. Please try again later.'])->withInput();
         }
     }
 }

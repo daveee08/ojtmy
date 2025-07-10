@@ -200,7 +200,7 @@ Route::post('/explanations', [ExplanationsController::class, 'processForm'])->na
 Route::get('/assignmentscaffolder', [AssignmentScaffolder::class, 'showForm'])->name('assignmentscaffolder.form');
 Route::post('/assignmentscaffolder', [AssignmentScaffolder::class, 'processForm'])->name('assignmentscaffolder.process');
 
-// ✅ Math Review Tool
+// ✅ Math Review Too
 Route::get('/mathreview', [MathReviewController::class, 'showForm'])->name('mathreview.form');
 Route::post('/mathreview', [MathReviewController::class, 'processForm'])->name('mathreview.process');
 
@@ -217,4 +217,4 @@ Route::post('/socialstory', [SocialStoryController::class, 'generate'])->name('s
 
 // Character Chat Tool
 Route::get('/characterchat', [CharacterChatController::class, 'showForm'])->name('characterchat.form');
-Route::post('/characterchat/generate', [CharacterChatController::class, 'generate'])->name('characterchat.generate');
+Route::post('/characterchat', [CharacterChatController::class, 'generate'])->name('characterchat.generate');

@@ -539,19 +539,12 @@ CAPTION:
 #     return {"story": result.strip()}
 
 # ------------------- Character Chatbot -------------------
-# from fastapi import FastAPI, Form
-# from fastapi.middleware.cors import CORSMiddleware
-# from langchain_ollama import OllamaLLM as Ollama
-# from langchain.prompts import PromptTemplate
+# ---------- FASTAPI PYTHON CODE ----------
 
-# app = FastAPI()
 
-# app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=["*"],
-#     allow_methods=["*"],
-#     allow_headers=["*"],
-# )
+
+# character_chat_agent.py
+
 
 character_prompt = """
 You are now roleplaying as: {character}
@@ -576,19 +569,18 @@ async def generate_character_chat(
     character: str = Form(...)
 ):
     try:
-        prompt = f"""
-You are a character chatbot designed to respond in the voice of a historical or fictional figure.
+        prompt = character_prompt.format(
+            grade_level=grade_level,
+            character=character
+        )
 
-Grade level of the student: {grade_level}
-Character: {character}
+        llm = Ollama(model="llama3:instruct")
+        result = llm.invoke(prompt)
 
-Respond as the character in a way appropriate for the student's grade level.
-"""
-
-        llm = Ollama(model="llama3:8b-instruct")  # or your working model
-        chain = PromptTemplate.from_template(prompt) | llm
-        result = chain.invoke({})
-
-        return {"character": result.strip()}
+        return {"response": result.strip()}
     except Exception as e:
-        return {"error": "Character generation failed. Please try again.", "details": str(e)}
+        return {"error": "Character generation failed", "details": str(e)}
+
+# Optional if running directly
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8001)

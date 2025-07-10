@@ -1,3 +1,5 @@
+{{-- resources/views/CharacterChat/characterchat.blade.php --}}
+
 @extends('layouts.app')
 
 @section('content')
@@ -36,6 +38,22 @@
         label {
             font-weight: 600;
         }
+
+        #loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(255, 255, 255, 0.8);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        #loading-overlay.active {
+            display: flex;
+        }
     </style>
 
     <div class="container my-5">
@@ -43,7 +61,7 @@
             <h2 class="text-center mb-3 fw-bold" style="color: #111;">Character Chatbot</h2>
             <p class="text-center text-muted mb-4">Chat with any historic figure, author, or recognizable character from a story.</p>
 
-           <form method="POST" action="{{ route('characterchat.generate') }}" enctype="multipart/form-data">
+            <form method="POST" action="{{ route('characterchat.generate') }}" onsubmit="showLoading()" enctype="multipart/form-data">
                 @csrf
 
                 <div class="mb-3">
@@ -58,7 +76,7 @@
 
                 <div class="mb-4">
                     <label for="character" class="form-label">Character, Author, or Historic Figure: <span class="text-danger">*</span></label>
-                    <textarea name="character" id="character" class="form-control" rows="2" placeholder="e.g. Romeo from Romeo & Juliet, Frederick Douglass, Benjamin Franklin, Toni Morrison" required>{{ old('character') }}</textarea>
+                    <textarea name="character" id="character" class="form-control" rows="2" placeholder="e.g. Barbie, Jose Rizal, Anne Frank" required>{{ old('character') }}</textarea>
                 </div>
 
                 <div class="d-grid">
@@ -66,14 +84,31 @@
                 </div>
             </form>
 
-            @if(session('response'))
+                    @if(session('response'))
                 <div class="mt-5">
                     <h5 class="fw-bold">Character Response:</h5>
-                    <div class="border rounded p-3 bg-light mt-2" style="white-space: pre-wrap;">
+                    <div class="border rounded p-4 mt-2" style="background-color: #fdfdff; white-space: pre-wrap; font-size: 1rem; line-height: 1.7; font-family: 'Poppins', sans-serif;">
                         {!! nl2br(e(session('response'))) !!}
                     </div>
                 </div>
             @endif
-        </div>
-    </div>
+
+            {{-- Add this loading overlay --}}
+            <div id="loading-overlay" style="display: none; position: fixed; z-index: 9999; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(255,255,255,0.8); justify-content: center; align-items: center; text-align: center;">
+                <div>
+                    <div class="spinner-border text-pink" role="status" style="width: 3rem; height: 3rem;">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-3 fw-bold" style="color: #EC298B;">Generating character response...</p>
+                </div>
+            </div>
+
+            <script>
+                const form = document.querySelector('form');
+                const overlay = document.getElementById('loading-overlay');
+                form.addEventListener('submit', () => {
+                    overlay.style.display = 'flex';
+                });
+            </script>
+
 @endsection

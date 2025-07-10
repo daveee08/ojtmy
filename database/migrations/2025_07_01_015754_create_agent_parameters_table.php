@@ -22,7 +22,7 @@ class CreateAgentParametersTable extends Migration
 
             // Foreign key constraint
             $table->foreign('agent_id')->references('id')->on('agents')->onDelete('cascade');
-        });
+        }); 
     }
 
     /**

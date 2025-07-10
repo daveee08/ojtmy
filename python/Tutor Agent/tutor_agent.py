@@ -11,13 +11,14 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_core.messages import HumanMessage, AIMessage
 from chat_router_feb import chat_router
+
 # ===================== App Initialization =====================
-app = FastAPI()
-app.include_router(chat_router)
 
-
+app = FastAPI(debug=True)
+# app.include_router(chat_router)
 
 # ===================== Pydantic Model =====================
+
 from pydantic import BaseModel
 from fastapi import Form, Depends
 
@@ -29,6 +30,7 @@ class TutorRequest(BaseModel):
     add_cont: str = ""
     mode: str = "manual"
     history: str = "[]"
+    message_id: Optional[int]
 
     @classmethod
     def as_form(
@@ -39,7 +41,8 @@ class TutorRequest(BaseModel):
         topic: str = Form(""),
         add_cont: str = Form(""),
         mode: str = Form("manual"),
-        history: str = Form("[]")
+        history: str = Form("[]"),
+        message_id: int = Form(...)
     ):
         return cls(
             user_id=user_id,
@@ -48,7 +51,8 @@ class TutorRequest(BaseModel):
             topic=topic,
             add_cont=add_cont,
             mode=mode,
-            history=history
+            history=history, 
+            message_id=message_id
         )
 
 # ===================== Prompt Templates =====================
@@ -136,12 +140,14 @@ From now on, please respond speaking in the first person.
 """
 
 # ===================== LangChain Setup =====================
+
 model = OllamaLLM(model="gemma3:1b")
 manual_prompt = ChatPromptTemplate.from_template(manual_topic_template)
 pdf_prompt = ChatPromptTemplate.from_template(pdf_topic_template)
 chat_history_prompt = ChatPromptTemplate.from_template(chat_history_template)
 
 # ===================== Helper Functions =====================
+
 def extract_text_from_pdf(path: str) -> str:
     loader = PyPDFLoader(path)
     pages = loader.load()
@@ -189,6 +195,7 @@ async def generate_output_with_file(grade_level, input_type, topic="", add_cont=
     return clean_output(result)
 
 # ===================== Route =====================
+
 @app.post("/tutor")
 async def tutor_endpoint(
     data: TutorRequest = Depends(TutorRequest.as_form),
@@ -197,14 +204,26 @@ async def tutor_endpoint(
 ):
     try:
         if data.mode == "chat":
-            async with httpx.AsyncClient() as client:
+            async with httpx.AsyncClient(timeout=None) as client:
                 form_data = {
                     "topic": data.topic,
-                    "history": data.history,
-                    "user_id": str(data.user_id)
+                    # "history": data.history,
+                    "user_id": str(data.user_id),
+                    "db_message_id": int(data.message_id),
                 }
-                chat_url = "http://127.0.0.1:5001/chat_with_history"
-                resp = await client.post(chat_url, data=form_data)
+                chat_url = "http://192.168.50.10:8001/chat_with_history"
+                try:
+                    print("[DEBUG] Sending chat request:", form_data, flush=True)
+                    resp = await client.post(chat_url, data=form_data)
+                    print("[DEBUG] Response status:", resp.status_code, flush=True)
+                    print("[DEBUG] Response body:", await resp.aread(), flush=True)
+                except Exception as e:
+                    import traceback
+                    print("[ERROR] Failed to contact chat_url", flush=True)
+                    print(traceback.format_exc(), flush=True)
+                    raise
+
+
                 resp.raise_for_status()
                 result = resp.json()
                 output = result.get("response", "No output")
@@ -221,81 +240,5 @@ async def tutor_endpoint(
         return {"output": output}
     except Exception as e:
         traceback_str = traceback.format_exc()
+        print("[DEBUG] Full Traceback:\n", traceback_str, flush=True)
         return JSONResponse(status_code=500, content={"detail": str(e), "trace": traceback_str})
-
-# # ===================== Models =====================
-
-# class HistoryRequest(BaseModel):
-#     history: str
-
-# from step_tutor_agent import StepTutorInput, explain_topic_step_by_step
-
-
-# @app.post("/step-tutor")
-# async def step_tutor_endpoint(
-#     user_id: int = Form(...),
-#     grade_level: Optional[str] = Form(None),
-#     topic: str = Form(""),
-#     mode: str = Form("chat"),
-#     history: str = Form("[]"),
-# ):
-#     try:
-#         if mode == "chat":
-#             # Send to chat_with_history only for chat mode
-#             async with httpx.AsyncClient() as client:
-#                 form_data = {
-#                     "topic": topic,
-#                     "history": history,
-#                     "user_id": str(user_id)
-#                 }
-#                 chat_url = "http://127.0.0.1:5001/chat_with_history"
-#                 resp = await client.post(chat_url, data=form_data)
-#                 resp.raise_for_status()
-#                 result = resp.json()
-#                 output = result.get("response", "No output")
-#         else:
-#             # Use manual or PDF logic
-#             output = await explain_topic_step_by_step(
-#                 grade_level=grade_level,
-#                 topic=topic,
-#                 # mode=mode
-#             )
-
-#         return {"output": output}
-#     except Exception as e:
-#         traceback_str = traceback.format_exc()
-#         print(traceback_str)
-#         return JSONResponse(status_code=500, content={"detail": str(e), "trace": traceback_str})
-    
-# # async def step_tutor_endpoint(data: StepTutorInput):
-# #     try:
-# #         output = await explain_topic_step_by_step(
-# #             grade_level=data.grade_level,
-# #             topic=data.topic
-# #         )
-# #         return {"response": output}
-# #     except Exception as e:
-# #         return {"error": str(e)}
-
-
-# # @app.post("/step-tutor")
-
-# # async def step_tutor_endpoint(data: StepTutorInput):
-# #     try:
-# #         output = await explain_topic_step_by_step(
-# #             grade_level=data.grade_level,
-# #             topic=data.topic
-# #         )
-# #         return {"response": output}
-# #     except Exception as e:
-# #         return {"error": str(e)}
-
-
-# @app.post("/summarize-history")
-# async def summarize_history_endpoint(data: HistoryRequest):
-#     try:
-#         # Placeholder: Replace with actual summarization function
-#         summary = f"Summary of conversation: {data.history[:100]}..."
-#         return {"summary": summary}
-#     except Exception as e:
-#         return {"error": str(e)}

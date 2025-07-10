@@ -6,9 +6,10 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_community.document_loaders.pdf import PyPDFLoader
 import shutil, os, re, tempfile, uvicorn, traceback
 from typing import Optional
-from uuid import uuid4
-from chat_router import chat_router, get_history_by_session_id
+from chat_router import chat_router
+from db_utils import create_session_and_parameter_inputs, insert_message
 from langchain_core.messages import HumanMessage, AIMessage
+from fastapi.middleware.cors import CORSMiddleware
 
 # --- Prompt Templates ---
 manual_topic_template = """
@@ -55,35 +56,50 @@ Instructions:
 Respond ONLY with the explanation text (no extra commentary).
 """
 
-# --- LangChain Setup ---
-model = Ollama(model="llama3")
-manual_prompt = ChatPromptTemplate.from_template(manual_topic_template)
-pdf_prompt = ChatPromptTemplate.from_template(pdf_topic_template)
+# --- FastAPI App Initialization ---
+app = FastAPI(debug=True)
+app.include_router(chat_router)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # or Laravel origin like "http://localhost:8000"
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # --- Pydantic Model for Form Input ---
 class LevelerFormInput(BaseModel):
+    user_id: int
     input_type: str
     topic: str
     grade_level: str
     learning_speed: str
-    session_id: Optional[str] = None
+    message_id: Optional[str] = None
 
     @classmethod
     def as_form(
         cls,
+        user_id: int = Form(...),
         input_type: str = Form(...),
         topic: str = Form(""),
         grade_level: str = Form(...),
         learning_speed: str = Form(...),
-        session_id: Optional[str] = Form(default=None)
+        message_id: Optional[str] = Form(default=None)
     ):
         return cls(
+            user_id=user_id,
             input_type=input_type,
             topic=topic,
             grade_level=grade_level,
             learning_speed=learning_speed,
-            session_id=session_id
+            message_id=message_id
         )
+
+# --- LangChain Setup ---
+model = Ollama(model="llama3")
+manual_prompt = ChatPromptTemplate.from_template(manual_topic_template)
+pdf_prompt = ChatPromptTemplate.from_template(pdf_topic_template)
 
 # --- PDF Loader ---
 def load_pdf_content(pdf_path: str) -> str:
@@ -133,10 +149,6 @@ async def generate_output(
     result = chain.invoke(prompt_input)
     return clean_output(result)
 
-# --- FastAPI Setup ---
-app = FastAPI()
-app.include_router(chat_router)
-
 @app.post("/leveler")
 async def leveler_api(
     form_data: LevelerFormInput = Depends(LevelerFormInput.as_form),
@@ -146,8 +158,6 @@ async def leveler_api(
         if form_data.input_type == "pdf" and not pdf_file:
             raise HTTPException(status_code=400, detail="PDF file required for PDF input_type")
 
-        session_id = form_data.session_id or str(uuid4())
-
         output = await generate_output(
             input_type=form_data.input_type,
             topic=form_data.topic,
@@ -156,14 +166,22 @@ async def leveler_api(
             learning_speed=form_data.learning_speed,
         )
 
-        history = get_history_by_session_id(session_id)
-        human_content = form_data.topic.strip() or f"Uploaded PDF: {pdf_file.filename}"
-        history.add_messages([
-            HumanMessage(content=human_content),
-            AIMessage(content=output)
-        ])
+        scope_vars = {
+            "grade_level": form_data.grade_level,
+            "learning_speed": form_data.learning_speed,
+        }
 
-        return {"output": output, "session_id": session_id}
+        human_topic = form_data.topic if form_data.input_type != "pdf" else "[PDF Input]"
+
+        session_id = create_session_and_parameter_inputs(
+            user_id=form_data.user_id,
+            agent_id=4,
+            scope_vars=scope_vars,
+            human_topic=human_topic,
+            ai_output=output
+        )
+
+        return {"output": output, "message_id": session_id}
     except Exception as e:
         traceback_str = traceback.format_exc()
         print(traceback_str)

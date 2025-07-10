@@ -1,3 +1,5 @@
+@extends('layouts.history')
+    
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -28,15 +30,55 @@
             background-color: #c30074;
             border-color: #c30074;
         }
+        textarea[readonly] {
+            background-color: #f1f3f5;
+            border-radius: 10px;
+            padding: 10px;
+        }
+        textarea[name="followup"] {
+            border-color: #ec008c;
+        }
     </style>
 </head>
-<body>
+<body> {{-- Displaying messages --}}
+
+
 <div class="container my-5">
     <div class="card shadow-sm">
+            
+
         <div class="card-body">
+            {{-- 🌐 AI Text Translator Heading --}}
             <h2 class="text-center text-highlight mb-3">🌐 AI Text Translator</h2>
             <p class="text-muted text-center mb-4">Translate any text into your selected language.</p>
 
+            <!-- {{-- ✅ Conversation History Display --}}
+            @php
+            $seenSessions = [];
+            @endphp
+
+            @if (!empty($messages))
+                <div class="mt-4">
+                    <h5 class="fw-bold">Conversation History</h5>
+                    <ul class="list-group mb-3">
+                        @foreach ($messages as $msg)
+                            @if (!in_array($msg['message_id'], $seenSessions))
+                                @php $seenSessions[] = $msg['message_id']; @endphp
+                                <li class="list-group-item">
+                                    <a href="{{ route('translator.specific', ['message_id' => $msg['message_id']]) }}" class="text-decoration-none">
+                                        <div>{{ $msg['topic'] ?? '[No message]' }}</div>
+                                        <small class="text-muted">
+                                            {{ $msg['created_at'] ? \Carbon\Carbon::parse($msg['created_at'])->diffForHumans() : 'just now' }}
+                                        </small>
+                                    </a>
+                                </li>
+                            @endif
+                        @endforeach
+                    </ul>
+                </div>
+            @endif -->
+
+            {{-- ✅ Translation Input Form --}}
             <form action="{{ route('translator.process') }}" method="POST" id="translateForm">
                 @csrf
 
@@ -83,15 +125,21 @@
                 </div>
             </form>
 
-            @if ($errors->any())
-                <div class="alert alert-danger mt-4">
-                    <ul class="mb-0">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
+            {{-- ✅ Follow-Up Form (not nested!) --}}
+            @if (!empty($translation))
+            <div class="mt-4">
+                <label class="form-label fw-semibold">Send a message:</label>
+                <form action="{{ route('translator.followup') }}" method="POST">
+                    @csrf
+                    <p class="text-muted small">DEBUG message_id: {{ $message_id ?? 'NULL' }}</p>
+                    <input type="hidden" name="message_id" value="{{ $message_id ?? '' }}">
+                    <textarea name="followup" rows="3" class="form-control mb-2" placeholder="Ask a follow-up..."></textarea>
+                    <button type="submit" class="btn btn-outline-primary">Send Message</button>
+                </form>
+            </div>
             @endif
+
+
         </div>
     </div>
 </div>

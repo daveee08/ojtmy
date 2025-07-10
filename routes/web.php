@@ -1,22 +1,17 @@
 <?php
-
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\SummarizeController;
-use App\Http\Controllers\ProofreaderController;
+use App\Http\Controllers\Summarizer\SummarizeController;
+use App\Http\Controllers\Proofreader\ProofreaderController;
 use App\Http\Controllers\QuizmeController;
-use App\Http\Controllers\RewriterController;
 use App\Http\Controllers\StepTutorController;
 use App\Http\Controllers\FiveQuestion\FiveQuestionsController;
 use App\Http\Controllers\EmailWriter\EmailWriterController;
 use App\Http\Controllers\ThankYouNote\ThankYouNoteController;
 use App\Http\Controllers\RealWorld\RealWorldController;
-use App\Http\Controllers\ResponderController;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\ScaffolderController;
 use App\Http\Controllers\TutorController;
 use App\Http\Controllers\TextLeveler\LevelerController;
 use App\Http\Controllers\InformationalTexts\InformationalController;
-use App\Http\Controllers\ExplanationsController;
 use App\Http\Controllers\QOTDController;
 use App\Http\Controllers\TongueTwistController;
 use App\Http\Controllers\TeacherJokesController;
@@ -27,8 +22,16 @@ use App\Http\Controllers\ContentCreator\ContentCreatorController;
 use App\Http\Controllers\SentenceStarters\SentenceStarterController;
 use App\Http\Controllers\Translator\TranslatorController;
 use App\Http\Controllers\StudyHabits\StudyHabitsController;
-use App\Http\Controllers\ChatconversationController;
 use App\Http\Controllers\ChatWithDocs\ChatWithDocsController;
+use App\Http\Controllers\EmailResponder\ResponderController;
+use App\Http\Controllers\TextRewriter\RewriterController;
+use App\Http\Controllers\TextScaffolder\ScaffolderController;
+use App\Http\Controllers\Explanations\ExplanationsController;
+use App\Http\Controllers\AssignmentScaffolder\AssignmentScaffolder;
+use App\Http\Controllers\MathReview\MathReviewController;
+use App\Http\Controllers\MakeItRelevant\MakeItRelevantController;
+use App\Http\Controllers\ChatconversationController;
+use App\Http\Controllers\SocialStory\SocialStoryController;
 
 /*
 |--------------------------------------------------------------------------
@@ -59,10 +62,6 @@ Route::middleware('guest')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
 });
 
-Route::get('/chat', [ChatconversationController::class, 'showForm']);
-Route::get('/chat/history/{session_id}', [ChatconversationController::class, 'getHistory']);
-Route::post('/chat', [ChatconversationController::class, 'sendMessage']);
-
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     // Conversation history for tutor agent
@@ -92,8 +91,8 @@ Route::get('/idea-generator', [IdeaGeneratorController::class, 'showForm'])->nam
 Route::post('/idea-generator', [IdeaGeneratorController::class, 'generate'])->name('idea.generate');
 
 // ✅ Tutor Tool
-Route::get('/tutor', 'App\Http\Controllers\TutorController@showForm');
-Route::post('/tutor', 'App\Http\Controllers\TutorController@processForm');
+Route::get('/tutor', 'App\Http\Controllers\TestTutorController@showForm');
+Route::post('/tutor', 'App\Http\Controllers\TestTutorController@processForm');
 Route::post('/tutor/clear', [App\Http\Controllers\TutorController::class, 'clearHistory'])->middleware('auth');
 
 // ✅ Leveler Tool
@@ -150,28 +149,9 @@ Route::get('/step-tutor', [StepTutorController::class, 'showForm']);
 Route::post('/step-tutor', [StepTutorController::class, 'processForm']);
 Route::post('/step-tutor/clear', [App\Http\Controllers\StepTutorController::class, 'clearHistory'])->middleware('auth');
 
-
-// ✅ Explanations Tool
-Route::get('/explanations', 'App\Http\Controllers\ExplanationsController@showForm');
-Route::post('/explanations', 'App\Http\Controllers\ExplanationsController@processForm');
-
-<<<<<<< HEAD
-// Rewriter Tool
-Route::get('/rewriter', [RewriterController::class, 'showForm']);
-Route::post('/rewriter', [RewriterController::class, 'processForm']);
-Route::get('/rewriter', 'App\Http\Controllers\RewriterController@showForm');
-Route::post('/rewriter', 'App\Http\Controllers\RewriterController@processForm');
-
 // Routes for Book Suggestion Chatbot
 Route::get('/booksuggestion', [BookSuggestionController::class, 'index']);
 Route::post('/suggest', [BookSuggestionController::class, 'getSuggestions']);
-=======
-// Route::post('/tutor/clear', function () {
-//     Session::forget('chat_history');
-//     Session::forget('grade_level');
-//     return redirect('/tutor');
-// });
->>>>>>> 95bc6b23b3d0945f0e09d6e1a9906d239cbd33dd
 
 //email writer
 Route::get('/email-writer', [EmailWriterController::class, 'show'])->name('email.writer.show');
@@ -184,19 +164,53 @@ Route::post('/realworld', [RealWorldController::class, 'processForm'])->name('re
 // Sentence Starter Agent
 Route::get('/sentencestarter', [SentenceStarterController::class, 'showForm'])->name('sentencestarter.form');
 Route::post('/sentencestarter', [SentenceStarterController::class, 'processForm'])->name('sentencestarter.process');
+Route::post('/sentence-starter/followup', [SentenceStarterController::class, 'followupForm'])->name('sentencestarter.followup');
+
 
 // Translator Agent
 Route::get('/translator', [TranslatorController::class, 'showForm'])->name('translator.form');
 Route::post('/translator', [TranslatorController::class, 'processForm'])->name('translator.process');
+Route::post('/translator/followup', [TranslatorController::class, 'followUp'])->name('translator.followup');
+Route::get('/translator/session/{id}', [TranslatorController::class, 'showSession'])->name('translator.session');
+Route::get('/translator/conversation/{message_id}', [\App\Http\Controllers\Translator\TranslatorController::class, 'showSpecificMessages'])->name('translator.specific');
+
+
 
 // Study Habits Agent
 Route::get('/studyhabits', [StudyHabitsController::class, 'showForm'])->name('studyhabits.form');
 Route::post('/studyhabits', [StudyHabitsController::class, 'processForm'])->name('studyhabits.process');
 
 // ✅ Responder Tool
-Route::get('/responder', [ResponderController::class, 'showForm']);
-Route::post('/responder', [ResponderController::class, 'processForm']);
+Route::get('/responder', [ResponderController::class, 'showForm'])->name('responder.form');
+Route::post('/responder', [ResponderController::class, 'processForm'])->name('responder.process');
 
-Route::get('/chat-with-docs', function () {
-    return view('Chat with Docs.chat-with-docs');
-});
+// Rewriter Tool
+Route::get('/rewriter', [RewriterController::class, 'showForm'])->name('rewriter.form');
+Route::post('/rewriter', [RewriterController::class, 'processForm'])->name('rewriter.process');
+
+// Text Scaffolder Tool
+Route::get('/scaffolder', [ScaffolderController::class, 'showForm'])->name('scaffolder.form');
+Route::post('/scaffolder', [ScaffolderController::class, 'processForm'])->name('scaffolder.process');
+
+// ✅ Explanations Tool
+Route::get('/explanations', [ExplanationsController::class, 'showForm'])->name('explanations.form');
+Route::post('/explanations', [ExplanationsController::class, 'processForm'])->name('explanations.process');
+
+// ✅ Scaffolder Tool
+Route::get('/assignmentscaffolder', [AssignmentScaffolder::class, 'showForm'])->name('assignmentscaffolder.form');
+Route::post('/assignmentscaffolder', [AssignmentScaffolder::class, 'processForm'])->name('assignmentscaffolder.process');
+
+// ✅ Math Review Tool
+Route::get('/mathreview', [MathReviewController::class, 'showForm'])->name('mathreview.form');
+Route::post('/mathreview', [MathReviewController::class, 'processForm'])->name('mathreview.process');
+
+Route::get('/makeitrelevant', [MakeItRelevantController::class, 'showForm'])->name('makeitrelevant.form');
+Route::post('/makeitrelevant', [MakeItRelevantController::class, 'processForm'])->name('makeitrelevant.process');
+
+Route::get('/chat/history/{session_id}', [ChatconversationController::class, 'showForm']);
+Route::post('/chat', [ChatconversationController::class, 'sendMessage']);
+Route::get('/chat/api/history/{session_id}', [ChatconversationController::class, 'getHistory']);
+
+//Social Story Tool
+Route::get('/socialstory', [SocialStoryController::class, 'showForm'])->name('socialstory.form');
+Route::post('/socialstory', [SocialStoryController::class, 'generate'])->name('socialstory.generate');

@@ -107,43 +107,17 @@
       <div class="ck-card">
         <h2 class="ck-title">Step-by-Step Tutor</h2>
 
-        <!-- Chat Display -->
-        @if(isset($history) && count($history) > 0)
-          <div class="chat-box">
-            @foreach ($history as $entry)
-              <div class="message d-flex {{ $entry['role'] === 'user' ? 'justify-content-end' : 'justify-content-start' }}">
-                <div class="w-75">
-                  <div class="fw-bold mb-1 {{ $entry['role'] === 'user' ? 'text-end text-dark' : 'text-start text-primary' }}">
-                    {{ $entry['role'] === 'user' ? 'You' : 'Step Tutor' }}
-                  </div>
-                  <div class="message-content bg-white border {{ $entry['role'] === 'user' ? 'border-secondary' : 'border-primary' }}">
-                    {{ $entry['content'] }}
-                  </div>
-                </div>
-              </div>
-            @endforeach
-          </div>
-        @endif
-
         <!-- Form -->
         <form id="step-tutor-form" action="{{ url('/step-tutor') }}" method="POST" enctype="multipart/form-data">
           @csrf
-          @if(!isset($history) || count($history) === 0)
-            <!-- <div class="mb-3">
+            <div class="mb-3">
               <label class="form-label">Grade Level</label>
               <input type="text" class="form-control" name="grade_level" required>
-            </div> -->
+            </div>
             <div class="mb-3">
               <label class="form-label">Your Message</label>
               <input type="text" class="form-control" name="topic" placeholder="Enter your topic or question..." required>
             </div>
-          @else
-            <input type="hidden" name="grade_level" value="{{ $history[0]['grade_level'] ?? '' }}">
-            <div class="mb-3">
-              <label class="form-label">Follow Up Message</label>
-              <input type="text" class="form-control" name="topic" placeholder="Continue the conversation..." required>
-            </div>
-          @endif
 
           <div class="text-center mt-4">
             <button type="submit" class="ck-btn">Send</button>
@@ -169,111 +143,4 @@
 
 
 <script>
-
-  // Handle form submission asynchronously (AJAX)
-  document.getElementById('step-tutor-form').addEventListener('submit', function (event) {
-    event.preventDefault();
-
-    const form = this;
-    const formData = new FormData(form);
-    const loadingOverlay = document.getElementById('loading-overlay');
-
-    loadingOverlay.style.display = 'flex';
-
-    fetch(form.action, {
-      method: 'POST',
-      body: formData,
-      headers: {
-        'X-Requested-With': 'XMLHttpRequest',
-        'Accept': 'application/json'
-      }
-    })
-    .then(response => {
-      if (!response.ok) throw new Error('Network response was not OK');
-      return response.json();
-    })
-    .then(data => {
-      loadingOverlay.style.display = 'none';
-
-      // Inject chat-box if not present
-      let chatBox = document.querySelector('.chat-box');
-      if (!chatBox) {
-        const newBox = document.createElement('div');
-        newBox.className = 'chat-box';
-        newBox.style.background = '#f8f9fb';
-        newBox.style.maxHeight = '300px';
-        newBox.style.overflowY = 'auto';
-        newBox.style.padding = '15px';
-        newBox.style.border = '1px solid #e4e8f0';
-        newBox.style.borderRadius = '12px';
-        newBox.style.marginBottom = '20px';
-
-        const formCard = document.querySelector('.ck-card');
-        formCard.insertBefore(newBox, formCard.querySelector('form'));
-        chatBox = newBox;
-      }
-
-      // Append messages
-      const userMessage = `
-        <div class="message d-flex justify-content-end">
-          <div class="w-75">
-            <div class="fw-bold mb-1 text-end text-primary">You</div>
-            <div class="message-content p-3 mb-2 bg-white border border-primary" style="border-radius:12px;">
-              ${formData.get('topic')}
-            </div>
-          </div>
-        </div>
-      `;
-
-      const assistantMessage = `
-        <div class="message d-flex justify-content-start">
-          <div class="w-75">
-            <div class="fw-bold mb-1 text-start text-pink">Step-by-Step Tutor</div>
-            <div class="message-content p-3 mb-2 bg-light border border-pink" style="border-radius:12px;">
-              ${data.message}
-            </div>
-          </div>
-        </div>
-      `;
-
-      chatBox.innerHTML += userMessage + assistantMessage;
-      chatBox.scrollTop = chatBox.scrollHeight;
-
-      // 🔄 Replace form with follow-up version if it's still initial
-      if (form.querySelector('select[name="input_type"]')) {
-        const gradeLevel = formData.get('grade_level') || 'Not set';
-
-        const csrfToken = document.querySelector('input[name="_token"]')?.value || '';
-
-        form.innerHTML = `
-          <input type="hidden" name="_token" value="${csrfToken}">
-          // <input type="hidden" name="grade_level" value="${gradeLevel}">
-          <div class="mb-3">
-            <label class="form-label">Follow Up Message</label>
-            <input type="text" class="form-control" name="topic" placeholder="Continue the conversation..." required>
-          </div>
-          <div class="text-center mt-4">
-            <button type="submit" class="ck-btn">Send</button>
-          </div>
-        `;
-
-      } else {
-        // Just reset follow-up input
-        const topicInput = form.querySelector('[name="topic"]');
-        if (topicInput) topicInput.value = '';
-      }
-    })
-    .catch(async (error) => {
-      loadingOverlay.style.display = 'none';
-      try {
-        const errorText = await error?.response?.text?.();
-        console.error('Server error:', errorText || error.message);
-        alert('Server error:\n' + (errorText || error.message));
-      } catch (e) {
-        console.error('Unhandled Error:', error);
-        alert('Something went wrong. Check console.');
-      }
-    });
-  });
-</script>
 @endsection

@@ -12,9 +12,6 @@ from fastapi.middleware.cors import CORSMiddleware
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 sys.path.insert(0,project_root)
 
-print("Final sys.path:", sys.path)
-
-
 from python.db_utils_final import create_session_and_parameter_inputs, insert_message
 from python.chat_router_final import chat_router
 

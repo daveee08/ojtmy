@@ -50,7 +50,7 @@ class AgentParametersTableSeeder extends Seeder
             ],
             [
                 'agent_id' => $summarizerId,
-                'parameter' => 'Summary Instructions',
+                'parameter' => 'conditions',
                 'parameter_value' => '',
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -58,7 +58,7 @@ class AgentParametersTableSeeder extends Seeder
 
             [
                 'agent_id' => $emailWriterId,
-                'parameter' => 'What should the email say?',
+                'parameter' => 'content',
                 'parameter_value' => '',
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -66,7 +66,7 @@ class AgentParametersTableSeeder extends Seeder
 
             [
                 'agent_id' => $thankYouId,
-                'parameter' => 'What are you thankful for?',
+                'parameter' => 'reason',
                 'parameter_value' => '',
                 'created_at' => now(),
                 'updated_at' => now(),

@@ -160,15 +160,36 @@ app.add_middleware(
 )
 llm = Ollama(model="gemma3:1b")
 # ------------------- Email Writer -------------------
+
+class EmailWriterInput(BaseModel):
+    content: str
+    user_id: int
+    message_id: Optional[int] = None
+    # agent_id: int = 16  # Default agent_id for step tutor
+
+    @classmethod
+    def as_form(
+        cls,
+        content: str = Form(...),
+        user_id: int = Form(...),
+        message_id: Optional[int] = Form(None)
+    ):
+        return cls(
+            content=content,
+            user_id=user_id,
+            message_id=message_id
+        )
+    
+
 @app.post("/generate-email")
-async def generate_email(content: str = Form(...)):
-    prompt_template = """
+async def generate_email(data: EmailWriterInput = Depends(EmailWriterInput.as_form)):
+    email_prompt_template = f"""
 You are an expert in writing professional and polite emails.
 
 Your task is to generate a formal and respectful email based on the user's input.
 
 Context:
-{content}
+{data.content}
 
 The email must:
 - Include a clear and relevant subject line
@@ -182,16 +203,30 @@ Important:
 - Return only the final email text
 """
 
-    prompt = PromptTemplate.from_template(prompt_template)
+    prompt = PromptTemplate.from_template(email_prompt_template)
     llm = Ollama(model="gemma3:1b")
     chain = prompt | llm
-    result = chain.invoke({"content": content.strip()})
-    return {"email": result.strip()}
+    result = chain.invoke({})
+
+    scope_vars = {
+            "content": data.content
+        }
+    
+    session_id = create_session_and_parameter_inputs(
+            user_id=data.user_id,
+            agent_id=4,  # Default agent_id for step tutor
+            scope_vars=scope_vars,
+            human_topic=data.content,
+            ai_output=result,
+            agent_prompt=email_prompt_template
+        )
+    return {"email": result.strip(), "message_id": session_id}
+
+
 
 # ------------------- Summarizer -------------------
-def summarize_text(text: str, conditions: str) -> str:
-    clean_text = " ".join(text.strip().replace("\n", " ").replace("\r", "").split())[:3000]
-    prompt_template = """
+
+summarize_prompt_template = """
 You are an intelligent and precise summarization assistant.
 
 Your task is to summarize the following content based on the user's exact instructions.
@@ -212,18 +247,40 @@ Important:
 
 Now generate the summary below:
 """
-    prompt = PromptTemplate.from_template(prompt_template)
+def summarize_text(text: str, conditions: str) -> str:
+    clean_text = " ".join(text.strip().replace("\n", " ").replace("\r", "").split())[:3000]
+    
+    prompt = PromptTemplate.from_template(summarize_prompt_template)
     llm = Ollama(model="gemma3:1b") 
     chain = prompt | llm
     result = chain.invoke({"text": clean_text, "conditions": conditions})
     return result.strip()
 
+class SummarizeInput(BaseModel):
+    conditions: str
+    text: str
+    user_id: int
+    message_id: Optional[int] = None
+    # agent_id: int = 16  # Default agent_id for step tutor
+
+    @classmethod
+    def as_form(
+        cls,
+        conditions: str = Form(...),
+        text: str = Form(...),
+        user_id: int = Form(...),
+        message_id: Optional[int] = Form(None)
+    ):
+        return cls(
+            conditions=conditions,
+            text=text,
+            user_id=user_id,
+            message_id=message_id
+        )
+
 @app.post("/summarize")
-async def summarize(
-    conditions: str = Form(...),
-    text: str = Form(""),
-    pdf: UploadFile = File(None)
-):
+async def summarize(data: SummarizeInput = Depends(SummarizeInput.as_form),
+                    pdf: UploadFile = File(None) ):
     if pdf and pdf.filename and pdf.content_type == "application/pdf":
         contents = await pdf.read()
         if contents:
@@ -234,13 +291,28 @@ async def summarize(
             loader = PyPDFLoader(tmp_path)
             pages = loader.load()
             os.remove(tmp_path)
-            text = "\n".join([page.page_content for page in pages])
+            data.text = "\n".join([page.page_content for page in pages])
 
-    if not text.strip():
+    if not data.text.strip():
         return {"summary": "No valid text provided."}
+    
+    summary = summarize_text(data.text, data.conditions)
 
-    summary = summarize_text(text, conditions)
-    return {"summary": summary}
+    scope_vars = {
+            "conditions": data.conditions,
+        }
+    filled_prompt = summarize_prompt_template.format(text=data.text.strip(), conditions=data.conditions.strip())
+    session_id = create_session_and_parameter_inputs(
+            user_id=data.user_id,
+            agent_id=4,
+            scope_vars=scope_vars,
+            human_topic=data.text,
+            ai_output=summary,
+            agent_prompt=filled_prompt
+        )
+
+
+    return {"summary": summary, "message_id": session_id}
 
 # ------------------- Thank You Note Generator -------------------
 import re
@@ -445,25 +517,53 @@ def test():
     return {"message": "Hello, FastAPI is working!"}
 
 # ------------------- Content Creator -------------------
+
+class ContentCreatorInput(BaseModel):
+    grade_level: str
+    prompt: str
+    user_id: int
+    message_id: Optional[int] = None
+    length: str
+    extra: str
+    # agent_id: int = 16  # Default agent_id for step tutor
+
+    @classmethod
+    def as_form(
+        cls,
+        grade_level: str = Form(...),
+        prompt: str = Form(...),
+        user_id: int = Form(...),
+        message_id: Optional[int] = Form(None),
+        extra: Optional[str] = Form(""),
+        length: str = Form(...),
+        
+
+    ):
+        return cls(
+            grade_level=grade_level,
+            prompt=prompt,
+            user_id=user_id,
+            message_id=message_id,
+            length=length,
+            extra=extra
+        )
+    
 @app.post("/generate-contentcreator")
 async def generate_contentcreator(
-    grade_level: str = Form(...),
-    length: str = Form(...),
-    prompt: str = Form(...),
-    extra: str = Form("")
+    data: ContentCreatorInput = Depends(ContentCreatorInput.as_form)
 ):
     full_prompt = f"""
 You are a creative and helpful content assistant.
 
-Generate educational or engaging content based on the user's request. The content should match this grade level: {grade_level}
+Generate educational or engaging content based on the user's request. The content should match this grade level: {data.grade_level}
 
 Prompt:
-{prompt}
+{data.prompt}
 
 Additional Instruction:
-{extra}
+{data.extra}
 
-Length requested: {length}
+Length requested: {data.length}
 
 Guidelines:
 - Keep the tone clear, human, and helpful.
@@ -477,7 +577,7 @@ CONTENT:
 CAPTION:
 [social media caption here]
 """
-    llm = Ollama(model="gemma3:4b")
+    llm = Ollama(model="gemma3:1b")
     prompt_template = PromptTemplate.from_template(full_prompt)
     chain = prompt_template | llm
     result = chain.invoke({})
@@ -486,9 +586,27 @@ CAPTION:
     content = sections[0].replace("CONTENT:", "").strip()
     caption = sections[1].strip() if len(sections) > 1 else ""
 
+    result = content + caption
+
+    scope_vars ={
+        "grade_level": data.grade_level,
+        "length": data.length
+    }
+
+    session_id = create_session_and_parameter_inputs(
+            user_id=data.user_id,
+            agent_id=14,  # Default agent_id for step tutor
+            scope_vars=scope_vars,
+            human_topic=data.prompt,
+            ai_output=result,
+            agent_prompt=full_prompt
+        )
+
+
     return {
         "content": content,
-        "caption": caption
+        "caption": caption,
+        "message_id": session_id
     }
 
 # # ------------------- Social Stories -------------------

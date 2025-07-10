@@ -1,11 +1,20 @@
-from fastapi import FastAPI, HTTPException, Form, Depends
+from fastapi import FastAPI, HTTPException, UploadFile, Form, File, Depends
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from langchain_community.llms import Ollama
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.messages import HumanMessage, AIMessage
+from langchain_community.document_loaders.pdf import PyPDFLoader
+import shutil, os, re, tempfile, uvicorn, traceback, sys
 from typing import Optional
-import re, traceback, uvicorn
+from langchain_core.messages import HumanMessage, AIMessage
+from fastapi.middleware.cors import CORSMiddleware
+
+current_script_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.join(current_script_dir, '..', '..')
+sys.path.insert(0, project_root)
+
+from python.chat_router import chat_router
+from python.db_utilss import create_session_and_parameter_inputs, insert_message
 
 # --- Prompt Template ---
 math_review_template = """
@@ -98,9 +107,44 @@ Math Content Adaptation:
 
 """
 
+# --- FastAPI App Initialization ---
+app = FastAPI(debug=True)
+app.include_router(chat_router)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # or Laravel origin like "http://localhost:8000"
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# --- Pydantic Model ---
+class MathReviewFormInput(BaseModel):
+    user_id: int
+    grade_level: str
+    number_of_problems: int
+    math_content: str
+    additional_criteria: Optional[str] = ""
+
+    @classmethod
+    def as_form(
+        cls,
+        user_id: int = Form(...),
+        grade_level: str = Form(...),
+        number_of_problems: int = Form(...),
+        math_content: str = Form(...),
+        additional_criteria: Optional[str] = Form(default="")
+    ):
+        return cls(
+            user_id=user_id,
+            grade_level=grade_level,
+            number_of_problems=number_of_problems,
+            math_content=math_content,
+            additional_criteria=additional_criteria
+        )
 
 # --- LangChain & FastAPI Setup ---
-app = FastAPI(debug=True)
 model = Ollama(model="llama3")
 math_prompt = ChatPromptTemplate.from_template(math_review_template)
 
@@ -113,28 +157,6 @@ def clean_output(text: str) -> str:
     text = re.sub(r"\^3\b", "³", text)
 
     return text.strip()
-
-# --- Pydantic Model ---
-class MathReviewFormInput(BaseModel):
-    grade_level: str
-    number_of_problems: int
-    math_content: str
-    additional_criteria: Optional[str] = ""
-
-    @classmethod
-    def as_form(
-        cls,
-        grade_level: str = Form(...),
-        number_of_problems: int = Form(...),
-        math_content: str = Form(...),
-        additional_criteria: Optional[str] = Form(default="")
-    ):
-        return cls(
-            grade_level=grade_level,
-            number_of_problems=number_of_problems,
-            math_content=math_content,
-            additional_criteria=additional_criteria
-        )
 
 # --- Core Function ---
 async def generate_math_review(
@@ -163,7 +185,23 @@ async def math_review_api(form_data: MathReviewFormInput = Depends(MathReviewFor
             math_content=form_data.math_content,
             additional_criteria=form_data.additional_criteria
         )
-        return {"output": output}
+        scope_vars = {
+            "grade_level": form_data.grade_level,
+            "number_of_problems": form_data.number_of_problems,
+            "math_content": form_data.math_content,
+            "additional_criteria": form_data.additional_criteria
+        }
+
+        topic = form_data.math_content
+
+        session_id = create_session_and_parameter_inputs(
+            user_id=form_data.user_id,
+            agent_id=22,
+            scope_vars=scope_vars,
+            human_topic=form_data.math_content,
+            ai_output=output
+        )
+        return {"output": output, "message_id": session_id}
     except Exception as e:
         traceback_str = traceback.format_exc()
         print(traceback_str)

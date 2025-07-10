@@ -109,8 +109,7 @@
             </div>
         @endif
 
-        <form method="POST" action="/assignmentscaffolder" enctype="multipart/form-data"
-            onsubmit="handleRewriteSubmit()">
+        <form id="assignmentscaffolderForm" method="POST" action="/assignmentscaffolder" enctype="multipart/form-data">
             @csrf
 
             <!-- Input Type Selection -->

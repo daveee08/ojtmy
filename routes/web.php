@@ -50,7 +50,7 @@ Route::get('/tools', function () {
     return view('tool');
 });
 
-Route::get('/home', function () {
+Route::get('/', function () {
     return view('home');
 });
 

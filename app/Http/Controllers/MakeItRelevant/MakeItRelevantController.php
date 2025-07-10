@@ -6,10 +6,18 @@ use Illuminate\Http\Request;
 use Symfony\Component\Process\Process;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 
 class MakeItRelevantController extends Controller
 {
+    public function fetchUserSessions()
+    {
+        $userId = Auth::id();
+        $response = Http::get("http://192.168.50.144:5001/sessions/$userId");
+        return response()->json($response->json());
+    }
+
     public function showForm()
     {
         return view('Make it Relevant.makeitrelevant');
@@ -22,67 +30,52 @@ class MakeItRelevantController extends Controller
         $validated = $request->validate([
             'input_type'     => 'required|in:text,pdf',
             'grade_level'    => 'required|string',
+            'interests'      => 'required|string',
             'learning_topic' => 'nullable|string',
             'pdf_file'       => 'nullable|file|mimes:pdf|max:5120',
-            'interests'      => 'required|string',
         ]);
 
-        $learningText = $validated['learning_topic'] ?? '';
+        $multipartData = [
+            ['name' => 'input_type', 'contents' => $validated['input_type']],
+            ['name' => 'grade_level', 'contents' => $validated['grade_level']],
+            ['name' => 'interests', 'contents' => $validated['interests']],
+            ['name' => 'learning_topic', 'contents' => $validated['learning_topic'] ?? ''],
+            ['name' => 'user_id', 'contents' => Auth::id() ?? 1],
+        ];
 
         if ($request->hasFile('pdf_file') && $validated['input_type'] === 'pdf') {
             $pdf = $request->file('pdf_file');
             $pdfPath = $pdf->getRealPath();
 
-            // Optional: If your Python API expects extracted text instead of raw file,
-            // you may need to extract text here using a PDF parser.
-            // For now, we'll send the file as-is (as in original layout).
-            $multipartData = [
-                [
-                    'name' => 'grade_level',
-                    'contents' => $validated['grade_level']
-                ],
-                [
-                    'name' => 'learning_topic',
-                    'contents' => ''
-                ],
-                [
-                    'name' => 'interests',
-                    'contents' => $validated['interests']
-                ],
-                [
-                    'name'     => 'pdf_file',
-                    'contents' => fopen($pdfPath, 'r'),
-                    'filename' => $pdf->getClientOriginalName(),
-                    'headers'  => [
-                        'Content-Type' => $pdf->getMimeType()
-                    ],
-                ],
-            ];
-        } else {
-            $multipartData = [
-                [
-                    'name' => 'grade_level',
-                    'contents' => $validated['grade_level']
-                ],
-                [
-                    'name' => 'learning_topic',
-                    'contents' => $learningText
-                ],
-                [
-                    'name' => 'interests',
-                    'contents' => $validated['interests']
-                ],
+            $multipartData[] = [
+                'name'     => 'pdf_file',
+                'contents' => fopen($pdfPath, 'r'),
+                'filename' => $pdf->getClientOriginalName(),
+                'headers'  => ['Content-Type' => $pdf->getMimeType()],
             ];
         }
 
         $response = Http::timeout(0)
             ->asMultipart()
-            ->post('http://127.0.0.1:5001/makeitrelevant', $multipartData);
+            ->post('http://192.168.50.144:5001/makeitrelevant', $multipartData);
 
         if ($response->failed()) {
+            logger()->error('FastAPI Make It Relevant error', ['body' => $response->body()]);
             return back()->withErrors(['error' => 'Python API failed: ' . $response->body()]);
         }
 
-        return view('Make it Relevant.makeitrelevant', ['response' => $response->json()['output'] ?? 'No output']);
+        $responseData = $response->json();
+        logger($responseData); // ✅ Log the response
+
+        $messageId = $responseData['message_id'] ?? null;
+
+        if ($messageId) {
+            // ✅ External redirect
+            return redirect()->to("/chat/history/{$messageId}");
+        }
+
+        return view('Make it Relevant.makeitrelevant', [
+            'response' => $responseData['output'] ?? 'No output (no message ID)'
+        ]);
     }
 }

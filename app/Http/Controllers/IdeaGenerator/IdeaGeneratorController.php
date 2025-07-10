@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller; // ✅ Required
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+
 
 
 class IdeaGeneratorController extends Controller
@@ -42,6 +44,8 @@ class IdeaGeneratorController extends Controller
             $response = Http::timeout(0)
             ->asMultipart()
             ->post('http://127.0.0.1:5001/generate-idea', $multipartData);
+
+            Log::info('Idea generator Response:', ['response' => $response -> body()]);
 
             if ($response->failed()) {
             logger()->error('FastAPI Leveler error', ['body' => $response->body()]);

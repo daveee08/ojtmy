@@ -280,8 +280,29 @@ def clean_output(text: str) -> str:
 # ----------------------------------------------------------------
 # 🚀 Main Route: LLM writes thank-you note with inferred tone/age
 # ----------------------------------------------------------------
+
+class GenerateThankyou(BaseModel):
+    reason: str
+    user_id: int
+    message_id: Optional[int] = None
+    # agent_id: int = 16  # Default agent_id for step tutor
+
+    @classmethod
+    def as_form(
+        cls,
+        reason: str = Form(...),
+        user_id: int = Form(...),
+        message_id: Optional[int] = Form(None)
+    ):
+        return cls(
+            reason=reason,
+            user_id=user_id,
+            message_id=message_id
+        )
+
 @app.post("/generate-thankyou")
-async def generate_thank_you(reason: str = Form(...)):
+async def generate_thank_you(data: GenerateThankyou = Depends(GenerateThankyou.as_form)):
+    reason = data.reason
     if not reason.strip():
         return {"thank_you_note": "Please enter a valid message."}
 
@@ -290,7 +311,7 @@ async def generate_thank_you(reason: str = Form(...)):
         reason += " (This message seems to be written by a young child with playful or informal spelling)"
 
     # Prompt that tells the LLM to do age and tone inference
-    prompt_template = """
+    thank_you_prompt_template = """
 You are a thoughtful assistant who writes thank-you notes for users of all ages — from young children to working professionals.
 
 Your task is to read the user's message and infer their likely age group (such as child, student, or professional) based solely on the way they wrote their message — their vocabulary, spelling, punctuation, tone, sentence structure, and emotional expression.
@@ -326,16 +347,33 @@ Reason for thanks:
 
     try:
         # Generate the thank-you note
-        prompt = PromptTemplate.from_template(prompt_template)
-        llm = Ollama(model="gemma3:4b")
+        prompt = PromptTemplate.from_template(thank_you_prompt_template)
+        llm = Ollama(model="gemma3:1b")
         chain = prompt | llm
         result = chain.invoke({"reason": reason.strip()})
+        filled_prompt = thank_you_prompt_template.format(reason=reason.strip()) #step 1
+
 
         final_note = clean_output(result.strip())
-        return {"thank_you_note": final_note}
+
+        scope_vars = {
+        "reason": data.reason
+        }
+        session_id = create_session_and_parameter_inputs(
+                user_id=data.user_id,
+                agent_id=12,  # Default agent_id for thankyou
+                scope_vars=scope_vars,
+                human_topic=data.reason,
+                ai_output=result,
+                agent_prompt=filled_prompt
+        )
+    
+        return {"thank_you_note": final_note ,"message_id": session_id}
 
     except Exception as e:
         return {"thank_you_note": f"Error generating note: {str(e)}"}
+        # return {"thank_you_note": f"Error generating note: {type(filled_prompt)}"}
+
 
 # ------------------- Idea Generator -------------------
 

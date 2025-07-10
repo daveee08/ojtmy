@@ -33,6 +33,7 @@ class AgentsTableSeeder extends Seeder
             ['agent' => 'social-stories', 'created_at' => now(), 'updated_at' => now()],
             ['agent' => 'mathreview', 'created_at' => now(), 'updated_at' => now()],
             ['agent' => 'makeitrelevant', 'created_at' => now(), 'updated_at' => now()],
+            ['agent' => 'characterbot', 'created_at' => now(), 'updated_at' => now()],
         ]);
     }
 }

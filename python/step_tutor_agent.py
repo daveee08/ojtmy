@@ -101,13 +101,15 @@ async def explain_step_by_step_endpoint(data: StepTutorInput = Depends(StepTutor
         scope_vars = {
             "grade_level": data.grade_level
         }
+        filled_prompt = step_prompt_template.format(grade_level=data.grade_level.strip(),topic=data.topic.strip()) #step 1
         
         session_id = create_session_and_parameter_inputs(
             user_id=data.user_id,
-            agent_id=16,  # Default agent_id for step tutor
+            agent_id=2,  # Default agent_id for step tutor
             scope_vars=scope_vars,
             human_topic=data.topic,
-            ai_output=explanation
+            ai_output=explanation,
+            agent_prompt=filled_prompt
         )
         return {"explanation": explanation, "message_id":  session_id}
     except Exception as e:

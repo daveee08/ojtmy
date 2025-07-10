@@ -45,7 +45,7 @@ class StepTutorController extends Controller
 
         $response = Http::timeout(0)
             ->asMultipart()
-            ->post('http://127.0.0.1:5001/explain_step_by_step', $multipartData);
+            ->post('http://127.0.0.1:5002/explain_step_by_step', $multipartData);
 
         if ($response->failed()) {
             logger()->error('FastAPI Leveler error', ['body' => $response->body()]);

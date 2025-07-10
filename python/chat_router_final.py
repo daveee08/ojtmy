@@ -8,10 +8,21 @@ from langchain_core.runnables import RunnableWithMessageHistory
 from langchain_core.messages import HumanMessage, AIMessage, BaseMessage
 from langchain_core.runnables.history import BaseChatMessageHistory
 
-from python.db_utils_final import get_db_connection
+try:
+    from python.db_utils_final import get_db_connection
+    # If the import is successful, you can now use get_db_connection
+    # For example: conn = get_db_connection()
+    # print("Successfully imported get_db_connection.")
+except ImportError:
+    # This block will execute if the import fails
+    print("Warning: Could not import get_db_connection. Database functionality may be limited or unavailable.")
+    # You might define a placeholder function or variable here,
+    # or simply let the program continue, knowing this functionality is missing.
+    from db_utils_final import get_db_connection
+ # Or a dummy function that raise
 
 chat_router = APIRouter()
-llm = Ollama(model="llama3")
+llm = Ollama(model="gemma3:1b")
 
 # -------------------------------
 # Request & Response Models

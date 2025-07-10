@@ -1,10 +1,20 @@
-from fastapi import FastAPI, HTTPException, Form, Depends, UploadFile, File
+from fastapi import FastAPI, HTTPException, UploadFile, Form, File, Depends
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from langchain_community.llms import Ollama
 from langchain_core.prompts import ChatPromptTemplate
+from langchain_community.document_loaders.pdf import PyPDFLoader
+import shutil, os, re, tempfile, uvicorn, traceback, sys
 from typing import Optional
-import uvicorn, traceback, re
+from langchain_core.messages import HumanMessage, AIMessage
+from fastapi.middleware.cors import CORSMiddleware
+
+current_script_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.join(current_script_dir, '..', '..')
+sys.path.insert(0, project_root)
+
+from python.chat_router import chat_router
+from python.db_utilss import create_session_and_parameter_inputs, insert_message
 
 # --- Prompt Template ---
 make_relevant_template = """
@@ -70,9 +80,40 @@ Your task is to connect what you're learning to your interests and the world.
 **Your output must be informative, engaging, and specifically tailored—never generic.**
 """
 
+app = FastAPI(debug=True)
+app.include_router(chat_router)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # or Laravel origin like "http://localhost:8000"
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# --- Pydantic Form Input ---
+class MakeRelevantFormInput(BaseModel):
+    user_id: int
+    grade_level: str
+    learning_topic: str
+    interests: str
+
+    @classmethod
+    def as_form(
+        cls,
+        user_id: int = Form(...),
+        grade_level: str = Form(...),
+        learning_topic: str = Form(...),
+        interests: str = Form(...)
+    ):
+        return cls(
+            user_id=user_id,
+            grade_level=grade_level,
+            learning_topic=learning_topic,
+            interests=interests
+        )
 
 # --- LangChain Setup ---
-app = FastAPI(debug=True)
 model = Ollama(model="llama3")
 relevant_prompt = ChatPromptTemplate.from_template(make_relevant_template)
 
@@ -83,27 +124,12 @@ def clean_output(text: str) -> str:
     text = re.sub(r"^\s*[\*\-]\s*", "", text, flags=re.MULTILINE)
     return text.strip()
 
-# --- Pydantic Form Input ---
-class MakeRelevantFormInput(BaseModel):
-    grade_level: str
-    learning_topic: str
-    interests: str
-
-    @classmethod
-    def as_form(
-        cls,
-        grade_level: str = Form(...),
-        learning_topic: str = Form(...),
-        interests: str = Form(...)
-    ):
-        return cls(
-            grade_level=grade_level,
-            learning_topic=learning_topic,
-            interests=interests
-        )
-
 # --- Core Logic ---
-async def generate_relevant_connection(grade_level: str, learning_topic: str, interests: str):
+async def generate_relevant_connection(
+    grade_level: str, 
+    learning_topic: str = "", 
+    interests: str = "",
+):
     prompt_input = {
         "grade_level": grade_level,
         "learning_topic": learning_topic,
@@ -122,7 +148,18 @@ async def make_relevant_api(form_data: MakeRelevantFormInput = Depends(MakeRelev
             learning_topic=form_data.learning_topic,
             interests=form_data.interests
         )
-        return {"output": output}
+        
+        scope_vars = {}
+
+        session_id = create_session_and_parameter_inputs(
+            user_id=form_data.user_id,
+            agent_id=23,
+            scope_vars=scope_vars,
+            human_topic=form_data.learning_topic,
+            ai_output=output
+        )
+
+        return {"output": output, 'message_id': session_id}
     except Exception as e:
         traceback_str = traceback.format_exc()
         print(traceback_str)

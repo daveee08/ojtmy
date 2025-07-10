@@ -55,15 +55,16 @@ class InformationalInput(BaseModel):
         cls,
         user_id: int = Form(...),
         input_type: str = Form(...),
-        input_type_1: str = Form(...),
+        input_type_1: Optional[str] = Form(None),
         topic: str = Form(""),
-        topic_1: str = Form(""),
+        topic_1: Optional[str] = Form(None),
         message_id: Optional[str] = Form(None),
     ):
         return cls(
             user_id=user_id,
             input_type=input_type,
             input_type_1=input_type_1,
+            topic=topic,
             topic_1=topic_1,
             message_id=message_id
         )
@@ -128,8 +129,6 @@ async def generate_output(
     result = chain.invoke(prompt_input)
     return clean_output(result)
 
-app = FastAPI()
-
 @app.post("/chatwithdocs")
 async def chatwithdocs_api(
     form_data: InformationalInput = Depends(InformationalInput.as_form),
@@ -150,9 +149,7 @@ async def chatwithdocs_api(
             pdf_file_1=pdf_file_1
         )
 
-        scope_vars = {
-            ""
-        }
+        scope_vars = {}
 
         human_topic = form_data.topic if form_data.input_type != "pdf" else "[PDF Input]"
 

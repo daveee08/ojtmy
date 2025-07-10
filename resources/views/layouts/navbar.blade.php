@@ -6,9 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>@yield('title', 'CK AI Tools')</title>
     @yield('styles')
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
 
     <style>
         :root {
@@ -109,11 +110,10 @@
             max-width: 0;
         }
 
-
         .sidebar:not(.collapsed) a[data-bs-toggle="tooltip"] .link-text {
             pointer-events: none;
         }
-
+        
         .content {
             flex: 1;
             padding: 50px 30px;
@@ -148,7 +148,7 @@
             z-index: 1100;
             border: none;
             background: var(--white);
-            color: rgb(90, 89, 89);
+            color: #5a5959;
             padding: 8px 12px;
             border-radius: 5px;
             font-size: 1rem;

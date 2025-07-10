@@ -32,7 +32,7 @@ use App\Http\Controllers\MathReview\MathReviewController;
 use App\Http\Controllers\MakeItRelevant\MakeItRelevantController;
 use App\Http\Controllers\ChatconversationController;
 use App\Http\Controllers\SocialStory\SocialStoryController;
-
+use App\Http\Controllers\CharacterChat\CharacterChatController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -50,7 +50,7 @@ Route::get('/tools', function () {
     return view('tool');
 });
 
-Route::get('/home', function () {
+Route::get('/', function () {
     return view('home');
 });
 
@@ -204,7 +204,7 @@ Route::post('/explanations', [ExplanationsController::class, 'processForm'])->na
 Route::get('/assignmentscaffolder', [AssignmentScaffolder::class, 'showForm'])->name('assignmentscaffolder.form');
 Route::post('/assignmentscaffolder', [AssignmentScaffolder::class, 'processForm'])->name('assignmentscaffolder.process');
 
-// ✅ Math Review Tool
+// ✅ Math Review Too
 Route::get('/mathreview', [MathReviewController::class, 'showForm'])->name('mathreview.form');
 Route::post('/mathreview', [MathReviewController::class, 'processForm'])->name('mathreview.process');
 
@@ -218,3 +218,7 @@ Route::get('/chat/api/history/{session_id}', [ChatconversationController::class,
 //Social Story Tool
 Route::get('/socialstory', [SocialStoryController::class, 'showForm'])->name('socialstory.form');
 Route::post('/socialstory', [SocialStoryController::class, 'generate'])->name('socialstory.generate');
+
+// Character Chat Tool
+Route::get('/characterchat', [CharacterChatController::class, 'showForm'])->name('characterchat.form');
+Route::post('/characterchat', [CharacterChatController::class, 'generate'])->name('characterchat.generate');

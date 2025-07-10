@@ -4,11 +4,18 @@ namespace App\Http\Controllers\MathReview;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 
 class MathReviewController extends Controller
 {
+    public function fetchUserSessions()
+    {
+        $userId = Auth::id();
+        $response = Http::get("http://192.168.50.144:5001/sessions/$userId");
+        return response()->json($response->json());
+    }
+
     public function showForm()
     {
         return view('Math Review.mathreview'); 
@@ -26,32 +33,34 @@ class MathReviewController extends Controller
         ]);
 
         $multipartData = [
-            [
-                'name' => 'grade_level',
-                'contents' => $validated['grade_level']
-            ],
-            [
-                'name' => 'number_of_problems',
-                'contents' => $validated['number_of_problems']
-            ],
-            [
-                'name' => 'math_content',
-                'contents' => $validated['math_content']
-            ],
-            [
-                'name' => 'additional_criteria',
-                'contents' => $validated['additional_criteria'] ?? ''
-            ],
+            ['name' => 'grade_level', 'contents' => $validated['grade_level']],
+            ['name' => 'number_of_problems', 'contents' => $validated['number_of_problems']],
+            ['name' => 'math_content', 'contents' => $validated['math_content']],
+            ['name' => 'additional_criteria', 'contents' => $validated['additional_criteria'] ?? ''],
+            ['name' => 'user_id', 'contents' => Auth::id() ?? 1],
         ];
 
         $response = Http::timeout(0)
             ->asMultipart()
-            ->post('http://127.0.0.1:5001/mathreview', $multipartData);
+            ->post('http://192.168.50.144:5001/mathreview', $multipartData);
 
         if ($response->failed()) {
+            logger()->error('FastAPI Math Review error', ['body' => $response->body()]);
             return back()->withErrors(['error' => 'Python API failed: ' . $response->body()]);
         }
+    
+        $responseData = $response->json();
+        logger($responseData); // ✅ Log the response
+    
+        $messageId = $responseData['message_id'] ?? null;
+    
+        if ($messageId) {
+            // ✅ External redirect
+            return redirect()->to("/chat/history/{$messageId}");
+        }
 
-        return view('Math Review.mathreview', ['response' => $response->json()['output'] ?? 'No output']);
+        return view('Math Review.mathreview', [
+            'response' => $responseData['output'] ?? 'No output (no message ID)'
+        ]);
     }
 }

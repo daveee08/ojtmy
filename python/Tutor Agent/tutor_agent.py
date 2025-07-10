@@ -4,18 +4,39 @@ from pydantic import BaseModel
 import traceback, os, re, tempfile
 import json
 import httpx
+from fastapi.middleware.cors import CORSMiddleware
+
 
 from typing import Optional
 from langchain_ollama import OllamaLLM
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_community.document_loaders import PyPDFLoader
-from langchain_core.messages import HumanMessage, AIMessage
-from chat_router_feb import chat_router
+
+
+import sys
+import os
+
+current_script_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.join(current_script_dir, '..', '..')
+sys.path.insert(0, project_root)
+
+print(f"Adding to sys.path: {project_root}") 
+
+from python.chat_router_final import chat_router
+from python.db_utils_final import create_session_and_parameter_inputs, insert_message
 
 # ===================== App Initialization =====================
 
-app = FastAPI(debug=True)
-# app.include_router(chat_router)
+app = FastAPI()
+app.include_router(chat_router)
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # OK for local dev
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # ===================== Pydantic Model =====================
 
@@ -25,11 +46,8 @@ from fastapi import Form, Depends
 class TutorRequest(BaseModel):
     user_id: int
     grade_level: str
-    input_type: str
     topic: str = ""
     add_cont: str = ""
-    mode: str = "manual"
-    history: str = "[]"
     message_id: Optional[int]
 
     @classmethod
@@ -37,21 +55,15 @@ class TutorRequest(BaseModel):
         cls,
         user_id: int = Form(...),
         grade_level: str = Form(...),
-        input_type: str = Form(...),
         topic: str = Form(""),
         add_cont: str = Form(""),
-        mode: str = Form("manual"),
-        history: str = Form("[]"),
-        message_id: int = Form(...)
+        message_id: int = Form(None)
     ):
         return cls(
             user_id=user_id,
             grade_level=grade_level,
-            input_type=input_type,
             topic=topic,
             add_cont=add_cont,
-            mode=mode,
-            history=history, 
             message_id=message_id
         )
 
@@ -159,35 +171,13 @@ def clean_output(text: str) -> str:
     text = re.sub(r"^\s*[\*\-]\s*", "", text, flags=re.MULTILINE)
     return text.strip()
 
-async def generate_output_with_file(grade_level, input_type, topic="", add_cont="", pdf_file: UploadFile = None, mode="manual"):
-    if input_type == "pdf":
-        if not pdf_file:
-            raise ValueError("PDF file is required but not provided.")
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
-            contents = await pdf_file.read()
-            tmp.write(contents)
-            tmp_path = tmp.name
-        topic = extract_text_from_pdf(tmp_path)
-        user_input = {
-            "grade_level": grade_level,
-            "topic": topic,
-            "add_cont": add_cont
-        }
-        prompt = pdf_prompt
-    elif mode == "chat":
-        prompt = chat_history_prompt
-        user_input = {
-            "grade_level": grade_level,
-            "conversation_summary": topic,
-            "topic": "",
-            "add_cont": add_cont
-        }
-    else:
-        prompt = manual_prompt
-        user_input = {
-            "grade_level": grade_level,
-            "topic": topic,
-            "add_cont": add_cont
+async def generate_output_with_file(grade_level, topic="", add_cont=""):
+    
+    prompt = manual_prompt
+    user_input = {
+        "grade_level": grade_level,
+        "topic": topic,
+        "add_cont": add_cont
         }
 
     chain = prompt | model
@@ -199,45 +189,30 @@ async def generate_output_with_file(grade_level, input_type, topic="", add_cont=
 @app.post("/tutor")
 async def tutor_endpoint(
     data: TutorRequest = Depends(TutorRequest.as_form),
-    pdf_file: Optional[UploadFile] = None,
-    request: Request = None
 ):
     try:
-        if data.mode == "chat":
-            async with httpx.AsyncClient(timeout=None) as client:
-                form_data = {
-                    "topic": data.topic,
-                    # "history": data.history,
-                    "user_id": str(data.user_id),
-                    "db_message_id": int(data.message_id),
-                }
-                chat_url = "http://192.168.50.10:8001/chat_with_history"
-                try:
-                    print("[DEBUG] Sending chat request:", form_data, flush=True)
-                    resp = await client.post(chat_url, data=form_data)
-                    print("[DEBUG] Response status:", resp.status_code, flush=True)
-                    print("[DEBUG] Response body:", await resp.aread(), flush=True)
-                except Exception as e:
-                    import traceback
-                    print("[ERROR] Failed to contact chat_url", flush=True)
-                    print(traceback.format_exc(), flush=True)
-                    raise
+        output = await generate_output_with_file(
+            grade_level=data.grade_level,
+            topic=data.topic,
+            add_cont=data.add_cont,
+        )
+        scope_vars = {
+                "grade_level": data.grade_level
+            } 
+        
+        filled_prompt = manual_topic_template.format(grade_level=data.grade_level.strip(), topic=data.topic.strip(), add_cont=data.add_cont.strip()) #step 1
 
-
-                resp.raise_for_status()
-                result = resp.json()
-                output = result.get("response", "No output")
-        else:
-            output = await generate_output_with_file(
-                grade_level=data.grade_level,
-                input_type=data.input_type,
-                topic=data.topic,
-                add_cont=data.add_cont,
-                pdf_file=pdf_file,
-                mode=data.mode
+        session_id = create_session_and_parameter_inputs(
+                user_id=data.user_id,
+                agent_id=21,  # Default agent_id for step tutor
+                scope_vars=scope_vars,
+                human_topic=data.topic,
+                ai_output=output.strip(),
+                agent_prompt=filled_prompt
             )
 
-        return {"output": output}
+
+        return {"output": output, "message_id": session_id}
     except Exception as e:
         traceback_str = traceback.format_exc()
         print("[DEBUG] Full Traceback:\n", traceback_str, flush=True)

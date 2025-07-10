@@ -186,7 +186,10 @@
             })
             .catch(error => {
                 console.error('Error fetching sessions:', error);
-                sessionList.innerHTML = '<p>Error loading sessions.</p>';
+                sessionList.innerHTML = `
+                    <p>Error loading sessions.</p>
+                    <p>Auth ID is ${userId}</p>
+                `;
             });
     </script>
 </body>

@@ -36,8 +36,8 @@ class AgentParametersTableSeeder extends Seeder
         DB::table('agent_parameters')->insert([
             [
                 'agent_id' => $tutorId,
-                'parameter' => 'language',
-                'parameter_value' => 'English',
+                'parameter' => 'grade_level',
+                'parameter_value' => '',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],

@@ -71,7 +71,11 @@ Route::middleware('auth')->group(function () {
     // Conversation history for tutor agent
     Route::get('/tutor/conversation/history', [\App\Http\Controllers\ConversationController::class, 'history']);
     Route::post('/tutor/conversation/store', [\App\Http\Controllers\ConversationController::class, 'store']);
-    // Add your protected routes here
+    // Add your protected routes 
+    Route::get('/api/user-sessions', [ChatconversationController::class, 'getUserSessions'])->name('api.user_sessions');
+    Route::get('/chat/history/{session_id}', [ChatconversationController::class, 'showForm']);
+    Route::post('/chat', [ChatconversationController::class, 'sendMessage']);
+    Route::get('/chat/api/history/{session_id}', [ChatconversationController::class, 'getHistory']);
 });
 
 // ✅ Summarizer Tool
@@ -207,9 +211,9 @@ Route::post('/mathreview', [MathReviewController::class, 'processForm'])->name('
 Route::get('/makeitrelevant', [MakeItRelevantController::class, 'showForm'])->name('makeitrelevant.form');
 Route::post('/makeitrelevant', [MakeItRelevantController::class, 'processForm'])->name('makeitrelevant.process');
 
-Route::get('/chat/history/{session_id}', [ChatconversationController::class, 'showForm']);
-Route::post('/chat', [ChatconversationController::class, 'sendMessage']);
-Route::get('/chat/api/history/{session_id}', [ChatconversationController::class, 'getHistory']);
+// Route::get('/chat/history/{session_id}', [ChatconversationController::class, 'showForm']);
+// Route::post('/chat', [ChatconversationController::class, 'sendMessage']);
+// Route::get('/chat/api/history/{session_id}', [ChatconversationController::class, 'getHistory']);
 
 //Social Story Tool
 Route::get('/socialstory', [SocialStoryController::class, 'showForm'])->name('socialstory.form');

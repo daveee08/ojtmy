@@ -172,11 +172,18 @@
             document.body.classList.toggle("sidebar-collapsed");
         });
 
-        const userId = {{ Auth::id() ?? 1 }};
+        const userId = {{ Auth::id() ?? 'null' }}; // Use 'null' instead of 1 if not authenticated for clarity
         const currentPath = window.location.pathname;
 
-        fetch(`http://localhost:5001/sessions/${userId}`)
-            .then(response => response.json())
+        // Fetch from your Laravel endpoint
+        fetch(`{{ route('api.user_sessions') }}`) // Use the named route to ensure correct URL
+            .then(response => {
+                if (!response.ok) {
+                    // If the HTTP response is not OK (e.g., 401, 403, 500), throw an error
+                    return response.json().then(err => { throw err; });
+                }
+                return response.json();
+            })
             .then(data => {
                 sessionList.innerHTML = '';
                 if (!data.length) {
@@ -184,9 +191,8 @@
                 } else {
                     data.forEach(sessionId => {
                         const link = document.createElement('a');
-                        link.href = `/chat/history/${sessionId}`;
-                        link.innerHTML =
-                            `<i class="bi bi-chat-dots"></i> <span class="link-text">Session ${sessionId}</span>`;
+                        link.href = `/chat/history/${sessionId}`; // Still points to your Laravel chat history route
+                        link.innerHTML = `<i class="bi bi-chat-dots"></i> <span class="link-text">Session ${sessionId}</span>`;
 
                         // Add active class if this is the current session
                         if (currentPath.includes(`/chat/history/${sessionId}`)) {
@@ -199,12 +205,15 @@
             })
             .catch(error => {
                 console.error('Error fetching sessions:', error);
-                sessionList.innerHTML = `
-                    <p>Error loading sessions.</p>
-                    <p>Auth ID is ${userId}</p>
-                `;
+                let errorMessage = 'Error loading sessions.';
+                if (error.message) {
+                    errorMessage += ` Details: ${error.message}`;
+                } else if (error.error) { // If the Laravel JSON error has an 'error' field
+                    errorMessage += ` Details: ${error.error}`;
+                }
+                sessionList.innerHTML = `<p>${errorMessage}</p><p>Auth ID is ${userId}</p>`;
             });
-    </script>
+        </script>
 </body>
 
 </html>

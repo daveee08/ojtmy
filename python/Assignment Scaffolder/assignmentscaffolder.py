@@ -1,10 +1,20 @@
-from fastapi import FastAPI, HTTPException, UploadFile, Form, File
+from fastapi import FastAPI, HTTPException, UploadFile, Form, File, Depends
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from langchain_community.llms import Ollama
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_community.document_loaders.pdf import PyPDFLoader
-import tempfile, os, re, uvicorn, traceback
+import shutil, os, re, tempfile, uvicorn, traceback, sys
+from typing import Optional
+from langchain_core.messages import HumanMessage, AIMessage
+from fastapi.middleware.cors import CORSMiddleware
+
+current_script_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.join(current_script_dir, '..', '..')
+sys.path.insert(0, project_root)
+
+from python.chat_router import chat_router
+from python.db_utilss import create_session_and_parameter_inputs, insert_message
 
 # Assignment Scaffolding Prompt Template
 assignment_scaffolder_template = """
@@ -96,6 +106,43 @@ Your output should directly replace the "--- EXAMPLE OUTPUT FORMAT TO FOLLOW EXA
 * Do NOT include any images, diagrams, or visual references.
 """
 
+app = FastAPI(debug=True)
+app.include_router(chat_router)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # or Laravel origin like "http://localhost:8000"
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+class AssignmentScaffolderInput(BaseModel):
+    user_id: int
+    input_type: str 
+    topic: str
+    grade_level: str
+
+    @classmethod
+    def as_form(
+        cls,
+        user_id: int = Form(...),
+        input_type: str = Form(...),
+        topic: str = Form(""),
+        grade_level: str = Form(...),
+        message_id: Optional[str] = Form(default=None)
+    ):
+        return cls(
+            user_id=user_id,
+            input_type=input_type,
+            topic=topic,
+            grade_level=grade_level,
+            message_id=message_id
+        )
+
+# LangChain setup
+model = Ollama(model="llama3")
+scaffolder_prompt = ChatPromptTemplate.from_template(assignment_scaffolder_template)
 
 # Load PDF content
 def load_pdf_content(pdf_path: str) -> str:
@@ -104,8 +151,6 @@ def load_pdf_content(pdf_path: str) -> str:
     loader = PyPDFLoader(pdf_path)
     documents = loader.load()
     return "\n".join(doc.page_content for doc in documents)
-
-import re
 
 def clean_output(text: str) -> str:
     text = re.sub(r'<[^>]+>', '', text)                                # Remove HTML
@@ -117,16 +162,6 @@ def clean_output(text: str) -> str:
     text = "\n".join(line.strip() for line in text.splitlines())       # Strip each line
     text = re.sub(r'\n\s*\n\s*\n+', '\n\n', text)                      # Limit blank lines
     return text.strip()
-
-# LangChain setup
-model = Ollama(model="llama3")
-scaffolder_prompt = ChatPromptTemplate.from_template(assignment_scaffolder_template)
-
-# Input schema
-class AssignmentScaffolderInput(BaseModel):
-    input_type: str  # 'manual' or 'pdf'
-    topic: str = ""
-    grade_level: str
 
 # Generation logic
 async def generate_output(
@@ -157,24 +192,38 @@ async def generate_output(
     result = chain.invoke(prompt_input)
     return clean_output(result)
 
-# FastAPI app
-app = FastAPI()
-
 @app.post("/assignmentscaffolder")
-async def assignmentscaffolder_api(
-    input_type: str = Form(...),
-    topic: str = Form(""),
-    pdf_file: UploadFile = File(None),
-    grade_level: str = Form(...)
+async def informational_api(
+    form_data: AssignmentScaffolderInput = Depends(AssignmentScaffolderInput.as_form),
+    pdf_file: UploadFile = File(None)
 ):
+    
     try:
+        if form_data.input_type == "pdf" and not pdf_file:
+            raise HTTPException(status_code=400, detail="PDF file required for PDF input_type")
+
         output = await generate_output(
-            input_type=input_type,
-            topic=topic,
+            input_type=form_data.input_type,
+            topic=form_data.topic,
+            grade_level=form_data.grade_level,
             pdf_file=pdf_file,
-            grade_level=grade_level
         )
-        return {"output": output}
+
+        scope_vars = {
+            "grade_level": form_data.grade_level
+        }
+
+        human_topic = form_data.topic if form_data.input_type != "pdf" else "[PDF Input]"
+
+        session_id = create_session_and_parameter_inputs(
+            user_id=form_data.user_id,
+            agent_id=6,
+            scope_vars=scope_vars,
+            human_topic=human_topic,
+            ai_output=output
+        )
+
+        return {"output": output, "message_id": session_id}
     except Exception as e:
         traceback_str = traceback.format_exc()
         print(traceback_str)
@@ -183,5 +232,3 @@ async def assignmentscaffolder_api(
 # Run with: uvicorn assignmentscaffolder:app --reload
 if __name__ == "__main__":
     uvicorn.run("assignmentscaffolder:app", host="127.0.0.1", port=5001, reload=True)
-
-#original 

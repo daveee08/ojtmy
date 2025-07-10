@@ -2,7 +2,7 @@
 @extends('layouts.historysidenav')
 @extends('layouts.header')
 
-@section('title', 'AI Text Rewriter')
+@section('title', 'Email Responder')
 
 @section('styles')
     <style>
@@ -68,7 +68,7 @@
             </div>
         @endif
 
-        <form id="responderForm" method="POST" action="/responder"enctype="multipart/form-data">
+        <form id="responderForm" method="POST" action="/responder" enctype="multipart/form-data">
             @csrf
 
             <!-- Author Name -->

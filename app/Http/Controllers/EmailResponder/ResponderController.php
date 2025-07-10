@@ -49,7 +49,7 @@ class ResponderController extends Controller
         // Replace with your actual backend URL
         $response = Http::timeout(0)
             ->asMultipart()
-            ->post('http://192.168.50.123:5001/responder', $multipartData);
+            ->post('http://localhost:5001/responder', $multipartData);
 
         if ($response->failed()) {
             return back()->withErrors(['error' => 'Python API failed: ' . $response->body()]);

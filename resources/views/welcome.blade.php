@@ -19,7 +19,6 @@
     <style>
         body {
             font-family: 'Nunito', sans-serif;
-<html lang="en">
 
 <head>
     <meta charset="UTF-8" />

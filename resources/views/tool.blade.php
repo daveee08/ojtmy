@@ -24,7 +24,7 @@
         }
 
         .hero h1 {
-            font-size: 2rem;
+            font-size: 3rem;
             color: #e91e63;
             font-weight: 700;
         }
@@ -204,7 +204,7 @@
                     </div>
                 </a>
 
-                <a href="http://192.168.50.238:8000/" target="_blank" class="tool-card-link">
+                <a href="http://127.0.0.1:5001/summarize" target="_blank" class="tool-card-link">
                     <div class="tool-card">
                         <div class="tool-card-content">
                             <div class="tool-card-icon">
@@ -356,7 +356,7 @@
                     </div>
                 </a>
 
-                <a href="http://127.0.0.1:5001/5questions" target="_blank" class="tool-card-link">
+                <a href="http://127.0.0.1:5001/studyhabits" target="_blank" class="tool-card-link">
                     <div class="tool-card">
                         <div class="tool-card-content">
                             <div class="tool-card-icon">
@@ -403,7 +403,7 @@
                     </div>
                 </a>
 
-                <a href="http://127.0.0.1:5001/5questions" target="_blank" class="tool-card-link">
+                <a href="http://192.168.50.123:5001/assignmentscaffolder" target="_blank" class="tool-card-link">
                     <div class="tool-card">
                         <div class="tool-card-content">
                             <div class="tool-card-icon">
@@ -448,7 +448,7 @@
                     </div>
                 </a>
 
-                <a href="http://127.0.0.1:5001/5questions" target="_blank" class="tool-card-link">
+                <a href="http://192.168.50.123:5001/explanations" target="_blank" class="tool-card-link">
                     <div class="tool-card">
                         <div class="tool-card-content">
                             <div class="tool-card-icon">
@@ -463,7 +463,7 @@
                     </div>
                 </a>
 
-                <a href="http://127.0.0.1:5001/5questions" target="_blank" class="tool-card-link">
+                <a href="http://127.0.0.1:5004/generate-joke" target="_blank" class="tool-card-link">
                     <div class="tool-card">
                         <div class="tool-card-content">
                             <div class="tool-card-icon">
@@ -478,7 +478,7 @@
                     </div>
                 </a>
 
-                <a href="http://127.0.0.1:5001/5questions" target="_blank" class="tool-card-link">
+                <a href="http://127.0.0.1:8001/generate-thankyou" target="_blank" class="tool-card-link">
                     <div class="tool-card">
                         <div class="tool-card-content">
                             <div class="tool-card-icon">
@@ -492,7 +492,7 @@
                     </div>
                 </a>
 
-                <a href="http://127.0.0.1:5001/5questions" target="_blank" class="tool-card-link">
+                <a href="http://127.0.0.1:5002/generate-tongue-twister" target="_blank" class="tool-card-link">
                     <div class="tool-card">
                         <div class="tool-card-content">
                             <div class="tool-card-icon">
@@ -536,7 +536,7 @@
                     </div>
                 </a>
 
-                <a href="http://192.168.50.123:5001/responder" target="_blank" class="tool-card-link">
+                <a href="http://127.0.0.1:5001/makeitrelevant" target="_blank" class="tool-card-link">
                     <div class="tool-card">
                         <div class="tool-card-content">
                             <div class="tool-card-icon">
@@ -551,7 +551,7 @@
                     </div>
                 </a>
 
-                <a href="http://192.168.50.123:5001/responder" target="_blank" class="tool-card-link">
+                <a href="http://192.168.50.144:5001/chatwithdocs" target="_blank" class="tool-card-link">
                     <div class="tool-card">
                         <div class="tool-card-content">
                             <div class="tool-card-icon">
@@ -565,7 +565,7 @@
                     </div>
                 </a>
 
-                <a href="http://192.168.50.123:5001/responder" target="_blank" class="tool-card-link">
+                <a href="http://127.0.0.1:5001/mathreview" target="_blank" class="tool-card-link">
                     <div class="tool-card">
                         <div class="tool-card-content">
                             <div class="tool-card-icon">
@@ -579,13 +579,67 @@
                     </div>
                 </a>
 
+                <a href="http://127.0.0.1:5001/mathreview" target="_blank" class="tool-card-link">
+                    <div class="tool-card">
+                        <div class="tool-card-content">
+                            <div class="tool-card-icon">
+                                <img src="{{ asset('icons/chatbot.png') }}" alt="Chatbot Icon">
+                            </div>
+                            <div class="tool-card-text">
+                                <h5>Character Chatbot</h5>
+                                <p>Chat with any historic figure, author, or recognizable character from a story.</p>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+
+                <a href="http://127.0.0.1:5001/mathreview" target="_blank" class="tool-card-link">
+                    <div class="tool-card">
+                        <div class="tool-card-content">
+                            <div class="tool-card-icon">
+                                <img src="{{ asset('icons/idea.png') }}" alt="Idea Generator Icon">
+                            </div>
+                            <div class="tool-card-text">
+                                <h5>Idea Generator</h5>
+                                <p>Use AI as a thought partner to generate ideas on any topic.</p>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+
+                <a href="http://127.0.0.1:5001/mathreview" target="_blank" class="tool-card-link">
+                    <div class="tool-card">
+                        <div class="tool-card-content">
+                            <div class="tool-card-icon">
+                                <img src="{{ asset('icons/content.png') }}" alt="Content Creator Icon">
+                            </div>
+                            <div class="tool-card-text">
+                                <h5>Content Creator</h5>
+                                <p>Generate academic content to help you learn.</p>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+
+                <a href="http://127.0.0.1:5001/mathreview" target="_blank" class="tool-card-link">
+                    <div class="tool-card">
+                        <div class="tool-card-content">
+                            <div class="tool-card-icon">
+                                <img src="{{ asset('icons/stories.png') }}" alt="Social Stories Icon">
+                            </div>
+                            <div class="tool-card-text">
+                                <h5>Social Stories</h5>
+                                <p>Generate a social story about a particular event to help a student understand what to
+                                    expect in that situation.</p>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+
             </div>
         </div>
     </div>
     </div>
-
-
-
 
     <script>
         document.getElementById('toolSearch').addEventListener('input', function() {

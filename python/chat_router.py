@@ -1,14 +1,19 @@
 from fastapi import APIRouter, Depends, Form, HTTPException
 from pydantic import BaseModel
-from typing import Literal, List, Dict, Optional
+from typing import Literal, List, Dict
 
 from langchain_ollama import OllamaLLM as Ollama
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables import RunnableWithMessageHistory
 from langchain_core.messages import HumanMessage, AIMessage, BaseMessage
 from langchain_core.runnables.history import BaseChatMessageHistory
+import os, sys
 
-from python.db_utils_final import get_db_connection
+current_script_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.join(current_script_dir, '..', '..')
+sys.path.insert(0, project_root)
+
+from python.db_utilss import get_db_connection
 
 chat_router = APIRouter()
 llm = Ollama(model="llama3")
@@ -23,8 +28,8 @@ class ChatRequestForm(BaseModel):
     input: str
 
     @classmethod
-    def as_form(cls, message_id: int = Form(...), user_id: int = Form(...), input: str = Form(...)  ):
-        return cls(message_id=message_id, user_id=user_id, input=input,)
+    def as_form(cls, message_id: int = Form(...), user_id: int = Form(...), input: str = Form(...)):
+        return cls(message_id=message_id, user_id=user_id, input=input)
 
 class ChatResponse(BaseModel):
     response: str
@@ -41,7 +46,6 @@ class MySQLChatMessageHistory(BaseChatMessageHistory):
 
     def _ensure_session(self):
         db = get_db_connection()
-        # cursor = db.cursor()
         try:
             with db.cursor() as cursor:
                 cursor.execute("SELECT id FROM sessions WHERE id = %s", (self.message_id,))
@@ -54,7 +58,6 @@ class MySQLChatMessageHistory(BaseChatMessageHistory):
     @property
     def messages(self):
         db = get_db_connection()
-        # cursor = db.cursor(dictionary=True)
         try:
             with db.cursor(dictionary=True) as cursor:
                 cursor.execute("""
@@ -70,10 +73,8 @@ class MySQLChatMessageHistory(BaseChatMessageHistory):
 
     def add_message(self, message: BaseMessage) -> None:
         db = get_db_connection()
-        # cursor = db.cursor()
         try:
             with db.cursor(dictionary=True) as cursor:
-            # with db.cursor() as cursor:
                 sender = "human" if isinstance(message, HumanMessage) else "ai"
                 topic = message.content
 
@@ -84,7 +85,7 @@ class MySQLChatMessageHistory(BaseChatMessageHistory):
                 latest = cursor.fetchone()
 
                 if latest:
-                    agent_id = int(latest["agent_id"])
+                    agent_id = latest["agent_id"]
                     parameter_inputs = latest["parameter_inputs"]
                 else:
                     agent_id = 1
@@ -108,7 +109,6 @@ class MySQLChatMessageHistory(BaseChatMessageHistory):
 
     def clear(self):
         db = get_db_connection()
-        # cursor = db.cursor()
         try:
             with db.cursor() as cursor:
                 cursor.execute("DELETE FROM messages WHERE message_id = %s", (self.message_id,))
@@ -125,14 +125,10 @@ def get_history_by_message_id(session_id: str) -> MySQLChatMessageHistory:
 # -------------------------------
 
 chat_prompt = ChatPromptTemplate.from_messages([
-    (
-        "system",
-        "You are a helpful assistant in an ongoing conversation. The following is the original prompt that was used to guide your behavior when the session began:\n\n---\n{agent_prompt}\n---\n\nNote: This prompt is for reference only and should not override the context of the current conversation. Respond based on the actual chat history and the user's input."
-    ),
+    ("system", "You are a helpful assistant."),
     MessagesPlaceholder(variable_name="chat_history"),
     ("human", "{input}")
 ])
-
 
 chat_chain = RunnableWithMessageHistory(
     chat_prompt | llm,
@@ -144,70 +140,21 @@ chat_chain = RunnableWithMessageHistory(
 # -------------------------------
 # Chat Endpoint
 # -------------------------------
-def get_agent_prompt_by_message_id(message_id: int) -> str:
-    db = get_db_connection()
-    try:
-        with db.cursor(dictionary=True) as cursor:
-            cursor.execute("""
-                SELECT ap.prompt
-                FROM messages m
-                JOIN agent_prompts ap ON m.agent_prompt_id = ap.id
-                WHERE m.message_id = %s AND m.agent_prompt_id IS NOT NULL
-                ORDER BY m.id ASC
-                LIMIT 1
-            """, (message_id,))
-            result = cursor.fetchone()
-            return result["prompt"] if result else "You are a helpful assistant."  # fallback
-    finally:
-        db.close()
 
 @chat_router.post("/chat", response_model=ChatResponse)
 async def chat_api(request: ChatRequestForm = Depends(ChatRequestForm.as_form)):
     session_id = f"{request.user_id}:{request.message_id}"
-
-    # ✅ Fetch original agent prompt dynamically from DB
-    agent_prompt = get_agent_prompt_by_message_id(request.message_id)
-
     result = await chat_chain.ainvoke(
-        # {"agent_prompt": request.agent_prompt},
-        # {"input": request.input},
-        {
-        "agent_prompt": agent_prompt,
-        "input": request.input
-        },
+        {"input": request.input},
         config={"configurable": {"session_id": session_id}}
     )
-    
     return {"response": result}
-
-# @chat_router.post("/chat", response_model=ChatResponse)
-# async def chat_api(request: ChatRequestForm = Depends(ChatRequestForm.as_form)):
-#     session_id = f"{request.user_id}:{request.message_id}"
-    
-#     # 🔹 Initialize history manually
-#     history = get_history_by_message_id(session_id)
-    
-#     # 🔹 Add human message before the invoke
-#     history.add_message(HumanMessage(content=request.input))
-    
-#     # 🔹 Get model response
-#     result = await chat_chain.ainvoke(
-#         {"input": request.input},
-#         config={"configurable": {"session_id": session_id}}
-#     )
-    
-#     # 🔹 Add AI message after getting result
-#     history.add_message(AIMessage(content=result))
-    
-#     return {"response": result}
-
 
 @chat_router.get("/sessions/{user_id}", response_model=List[int])
 def get_session_ids_by_user(user_id: int):
     db = get_db_connection()
-    cursor = db.cursor()
     try:
-        # with db.cursor() as cursor:
+        with db.cursor() as cursor:
             cursor.execute("""
                 SELECT DISTINCT message_id
                 FROM messages
@@ -226,8 +173,8 @@ def get_session_ids_by_user(user_id: int):
 @chat_router.get("/chat/history/{message_id}")
 def get_chat_history(message_id: int) -> Dict:
     db = get_db_connection()
-    cursor = db.cursor(dictionary=True)
     try:
+        with db.cursor(dictionary=True) as cursor:
             cursor.execute("""
                 SELECT sender, topic, created_at
                 FROM messages

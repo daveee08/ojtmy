@@ -51,7 +51,7 @@ Topic: "{topic}"
 Grade level: {grade_level}
 
 Your task:
-Generate 3 to 5 real-world examples or applications that make this topic meaningful for a {grade_level} student.
+Generate 2 to 3 real-world examples or applications that make this topic meaningful for a {grade_level} student.
 
 Writing style:
 - Use clear, simple language appropriate for the grade level. 
@@ -61,9 +61,10 @@ Output format:
 - Each example should start with a **bolded title**
 - Follow with 2–3 sentences explaining the connection
 - Do not include an introduction or conclusion
+- spacing between examples is fine, but no extra commentary
 """
 
-model = OllamaLLM(model="gemma3:1b")
+model = OllamaLLM(model="gemma3:latest")
 real_world_prompt = ChatPromptTemplate.from_template(base_instructions)
 
 class RealWorldInput(BaseModel):
@@ -98,6 +99,8 @@ def clean_output(text: str) -> str:
     text = re.sub(r"\*\*(.*?)\*\*", r"\1", text)  # Remove bold formatting
     text = re.sub(r"\*(.*?)\*", r"\1", text)  # Remove italic formatting
     text = re.sub(r"^\s*[\*\-]\s*", "", text, flags=re.MULTILINE)  # Remove bullet points
+    # text = re.sub(r"\*\*(.*?)\*\*", r"<strong>\1</strong>", text)  # Convert bold to HTML
+    # text = re.sub(r"\*(.*?)\*", r"<em>\1</em>", text)  # Convert italic to HTML
     return text.strip()
 
 @app.post("/real_world")
@@ -106,6 +109,7 @@ async def real_world_endpoint(data: RealWorldInput = Depends(RealWorldInput.as_f
         raise HTTPException(status_code=400, detail="Topic and grade level are required.")
     try:
         explanation = await real_world_agent(data.topic, data.grade_level)
+        filled_prompt = base_instructions.format(grade_level=data.grade_level, topic=data.topic)
 
         scope_vars = {
             "topic": data.topic,
@@ -116,7 +120,9 @@ async def real_world_endpoint(data: RealWorldInput = Depends(RealWorldInput.as_f
             agent_id=13,
             scope_vars=scope_vars,
             human_topic=data.topic,
-            ai_output=explanation
+            ai_output=explanation,
+            agent_prompt=filled_prompt
+
         )
         return {"explanation": explanation, "message_id": session_id}
     except Exception as e:

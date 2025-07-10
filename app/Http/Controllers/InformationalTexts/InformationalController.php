@@ -3,13 +3,19 @@
 namespace App\Http\Controllers\InformationalTexts;
 
 use Illuminate\Http\Request;
-use Symfony\Component\Process\Process;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 
 class InformationalController extends Controller
 {
+    public function fetchUserSessions()
+    {
+        $userId = Auth::id();
+        $response = Http::get("http://192.168.50.144:5001/sessions/$userId");
+        return response()->json($response->json());
+    }
+
     public function showForm()
     {
         return view('Informational Texts.informational');
@@ -29,26 +35,12 @@ class InformationalController extends Controller
         ]);
 
         $multipartData = [
-            [
-                'name' => 'input_type',
-                'contents' => $validated['input_type']
-            ],
-            [
-                'name' => 'grade_level',
-                'contents' => $validated['grade_level']
-            ],
-            [
-                'name' => 'text_length',
-                'contents' => $validated['text_length']
-            ],
-            [
-                'name' => 'text_type',
-                'contents' => $validated['text_type']
-            ],
-            [
-                'name' => 'topic',
-                'contents' => $validated['topic'] ?? ''
-            ],
+            ['name' => 'input_type', 'contents' => $validated['input_type']],
+            ['name' => 'grade_level', 'contents' => $validated['grade_level']],
+            ['name' => 'text_length', 'contents' => $validated['text_length']],
+            [ 'name' => 'text_type', 'contents' => $validated['text_type']],
+            ['name' => 'topic', 'contents' => $validated['topic'] ?? ''],
+            ['name' => 'user_id', 'contents' => Auth::id() ?? 1],
         ];
 
         if ($request->hasFile('pdf_file')) {
@@ -65,12 +57,24 @@ class InformationalController extends Controller
 
         $response = Http::timeout(0)
             ->asMultipart()
-            ->post('http://127.0.0.1:5001/informational', $multipartData);
+            ->post('http://192.168.50.144:5001/informational', $multipartData);
 
         if ($response->failed()) {
+            logger()->error('FastAPI Informational Text error', ['body' => $response->body()]);
             return back()->withErrors(['error' => 'Python API failed: ' . $response->body()]);
         }
 
-        return view('Informational Texts.informational', ['response' => $response->json()['output'] ?? 'No output']);
+        $responseData = $response->json();
+        logger($responseData);
+    
+        $messageId = $responseData['message_id'] ?? null;
+    
+        if ($messageId) {
+            return redirect()->to("/chat/history/{$messageId}");
+        }
+
+        return view('Informational Texts.informational', [
+            'response' => $responseData['output'] ?? 'No output (no message ID)'
+        ]);
     }
 }

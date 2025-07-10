@@ -28,20 +28,32 @@ class ContentCreatorController extends Controller
             'extra' => 'nullable|string',
         ]);
 
-        try {
-            $response = Http::timeout(60)->post('http://127.0.0.1:8001/contentcreator',
- [
-                'grade_level' => $validated['grade_level'],
-                'length' => $validated['length'],
-                'prompt' => $validated['prompt'],
-                'extra' => $validated['extra'] ?? '',
-            ]);
+        $multipartData = [
+            ['name' => 'grade_level', 'contents' => $validated['grade_level']],
+            ['name' => 'length', 'contents' => $validated['length']],
+            ['name' => 'prompt', 'contents' => $validated['prompt']],
+            ['name' => 'extra', 'contents' => $validated['extra'] ?? ''],
+            ['name' => 'user_id', 'contents' => Auth::id() ?? 1],
+        ];
 
-            if ($response->successful()) {
-                $data = $response->json();
-                return back()->with('content', $data['content']);
-            } else {
-                return back()->with('error', 'Failed to generate content. Please try again.');
+        try {
+            $response = Http::timeout(0)
+            ->asMultipart()
+            ->post('http://127.0.0.1:8001/contentcreator', $multipartData);
+
+            if ($response->failed()) {
+            logger()->error('FastAPI Leveler error', ['body' => $response->body()]);
+            return back()->withErrors(['error' => 'Python API failed: ' . $response->body()]);
+            }
+        
+            $responseData = $response->json();
+            logger($responseData); // ✅ Log the response
+        
+            $messageId = $responseData['message_id'] ?? null;
+        
+            if ($messageId) {
+                // ✅ External redirect
+                return redirect()->to("/chat/history/{$messageId}");
             }
         } catch (\Exception $e) {
             \Log::error('Content generation failed', [

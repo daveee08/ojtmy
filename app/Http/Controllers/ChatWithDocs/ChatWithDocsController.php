@@ -3,13 +3,19 @@
 namespace App\Http\Controllers\ChatWithDocs;
 
 use Illuminate\Http\Request;
-use Symfony\Component\Process\Process;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 
 class ChatWithDocsController extends Controller
 {
+    public function fetchUserSessions()
+    {
+        $userId = Auth::id();
+        $response = Http::get("http://192.168.50.144:5001/sessions/$userId");
+        return response()->json($response->json());
+    }
+
     public function showForm()
     {
         return view('Chat with Docs.chatwithdocs');
@@ -33,22 +39,11 @@ class ChatWithDocsController extends Controller
         ]);
 
         $multipartData = [
-            [
-                'name' => 'input_type',
-                'contents' => $validated['input_type']
-            ],
-            [
-                'name' => 'input_type_1',
-                'contents' => $validated['input_type_1'] ?? ''
-            ],
-            [
-                'name' => 'topic',
-                'contents' => $validated['topic'] ?? ''
-            ],
-            [
-                'name' => 'topic_1',
-                'contents' => $validated['topic_1'] ?? ''
-            ],
+            ['name' => 'input_type', 'contents' => $validated['input_type']],
+            ['name' => 'input_type_1', 'contents' => $validated['input_type_1'] ?? ''],
+            ['name' => 'topic', 'contents' => $validated['topic'] ?? ''],
+            ['name' => 'topic_1', 'contents' => $validated['topic_1'] ?? ''],
+            ['name' => 'user_id', 'contents' => Auth::id() ?? 1],
         ];
 
         if ($request->hasFile('pdf_file')) {
@@ -80,11 +75,21 @@ class ChatWithDocsController extends Controller
             ->post('http://192.168.50.144:5001/chatwithdocs', $multipartData);
 
         if ($response->failed()) {
+            logger()->error('FastAPI Chat with Docs error', ['body' => $response->body()]);
             return back()->withErrors(['error' => 'Python API failed: ' . $response->body()]);
+        }
+    
+        $responseData = $response->json();
+        logger($responseData);
+    
+        $messageId = $responseData['message_id'] ?? null;
+    
+        if ($messageId) {
+            return redirect()->to("/chat/history/{$messageId}");
         }
 
         return view('Chat with Docs.chatwithdocs', [
-            'response' => $response->json()['output'] ?? 'No output'
+            'response' => $responseData['output'] ?? 'No output (no message ID)'
         ]);
     }
 }

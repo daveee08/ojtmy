@@ -1,98 +1,63 @@
-<!DOCTYPE html>
-<html lang="en">
+@extends('layouts.bootstrap')
+@extends('layouts.historysidenav')
+@extends('layouts.header')
 
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Multiple Explanations Generator</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+@section('title', 'AI Text Rewriter')
+
+@section('styles')
     <style>
-        body {
-            background: linear-gradient(to right, #ffe6ec, #ffffff);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: #191919;
-            padding: 4rem 1rem;
-        }
-
         .container {
-            background: #ffffff;
-            max-width: 720px;
-            padding: 3rem 2rem;
-            border-radius: 16px;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+            position: absolute;
+            background: white;
+            max-width: 700px;
+            width: 100%;
+            margin-top: 50px;
+            padding: 2.5rem 3rem;
+            border-radius: 12px;
         }
 
         h2 {
-            font-weight: 800;
-            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
             text-align: center;
-            color: #EC298B;
-            margin-bottom: 0.5rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
         }
 
-        .subtitle {
+        p.subtitle {
             text-align: center;
-            font-size: 1rem;
+            color: #6c757d;
             margin-bottom: 2rem;
-            color: #555;
         }
 
         label {
             font-weight: 600;
-            color: #191919;
+            color: #34495e;
         }
 
-        .form-control,
-        .form-select {
-            border-radius: 10px;
-            font-size: 1rem;
-            color: #191919;
+        textarea.form-control {
+            resize: none;
+            overflow-y: auto;
+            max-height: 400px;
+            background-color: #fff !important;
+            color: #2c3e50;
+            font-family: inherit;
+            line-height: 1.5;
+            padding-top: 0.8rem;
         }
 
-        .form-control:focus,
-        .form-select:focus {
-            border-color: #555;
-            box-shadow: 0 0 0 0.1rem rgba(48, 48, 48, 0.25);
-        }
-
-        .btn-pink {
-            background-color: #EC298B;
-            color: #fff;
-            font-weight: 600;
-            font-size: 1.1rem;
-            padding: 0.6rem 2rem;
-            border-radius: 8px;
-            border: none;
-            transition: 0.3s;
-            min-width: 130px;
-        }
-
-        .btn-pink:hover {
-            background-color: #d81b60;
-        }
-
-        .spinner-border.text-pink {
-            color: #fff;
+        .text-center {
+            margin-top: 1.8rem;
+            margin-bottom: 1.8rem;
         }
 
         .hidden {
             display: none !important;
         }
-
-        textarea[readonly] {
-            background-color: #ffffff;
-            color: #191919;
-        }
-
-        #output b {
-            display: block;
-            margin-top: 1rem;
-            font-size: 1.1rem;
-        }
     </style>
-</head>
+@endsection
 
-<body>
+@section('content')
     <div class="container">
         <h2>Multiple Explanations Generator</h2>
         <p class="subtitle">Generate several versions of an explanation for different learning styles or levels.</p>
@@ -103,19 +68,8 @@
             </div>
         @endif
 
-        <form method="POST" action="/explanations" onsubmit="handleGenerateSubmit()" enctype="multipart/form-data">
+        <form id="explanationsForm" method="POST" action="/explanations" enctype="multipart/form-data">
             @csrf
-
-            <!-- Grade Level -->
-            <div class="mb-4">
-                <label for="grade_level" class="form-label">Select Grade Level</label>
-                <select class="form-select" id="grade_level" name="grade_level" required>
-                    <option value="" disabled selected>Select grade</option>
-                    @foreach (range(1, 12) as $grade)
-                        <option value="Grade {{ $grade }}">Grade {{ $grade }}</option>
-                    @endforeach
-                </select>
-            </div>
 
             <!-- Input Type Selection -->
             <div class="mb-4">
@@ -140,52 +94,43 @@
                 <input type="file" class="form-control" id="pdf_file" name="pdf_file" accept="application/pdf" />
             </div>
 
+            <!-- Grade Level -->
+            <div class="mb-4">
+                <label for="grade_level" class="form-label">Select Grade Level</label>
+                <select class="form-select" id="grade_level" name="grade_level" required>
+                    <option value="" disabled selected>Select grade</option>
+                    @foreach (range(1, 12) as $grade)
+                        <option value="Grade {{ $grade }}">Grade {{ $grade }}</option>
+                    @endforeach
+                </select>
+            </div>
+
             <!-- Submit Button -->
             <div class="mb-4 text-center">
-                <button type="submit" class="btn btn-pink" id="submitButton">
+                <button type="submit" class="btn btn-primary" id="submitButton">
                     <span id="btnText">Generate</span>
                     <span id="btnSpinner" class="spinner-border spinner-border-sm text-pink hidden" role="status"
                         aria-hidden="true"></span>
                 </button>
             </div>
-
-            <!-- Loading Message -->
-            <div id="loadingMessage" class="text-center hidden">
-                <p class="mt-2">Generating explanations, please wait...</p>
-            </div>
         </form>
+    </div>
+@endsection
 
-        <!-- Output -->
-        <div class="mb-4">
-            <label for="output" class="form-label">Generated Explanation</label>
-            <div id="output" class="form-control" style="min-height: 300px; white-space: pre-wrap;">
-                {!! $response ?? '' !!}
-            </div>
-        </div>
+@section('scripts')
+    <script>
+        function toggleInputFields() {
+            const mode = document.getElementById('input_type').value;
+            const textGroup = document.getElementById('text_input_group');
+            const pdfGroup = document.getElementById('pdf_input_group');
 
+            textGroup.style.display = (mode === 'topic') ? 'block' : 'none';
+            pdfGroup.style.display = (mode === 'pdf') ? 'block' : 'none';
+        }
 
-        <script>
-            function toggleInputFields() {
-                const mode = document.getElementById('input_type').value;
-                const textGroup = document.getElementById('text_input_group');
-                const pdfGroup = document.getElementById('pdf_input_group');
-
-                textGroup.style.display = mode === 'topic' ? 'block' : 'none';
-                pdfGroup.style.display = mode === 'pdf' ? 'block' : 'none';
-            }
-
-            function handleGenerateSubmit() {
-                const btn = document.getElementById("submitButton");
-                const text = document.getElementById("btnText");
-                const spinner = document.getElementById("btnSpinner");
-                const message = document.getElementById("loadingMessage");
-
-                btn.disabled = true;
-                text.classList.add("hidden");
-                spinner.classList.remove("hidden");
-                message.classList.remove("hidden");
-            }
-        </script>
-</body>
-
-</html>
+        document.getElementById('explanationsForm').addEventListener('submit', function() {
+            document.getElementById('loading-overlay').style.display = 'flex';
+            this.querySelector('button[type="submit"]').disabled = true;
+        });
+    </script>
+@endsection

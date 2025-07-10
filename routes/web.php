@@ -27,7 +27,7 @@ use App\Http\Controllers\EmailResponder\ResponderController;
 use App\Http\Controllers\TextRewriter\RewriterController;
 use App\Http\Controllers\TextScaffolder\ScaffolderController;
 use App\Http\Controllers\Explanations\ExplanationsController;
-use App\Http\Controllers\AssignmentScaffolder\AssignmentScaffolder;
+use App\Http\Controllers\AssignmentScaffolder\AssignmentScaffolderController;
 use App\Http\Controllers\MathReview\MathReviewController;
 use App\Http\Controllers\MakeItRelevant\MakeItRelevantController;
 use App\Http\Controllers\ChatconversationController;
@@ -115,10 +115,6 @@ Route::post('/chatwithdocs', [ChatWithDocsController::class, 'processForm'])->na
 Route::get('/proofreader', [ProofreaderController::class, 'showForm'])->name('proofreader.form');
 Route::post('/proofreader', [ProofreaderController::class, 'processForm'])->name('proofreader.process');
 
-// ✅ Rewriter Tool
-Route::get('/rewriter', 'App\Http\Controllers\RewriterController@showForm');
-Route::post('/rewriter', 'App\Http\Controllers\RewriterController@processForm');
-
 // ✅ QuizMe Tool
 Route::get('/quizme', 'App\Http\Controllers\QuizmeController@showForm');
 Route::post('/quizme', 'App\Http\Controllers\QuizmeController@processForm');
@@ -201,8 +197,8 @@ Route::get('/explanations', [ExplanationsController::class, 'showForm'])->name('
 Route::post('/explanations', [ExplanationsController::class, 'processForm'])->name('explanations.process');
 
 // ✅ Scaffolder Tool
-Route::get('/assignmentscaffolder', [AssignmentScaffolder::class, 'showForm'])->name('assignmentscaffolder.form');
-Route::post('/assignmentscaffolder', [AssignmentScaffolder::class, 'processForm'])->name('assignmentscaffolder.process');
+Route::get('/assignmentscaffolder', [AssignmentScaffolderController::class, 'showForm'])->name('assignmentscaffolder.form');
+Route::post('/assignmentscaffolder', [AssignmentScaffolderController::class, 'processForm'])->name('assignmentscaffolder.process');
 
 // ✅ Math Review Tool
 Route::get('/mathreview', [MathReviewController::class, 'showForm'])->name('mathreview.form');

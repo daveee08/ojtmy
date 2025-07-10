@@ -124,14 +124,32 @@
 #     result = chain.invoke({"content": content.strip()})
 #     return {"email": result.strip()}
 
-from fastapi import FastAPI, Form, UploadFile, File
+from fastapi import FastAPI, Form, UploadFile, File, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from langchain_ollama import OllamaLLM as Ollama
 from langchain.prompts import PromptTemplate
 from langchain_community.document_loaders import PyPDFLoader
 import tempfile, os
 
+from typing import Optional
+from pydantic import BaseModel
+# from http.client import HTTPException
+import sys
+import os
+
+
+current_script_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.join(current_script_dir, '..', '..')
+sys.path.insert(0, project_root)
+
+from python.chat_router_final import chat_router
+from python.db_utils_final import create_session_and_parameter_inputs, insert_message
+# Add print statements immediately after the imports
+print("Successfully imported chat_router from python.chat_router_final")
+print("Successfully imported create_session_and_parameter_inputs and insert_message from python.db_utils_final")
+
 app = FastAPI()
+app.include_router(chat_router)
 
 # Enable CORS for frontend (like Laravel)
 app.add_middleware(
@@ -140,7 +158,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
+llm = Ollama(model="gemma3:1b")
 # ------------------- Email Writer -------------------
 @app.post("/generate-email")
 async def generate_email(content: str = Form(...)):
@@ -320,14 +338,36 @@ Reason for thanks:
         return {"thank_you_note": f"Error generating note: {str(e)}"}
 
 # ------------------- Idea Generator -------------------
+
+class IdeaGeneratorInput(BaseModel):
+    grade_level: str
+    prompt: str
+    user_id: int
+    message_id: Optional[int] = None
+    # agent_id: int = 16  # Default agent_id for step tutor
+
+    @classmethod
+    def as_form(
+        cls,
+        grade_level: str = Form(...),
+        prompt: str = Form(...),
+        user_id: int = Form(...),
+        message_id: Optional[int] = Form(None)
+    ):
+        return cls(
+            grade_level=grade_level,
+            prompt=prompt,
+            user_id=user_id,
+            message_id=message_id
+        )
 @app.post("/generate-idea")
-async def generate_idea(grade_level: str = Form(...), prompt: str = Form(...)):
+async def generate_idea(data:  IdeaGeneratorInput = Depends(IdeaGeneratorInput.as_form)):
     full_prompt = f"""
 You are a helpful and practical assistant.
 
-Based on the user's request below, generate a list of creative, realistic, and well-explained ideas suitable for a {grade_level} learner:
+Based on the user's request below, generate a list of creative, realistic, and well-explained ideas suitable for a {data.grade_level} learner:
 
-"{prompt}"
+"{data.prompt}"
 
 Instructions:
 - If the user specifies a number (e.g., "give me 5 ideas"), provide exactly that number.
@@ -345,11 +385,26 @@ Do not include:
 Only return the list of ideas using the specified format.
 """
 
-    llm = Ollama(model="gemma3:4b")
+    # llm = Ollama(model="gemma3:1b")
     template = PromptTemplate.from_template(full_prompt)
     chain = template | llm
     result = chain.invoke({})
-    return {"idea": result.strip()}
+
+    scope_vars = {
+        "grade_level": data.grade_level
+    }
+    session_id = create_session_and_parameter_inputs(
+            user_id=data.user_id,
+            agent_id=13,  # Default agent_id for step tutor
+            scope_vars=scope_vars,
+            human_topic=data.prompt,
+            ai_output=result
+        )
+    return {"idea": result.strip(), "message_id": session_id}
+
+@app.get("/test")
+def test():
+    return {"message": "Hello, FastAPI is working!"}
 
 # ------------------- Content Creator -------------------
 @app.post("/generate-contentcreator")
@@ -398,95 +453,125 @@ CAPTION:
         "caption": caption
     }
 
-# ------------------- Social Stories -------------------
-from fastapi import FastAPI, Form
-from fastapi.middleware.cors import CORSMiddleware
-from langchain_ollama import OllamaLLM as Ollama
-from langchain.prompts import PromptTemplate
+# # ------------------- Social Stories -------------------
+# from fastapi import FastAPI, Form
+# from fastapi.middleware.cors import CORSMiddleware
+# from langchain_ollama import OllamaLLM as Ollama
+# from langchain.prompts import PromptTemplate
 
-app = FastAPI()
+# app = FastAPI()
 
-# Enable CORS for Laravel frontend
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# # Enable CORS for Laravel frontend
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=["*"],
+#     allow_methods=["*"],
+#     allow_headers=["*"],
+# )
 
-# 🧠 Final strict prompt template with profanity guidance
-prompt_template = """
-You are a professional assistant who writes realistic, age-appropriate social stories for students and professionals at different levels.
+# # 🧠 Final strict prompt template with profanity guidance
+# prompt_template = """
+# You are a professional assistant who writes realistic, age-appropriate social stories for students and professionals at different levels.
 
-Your task is to write a supportive, clear, and emotionally safe social story for someone at this level: {grade_level}
+# Your task is to write a supportive, clear, and emotionally safe social story for someone at this level: {grade_level}
 
-Context:
-{situation}
+# Context:
+# {situation}
 
-Rules:
-- DO NOT invent names of schools, universities, people, or places unless they are explicitly mentioned in the input.
-- DO NOT invent scenes, routines, or activities (e.g., waking up, recess, lunch, playing with toys) unless clearly mentioned in the input.
-- DO NOT make up examples of meals, cultural elements, or facilities (e.g., swings, adobo, uniforms).
-- DO NOT assume classroom setup, routines, or location-specific details unless provided.
-- DO NOT use markdown formatting (**, ##, headings, or bullets).
-- DO NOT use storybook structure (Page 1, illustration suggestions, headings).
-- DO NOT exaggerate, dramatize, or add fictional events.
-- DO NOT include suggestions like “maybe,” “you might,” or “perhaps,” unless uncertainty is clearly in the user input.
-- DO NOT include profanity in the story even if the user uses strong language.
-- If the user is emotionally overwhelmed or frustrated, respond with empathy and grounded advice, not judgment.
-- Do not include an introduction like "Here's your story" or "Let me tell you a story."
+# Rules:
+# - DO NOT invent names of schools, universities, people, or places unless they are explicitly mentioned in the input.
+# - DO NOT invent scenes, routines, or activities (e.g., waking up, recess, lunch, playing with toys) unless clearly mentioned in the input.
+# - DO NOT make up examples of meals, cultural elements, or facilities (e.g., swings, adobo, uniforms).
+# - DO NOT assume classroom setup, routines, or location-specific details unless provided.
+# - DO NOT use markdown formatting (**, ##, headings, or bullets).
+# - DO NOT use storybook structure (Page 1, illustration suggestions, headings).
+# - DO NOT exaggerate, dramatize, or add fictional events.
+# - DO NOT include suggestions like “maybe,” “you might,” or “perhaps,” unless uncertainty is clearly in the user input.
+# - DO NOT include profanity in the story even if the user uses strong language.
+# - If the user is emotionally overwhelmed or frustrated, respond with empathy and grounded advice, not judgment.
+# - Do not include an introduction like "Here's your story" or "Let me tell you a story."
 
-Tone & Voice:
-- Speak gently, like a supportive teacher or counselor.
-- If grade level is Pre-K to Grade 3, use short, simple sentences.
-- If grade level is Grade 4 and above, maintain clarity with a calm, encouraging tone.
-- Mention the person’s name only if it was included in the input.
-- Focus only on what was shared by the user — avoid generalizations.
-- Model realistic coping, kindness, and self-regulation strategies.
+# Tone & Voice:
+# - Speak gently, like a supportive teacher or counselor.
+# - If grade level is Pre-K to Grade 3, use short, simple sentences.
+# - If grade level is Grade 4 and above, maintain clarity with a calm, encouraging tone.
+# - Mention the person’s name only if it was included in the input.
+# - Focus only on what was shared by the user — avoid generalizations.
+# - Model realistic coping, kindness, and self-regulation strategies.
 
-Output:
-- Return only the story as plain text in paragraph form.
-- Do not include a title, labels, or instructions.
-- Ensure the response is grounded in the user’s actual context.
+# Output:
+# - Return only the story as plain text in paragraph form.
+# - Do not include a title, labels, or instructions.
+# - Ensure the response is grounded in the user’s actual context.
 
-Now write the story.
-"""
+# Now write the story.
+# """
 
-# 🧼 Profanity replacement
-def censor_input(text: str) -> str:
-    profanity_map = {
-        "fuck": "mess up",
-        "fucked": "messed up",
-        "shit": "mistake",
-        "damn": "problem",
-        "bitch": "person",
-        "asshole": "person",
-        "crap": "mistake",
-    }
-    for bad, clean in profanity_map.items():
-        text = text.replace(bad, clean).replace(bad.upper(), clean).replace(bad.capitalize(), clean)
-    return text
+# # 🧼 Profanity replacement
+# def censor_input(text: str) -> str:
+#     profanity_map = {
+#         "fuck": "mess up",
+#         "fucked": "messed up",
+#         "shit": "mistake",
+#         "damn": "problem",
+#         "bitch": "person",
+#         "asshole": "person",
+#         "crap": "mistake",
+#     }
+#     for bad, clean in profanity_map.items():
+#         text = text.replace(bad, clean).replace(bad.upper(), clean).replace(bad.capitalize(), clean)
+#     return text
 
-@app.post("/generate-socialstory")
-async def generate_social_story(
-    grade_level: str = Form(...),
-    situation: str = Form(...)
-):
-    cleaned_input = censor_input(situation.strip())
+# @app.post("/generate-socialstory")
+# async def generate_social_story(
+#     grade_level: str = Form(...),
+#     situation: str = Form(...)
+# ):
+#     cleaned_input = censor_input(situation.strip())
 
-    prompt = PromptTemplate.from_template(prompt_template)
-    llm = Ollama(model="llama3:instruct")
-    chain = prompt | llm
-    result = chain.invoke({
-        "grade_level": grade_level,
-        "situation": cleaned_input
-    })
-    return {"story": result.strip()}
+#     prompt = PromptTemplate.from_template(prompt_template)
+#     llm = Ollama(model="llama3:instruct")
+#     chain = prompt | llm
+#     result = chain.invoke({
+#         "grade_level": grade_level,
+#         "situation": cleaned_input
+#     })
+#     return {"story": result.strip()}
 
 # ------------------- Character Chatbot -------------------
+# from fastapi import FastAPI, Form
+# from fastapi.middleware.cors import CORSMiddleware
+# from langchain_ollama import OllamaLLM as Ollama
+# from langchain.prompts import PromptTemplate
 
-@app.post("/characterchat")
-async def character_chat(
+# app = FastAPI()
+
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=["*"],
+#     allow_methods=["*"],
+#     allow_headers=["*"],
+# )
+
+character_prompt = """
+You are now roleplaying as: {character}
+
+Your task is to have a conversation with a user who is at the following grade level: {grade_level}
+
+Guidelines:
+- Speak in the voice, style, and knowledge of the selected character, author, or historical figure.
+- Your tone, vocabulary, and sentence structure must match the user's grade level.
+- If the character is fictional, keep your responses within the story’s world and personality.
+- If the character is real (like a historical figure or author), speak from their perspective using known facts and ideas from their life or works.
+- DO NOT break character or reference being an AI or language model.
+- DO NOT summarize their biography — speak as if you *are* the character.
+- DO NOT ask the user to confirm who you are. Just reply as the character naturally would.
+
+Start the first message as if the user greeted or asked you something.
+"""
+
+@app.post("/generate-characterchat")
+async def generate_character_chat(
     grade_level: str = Form(...),
     character: str = Form(...)
 ):

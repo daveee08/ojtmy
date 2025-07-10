@@ -107,6 +107,7 @@ async def five_questions_endpoint(data: FiveQuestionInput = Depends(FiveQuestion
 
     try:
         explanation = await five_question_agent(data.grade_level, data.topic)
+        filled_prompt = step_prompt_template.format(grade_level=data.grade_level, topic=data.topic)
 
         scope_vars = {
             "grade_level": data.grade_level
@@ -117,7 +118,8 @@ async def five_questions_endpoint(data: FiveQuestionInput = Depends(FiveQuestion
             agent_id=11,  # Default agent_id for step tutor
             scope_vars=scope_vars,
             human_topic=data.topic,
-            ai_output=explanation
+            ai_output=explanation,
+            agent_prompt=filled_prompt
         )
         return {"explanation": explanation, "message_id":  session_id}
     except Exception as e:

@@ -484,47 +484,26 @@ async def generate_social_story(
     return {"story": result.strip()}
 
 # ------------------- Character Chatbot -------------------
-from fastapi import FastAPI, Form
-from fastapi.middleware.cors import CORSMiddleware
-from langchain_ollama import OllamaLLM as Ollama
-from langchain.prompts import PromptTemplate
 
-app = FastAPI()
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-character_prompt = """
-You are now roleplaying as: {character}
-
-Your task is to have a conversation with a user who is at the following grade level: {grade_level}
-
-Guidelines:
-- Speak in the voice, style, and knowledge of the selected character, author, or historical figure.
-- Your tone, vocabulary, and sentence structure must match the user's grade level.
-- If the character is fictional, keep your responses within the story’s world and personality.
-- If the character is real (like a historical figure or author), speak from their perspective using known facts and ideas from their life or works.
-- DO NOT break character or reference being an AI or language model.
-- DO NOT summarize their biography — speak as if you *are* the character.
-- DO NOT ask the user to confirm who you are. Just reply as the character naturally would.
-
-Start the first message as if the user greeted or asked you something.
-"""
-
-@app.post("/generate-characterchat")
-async def generate_character_chat(
+@app.post("/characterchat")
+async def character_chat(
     grade_level: str = Form(...),
     character: str = Form(...)
 ):
-    prompt = PromptTemplate.from_template(character_prompt)
-    llm = Ollama(model="llama3:instruct")
-    chain = prompt | llm
-    result = chain.invoke({
-        "grade_level": grade_level,
-        "character": character
-    })
-    return {"response": result.strip()}
+    try:
+        prompt = f"""
+You are a character chatbot designed to respond in the voice of a historical or fictional figure.
+
+Grade level of the student: {grade_level}
+Character: {character}
+
+Respond as the character in a way appropriate for the student's grade level.
+"""
+
+        llm = Ollama(model="llama3:8b-instruct")  # or your working model
+        chain = PromptTemplate.from_template(prompt) | llm
+        result = chain.invoke({})
+
+        return {"character": result.strip()}
+    except Exception as e:
+        return {"error": "Character generation failed. Please try again.", "details": str(e)}

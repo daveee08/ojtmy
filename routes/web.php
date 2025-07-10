@@ -32,7 +32,7 @@ use App\Http\Controllers\MathReview\MathReviewController;
 use App\Http\Controllers\MakeItRelevant\MakeItRelevantController;
 use App\Http\Controllers\ChatconversationController;
 use App\Http\Controllers\SocialStory\SocialStoryController;
-
+use App\Http\Controllers\CharacterChat\CharacterChatController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -214,3 +214,7 @@ Route::get('/chat/api/history/{session_id}', [ChatconversationController::class,
 //Social Story Tool
 Route::get('/socialstory', [SocialStoryController::class, 'showForm'])->name('socialstory.form');
 Route::post('/socialstory', [SocialStoryController::class, 'generate'])->name('socialstory.generate');
+
+// Character Chat Tool
+Route::get('/characterchat', [CharacterChatController::class, 'showForm'])->name('characterchat.form');
+Route::post('/characterchat/generate', [CharacterChatController::class, 'generate'])->name('characterchat.generate');

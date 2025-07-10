@@ -162,7 +162,7 @@
         const userId = {{ Auth::id() ?? 1 }};
         const currentPath = window.location.pathname;
 
-        fetch(`http://192.168.50.144:5001/sessions/${userId}`)
+        fetch(`http://localhost:5001/sessions/${userId}`)
             .then(response => response.json())
             .then(data => {
                 sessionList.innerHTML = '';

@@ -18,7 +18,7 @@ class ChatconversationController extends Controller
     
     public function getHistory($session_id)
     {
-        $response = Http::get("http://192.168.50.144:5001/chat/history/{$session_id}");
+        $response = Http::get("http://localhost:5001/chat/history/{$session_id}");
     
         if ($response->failed()) {
             return response()->json(['error' => 'Failed to fetch chat history'], 500);
@@ -29,6 +29,9 @@ class ChatconversationController extends Controller
 
     public function sendMessage(Request $request)
     {
+
+        set_time_limit(0);
+
         $validated = $request->validate([
             'user_id' => 'required|numeric',
             'message_id' => 'required|numeric',
@@ -43,7 +46,7 @@ class ChatconversationController extends Controller
 
         $response = Http::asMultipart()
             ->timeout(0)
-            ->post('http://192.168.50.144:5001/chat', $formData);
+            ->post('http://localhost:5001/chat', $formData);
     
         if ($response->failed()) {
             \Log::error('FastAPI error', ['body' => $response->body()]);

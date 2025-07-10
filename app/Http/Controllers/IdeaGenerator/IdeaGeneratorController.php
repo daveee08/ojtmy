@@ -5,9 +5,21 @@ namespace App\Http\Controllers\IdeaGenerator;
 use App\Http\Controllers\Controller; // ✅ Required
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+
+
 
 class IdeaGeneratorController extends Controller
 {
+
+    public function fetchUserSessions()
+    {
+        $userId = Auth::id();
+        $response = Http::get("http://localhost:5001/sessions/$userId");
+        return response()->json($response->json());
+    }
+
     public function showForm()
     {
         return view('IdeaGenerator.idea-generator');
@@ -17,21 +29,37 @@ class IdeaGeneratorController extends Controller
     {
         set_time_limit(0);
 
-        $request->validate([
+        $validated = $request->validate([
             'grade_level' => 'required|string',
             'prompt' => 'required|string',
         ]);
 
-        try {
-            $response = Http::asForm()->post('http://127.0.0.1:8001/generate-idea', [
-                'grade_level' => $request->grade_level,
-                'prompt' => $request->prompt,
-            ]);
+        $multipartData = [
+            ['name' => 'grade_level', 'contents' => $validated['grade_level']],
+            ['name' => 'prompt', 'contents' => $validated['prompt'] ?? ''],
+            ['name' => 'user_id', 'contents' => Auth::id() ?? 1],
+        ];
 
-            if ($response->successful()) {
-                return back()->with('ideas', $response->json()['idea']);
-            } else {
-                return back()->with('error', 'Failed to generate ideas. Please try again.');
+        try {
+            $response = Http::timeout(0)
+            ->asMultipart()
+            ->post('http://127.0.0.1:5001/generate-idea', $multipartData);
+
+            Log::info('Idea generator Response:', ['response' => $response -> body()]);
+
+            if ($response->failed()) {
+            logger()->error('FastAPI Leveler error', ['body' => $response->body()]);
+            return back()->withErrors(['error' => 'Python API failed: ' . $response->body()]);
+            }
+        
+            $responseData = $response->json();
+            logger($responseData); // ✅ Log the response
+        
+            $messageId = $responseData['message_id'] ?? null;
+        
+            if ($messageId) {
+                // ✅ External redirect
+                return redirect()->to("/chat/history/{$messageId}");
             }
         } catch (\Exception $e) {
             return back()->with('error', 'An error occurred while generating ideas: ' . $e->getMessage());

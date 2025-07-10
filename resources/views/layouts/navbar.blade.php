@@ -34,7 +34,7 @@
             top: 0;
             left: 0;
             height: 100vh;
-            width: 240px;
+            width: 250px;
             background-color: var(--white);
             padding: 40px 20px;
             box-shadow: 2px 0 10px rgba(0, 0, 0, 0.08);
@@ -61,6 +61,8 @@
         }
 
         .sidebar a {
+            align-items: center;
+            justify-content: flex-start;
             display: block;
             color: var(--dark);
             text-decoration: none;
@@ -146,17 +148,17 @@
 
     <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
-        <h2>CK AI Tools</h2>
+        <h2></h2>
 
-        <a href="{{ url('/tools') }}" data-bs-toggle="tooltip" title="Tools">
-            <i class="bi bi-tools"></i>
-            <span class="link-text">Tools</span>
-        </a>
-        <a href="{{ url('/') }}" data-bs-toggle="tooltip" title="Home">
+        <a href="{{ url('/') }}" data-bs-toggle="tooltip" title="Tools">
             <i class="bi bi-house-door"></i>
             <span class="link-text">Home</span>
         </a>
-        <a href="#tool-About" data-bs-toggle="tooltip" title="About">
+        <a href="{{ url('/tools') }}" data-bs-toggle="tooltip" title="Home">
+            <i class="bi bi-tools"></i>
+            <span class="link-text">Tools</span>
+        </a>
+        <a href="{{ url('/about') }}" data-bs-toggle="tooltip" title="About">
             <i class="bi bi-people"></i>
             <span class="link-text">About</span>
         </a>

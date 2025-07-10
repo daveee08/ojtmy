@@ -1,74 +1,93 @@
 @extends('layouts.header')
 @extends('layouts.navbar')
 
+
 @section('title', 'Home - CK Tools')
 
 @section('styles')
     <style>
-        .container {
-            margin-top: 170px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            flex-direction: column;
-            padding: 0 20px;
-            width: 100%;
-            max-width: 800px;
-            margin-left: auto;
-            margin-right: auto;
-            box-sizing: border-box;
+        body {
+            background: linear-gradient(to bottom, #ffffff 0%, #fef4f7 100%);
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 0;
         }
 
         .hero {
-            background-color: #F5F5F5;
-            border: 1px solid #F5F5F5;
-            padding: 60px 40px;
-            border-radius: 12px;
-            max-width: 800px;
-            width: 100%;
+            margin-top: 170px;
+            text-align: center;
+            padding: 0 20px;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+            animation: fadeInUp 0.6s ease-out;
         }
 
         .hero h1 {
-            font-size: 2.5rem;
+            font-size: 3rem;
             color: #e91e63;
             font-weight: 700;
             margin-bottom: 20px;
         }
 
         .hero p {
-            font-size: 1.1rem;
+            font-size: 1.25rem;
             color: #555;
-            margin-bottom: 35px;
+            margin-bottom: 40px;
             line-height: 1.6;
         }
 
         .btn-start {
-            background-color: #555;
-            color: white;
-            padding: 10px 26px;
-            font-size: 0.9rem;
+            background-color: #e91e63;
+            color: #fff;
+            padding: 12px 34px;
+            font-size: 1rem;
+            font-weight: 600;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             text-decoration: none;
-            transition: background-color 0.3s ease;
+            transition: all 0.5s ease;
         }
 
         .btn-start:hover {
-            background-color: #e91e63;
-            color: #ffffff;
+            background-color: #c2185b;
+            transform: scale(1.05);
+            color: white;
+        }
+
+        @keyframes fadeInUp {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 576px) {
+            .hero h1 {
+                font-size: 2.2rem;
+            }
+
+            .hero p {
+                font-size: 1rem;
+            }
+
+            .btn-start {
+                padding: 10px 24px;
+                font-size: 0.95rem;
+            }
         }
     </style>
 @endsection
 
 @section('content')
-    <div class="container">
-        <div class="hero">
-            <h1>Welcome to CK Tools</h1>
-            <p>Your supportive suite of AI-powered tools to help young learners build confidence in reading and writing.</p>
-            <a href="/tools" class="btn-start">Get Started</a>
-        </div>
+    <div class="hero">
+        <h1>Welcome to CK AI Tools</h1>
+        <p>Your supportive suite of AI-powered tools to help young learners build confidence in reading and writing.</p>
+        <a href="/tools" class="btn-start">Get Started</a>
     </div>
 @endsection
-
-{{-- original --}}

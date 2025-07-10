@@ -25,7 +25,8 @@ class BookSuggestionController extends Controller
     
         try {
             $client = new \GuzzleHttp\Client();
-            $response = $client->post('http://127.0.0.1:5005/suggest', [
+            $fastApiUrl = env('FASTAPI_BOOK_SUGGESTION_URL', 'http://127.0.0.1:5005/suggest');
+            $response = $client->post($fastApiUrl, [
                 'json' => [
                     'interests' => $interests,
                     'grade_level' => $gradeLevel ?: null

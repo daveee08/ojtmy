@@ -11,7 +11,7 @@ from langchain_core.runnables.history import BaseChatMessageHistory
 from python.db_utils_final import get_db_connection
 
 chat_router = APIRouter()
-llm = Ollama(model="llama3")
+llm = Ollama(model="gemma3:1b")
 
 # -------------------------------
 # Request & Response Models

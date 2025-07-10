@@ -2,7 +2,7 @@
 @extends('layouts.historysidenav')
 @extends('layouts.header')
 
-@section('title', 'AI Text Rewriter')
+@section('title', 'Multiple Explanations')
 
 @section('styles')
     <style>

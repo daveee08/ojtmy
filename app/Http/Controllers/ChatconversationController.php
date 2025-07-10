@@ -18,7 +18,7 @@ class ChatconversationController extends Controller
     
     public function getHistory($session_id)
     {
-        $response = Http::get("http://localhost:5001/chat/history/{$session_id}");
+        $response = Http::get("http://192.168.50.144:5001/chat/history/{$session_id}");
     
         if ($response->failed()) {
             return response()->json(['error' => 'Failed to fetch chat history'], 500);
@@ -44,7 +44,7 @@ class ChatconversationController extends Controller
 
         $response = Http::asMultipart()
             ->timeout(0)
-            ->post('http://localhost:5001/chat', $formData);
+            ->post('http://192.168.50.144:5001/chat', $formData);
     
         if ($response->failed()) {
             \Log::error('FastAPI error', ['body' => $response->body()]);

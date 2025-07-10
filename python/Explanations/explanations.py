@@ -1,11 +1,20 @@
-from fastapi import FastAPI, HTTPException, UploadFile, Form, File 
-from fastapi.responses import JSONResponse 
+from fastapi import FastAPI, HTTPException, UploadFile, Form, File, Depends
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from langchain_community.llms import Ollama 
-from langchain_core.prompts import ChatPromptTemplate 
-from langchain_community.document_loaders.pdf import PyPDFLoader 
-import os, re, tempfile, traceback 
-import uvicorn
+from langchain_community.llms import Ollama
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_community.document_loaders.pdf import PyPDFLoader
+import shutil, os, re, tempfile, uvicorn, traceback, sys
+from typing import Optional
+from langchain_core.messages import HumanMessage, AIMessage
+from fastapi.middleware.cors import CORSMiddleware
+
+current_script_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.join(current_script_dir, '..', '..')
+sys.path.insert(0, project_root)
+
+from python.chat_router import chat_router
+from python.db_utilss import create_session_and_parameter_inputs, insert_message
 
 manual_concept_template = """
 You are a knowledgeable, student-friendly virtual tutor.
@@ -74,15 +83,45 @@ Your task is to explain the given concept clearly, accurately, and appropriately
 <b>Your Output:</b><br>
 Return a clear, engaging, well-organized explanation in valid HTML. Focus on substance. Expand naturally based on the concept.
 """
+
+app = FastAPI(debug=True)
+app.include_router(chat_router)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # or Laravel origin like "http://localhost:8000"
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+class ExplanationsInput(BaseModel):
+    user_id: int
+    input_type: str
+    concept: str
+    grade_level: str
+    message_id: Optional[str] = None
+
+    @classmethod
+    def as_form(
+        cls,
+        user_id: int = Form(...),
+        input_type: str = Form(...),
+        concept: str = Form(""),
+        grade_level: str = Form(...),
+        message_id: Optional[str] = Form(default=None)
+    ):
+        return cls(
+            user_id=user_id,
+            input_type=input_type,
+            concept=concept,
+            grade_level=grade_level,
+            message_id=message_id
+        )
+
 model = Ollama(model="llama3")
 manual_prompt = ChatPromptTemplate.from_template(manual_concept_template)
 pdf_prompt = ChatPromptTemplate.from_template(pdf_concept_template)
-
-class ExplanationsInput(BaseModel):
-    input_type: str
-    concept: str = ""
-    pdf_path: str = ""
-    grade_level: str
 
 def load_pdf_content(pdf_path: str) -> str:
     if not os.path.exists(pdf_path):
@@ -187,36 +226,46 @@ async def generate_output(
 
     # Compose input dict for prompt
     prompt_input = {
-    "concept": concept,
-    "grade_level": grade_level
+        "concept": concept,
+        "grade_level": grade_level
     }
     
     chain = prompt | model
     result = chain.invoke(prompt_input)
     return clean_output(result)
 
-app = FastAPI()
-
 @app.post("/explanations")
 async def explanations_api(
-    input_type: str = Form(...),
-    concept: str = Form(""),
-    pdf_file: UploadFile = File(None),
-    grade_level: str = Form(...),
+    form_data: ExplanationsInput = Depends(ExplanationsInput.as_form),
+    pdf_file: UploadFile = File(None)
 ):
     
     try:
-        if input_type == "pdf" and not pdf_file:
+        if form_data.input_type == "pdf" and not pdf_file:
             raise HTTPException(status_code=400, detail="PDF file required for PDF input_type")
 
         output = await generate_output(
-            input_type=input_type,
-            concept=concept,
+            input_type=form_data.input_type,
+            concept=form_data.concept,
+            grade_level=form_data.grade_level,
             pdf_file=pdf_file,
-            grade_level=grade_level,
         )
 
-        return {"output": output}
+        scope_vars = {
+            "grade_level": form_data.grade_level 
+        }
+
+        human_topic = form_data.concept if form_data.input_type != "pdf" else "[PDF Input]"
+
+        session_id = create_session_and_parameter_inputs(
+            user_id=form_data.user_id,
+            agent_id=10,
+            scope_vars=scope_vars,
+            human_topic=human_topic,
+            ai_output=output
+        )
+
+        return {"output": output, "message_id": session_id}
     except Exception as e:
         traceback_str = traceback.format_exc()
         print(traceback_str)

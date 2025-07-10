@@ -3,14 +3,19 @@
 namespace App\Http\Controllers\TextRewriter;
 
 use Illuminate\Http\Request;
-use Symfony\Component\Process\Process;
-use Symfony\Component\Process\Exception\ProcessFailedException;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 
 class RewriterController extends Controller
 {
+    public function fetchUserSessions()
+    {
+        $userId = Auth::id();
+        $response = Http::get("http://192.168.50.144:5001/sessions/$userId");   # edit to your ip here
+        return response()->json($response->json());
+    }
+
     public function showForm()
     {
         return view('Text Rewriter.rewriter');
@@ -28,18 +33,10 @@ class RewriterController extends Controller
         ]);
 
         $multipartData = [
-            [
-                'name' => 'input_type',
-                'contents' => $validated['input_type']
-            ],
-            [
-                'name' => 'custom_instruction',
-                'contents' => $validated['custom_instruction']
-            ],
-            [
-                'name' => 'topic',
-                'contents' => $validated['topic'] ?? ''
-            ],
+            ['name' => 'input_type', 'contents' => $validated['input_type']],
+            ['name' => 'custom_instruction', 'contents' => $validated['custom_instruction']],
+            ['name' => 'topic', 'contents' => $validated['topic'] ?? ''],
+            ['name' => 'user_id', 'contents' => Auth::id() ?? 1],
         ];
 
         if ($request->hasFile('pdf_file')) {
@@ -56,12 +53,24 @@ class RewriterController extends Controller
 
         $response = Http::timeout(0)
             ->asMultipart()
-            ->post('http://192.168.50.123:5001/rewriter', $multipartData);
+            ->post('http://192.168.50.144:5001/rewriter', $multipartData);
 
         if ($response->failed()) {
+            logger()->error('FastAPI Leveler error', ['body' => $response->body()]);
             return back()->withErrors(['error' => 'Python API failed: ' . $response->body()]);
         }
 
-        return view('Text Rewriter.rewriter', ['response' => $response->json()['output'] ?? 'No output']);
+        $responseData = $response->json();
+        logger($responseData);
+    
+        $messageId = $responseData['message_id'] ?? null;
+    
+        if ($messageId) {
+            return redirect()->to("/chat/history/{$messageId}");
+        }
+
+        return view('Text Rewriter.rewriter', [
+            'response' => $responseData['output'] ?? 'No output (no message ID)'
+        ]);
     }
 }

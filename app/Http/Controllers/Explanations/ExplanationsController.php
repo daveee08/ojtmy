@@ -3,14 +3,19 @@
 namespace App\Http\Controllers\Explanations;
 
 use Illuminate\Http\Request;
-use Symfony\Component\Process\Process;
-use Symfony\Component\Process\Exception\ProcessFailedException;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 
 class ExplanationsController extends Controller
 {
+    public function fetchUserSessions()
+    {
+        $userId = Auth::id();
+        $response = Http::get("http://192.168.50.144:5001/sessions/$userId");
+        return response()->json($response->json());
+    }
+
     public function showForm()
     {
         return view('Explanations.explanations');
@@ -29,18 +34,10 @@ class ExplanationsController extends Controller
         ]);
 
         $multipartData = [
-            [
-                'name' => 'input_type',
-                'contents' => $validated['input_type']
-            ],
-            [
-                'name' => 'grade_level',
-                'contents' => $validated['grade_level']
-            ],
-            [
-                'name' => 'concept',
-                'contents' => $request->input('concept', '')
-            ],
+            ['name' => 'input_type', 'contents' => $validated['input_type']],
+            ['name' => 'grade_level', 'contents' => $validated['grade_level']],
+            ['name' => 'concept', 'contents' => $request->input('concept', '')],
+            ['name' => 'user_id', 'contents' => Auth::id() ?? 1],
         ];
 
         if ($request->hasFile('pdf_file')) {
@@ -58,12 +55,24 @@ class ExplanationsController extends Controller
         // Replace with your actual backend API URL
         $response = Http::timeout(0)
             ->asMultipart()
-            ->post('http://192.168.50.123:5001/explanations', $multipartData);
+            ->post('http://192.168.50.144:5001/explanations', $multipartData);
 
         if ($response->failed()) {
+            logger()->error('FastAPI Leveler error', ['body' => $response->body()]);
             return back()->withErrors(['error' => 'Python API failed: ' . $response->body()]);
         }
+    
+        $responseData = $response->json();
+        logger($responseData);
+    
+        $messageId = $responseData['message_id'] ?? null;
+    
+        if ($messageId) {
+            return redirect()->to("/chat/history/{$messageId}");
+        }
 
-        return view('Explanations.explanations', ['response' => $response->json()['output'] ?? 'No output']);
+        return view('Explanations.explanations', [
+            'response' => $responseData['output'] ?? 'No output (no message ID)'
+        ]);
     }
 }

@@ -19,6 +19,8 @@ class EmailWriterController extends Controller
 
     public function generate(Request $request)
     {
+
+        set_time_limit(0);
         $validated = $request->validate([
             'email_input' => 'required|string',
 
@@ -38,7 +40,7 @@ class EmailWriterController extends Controller
 
             $response = Http::Timeout(0)
             ->asMultipart()
-            ->post('http://127.0.0.1:5001/generate-email', $multipartData);
+            ->post('http://192.168.50.10:8003/generate-email', $multipartData);
 
 
             Log::info('Email Writer response:', ['response' => $response -> body()]);

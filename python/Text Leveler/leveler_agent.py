@@ -116,7 +116,6 @@ def load_pdf_content(pdf_path: str) -> str:
 
 # --- Output Cleaner ---
 def clean_output(text: str) -> str:
-    text = re.sub(r"\s+\n", "\n", text)
     return text.strip()
 
 # --- Main Output Generation Function ---

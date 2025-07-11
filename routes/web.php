@@ -76,6 +76,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/chat/history/{session_id}', [ChatconversationController::class, 'showForm']);
     Route::post('/chat', [ChatconversationController::class, 'sendMessage']);
     Route::get('/chat/api/history/{session_id}', [ChatconversationController::class, 'getHistory']);
+    Route::delete('/api/sessions/{session_id}', [ChatconversationController::class, 'deleteSession'])->name('api.session.delete');
 });
 
 // ✅ Summarizer Tool

@@ -150,12 +150,6 @@ math_prompt = ChatPromptTemplate.from_template(math_review_template)
 
 # --- Output Cleaner ---
 def clean_output(text: str) -> str:
-    text = re.sub(r"\*\*(.*?)\*\*", r"\1", text)
-    text = re.sub(r"\*(.*?)\*", r"\1", text)
-    text = re.sub(r"^\s*[\*\-]\s*", "", text, flags=re.MULTILINE)
-    text = re.sub(r"\^2\b", "²", text)
-    text = re.sub(r"\^3\b", "³", text)
-
     return text.strip()
 
 # --- Core Function ---

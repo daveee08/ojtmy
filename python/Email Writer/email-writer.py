@@ -248,8 +248,8 @@ Important:
 Now generate the summary below:
 """
 def summarize_text(text: str, conditions: str) -> str:
-    clean_text = " ".join(text.strip().replace("\n", " ").replace("\r", "").split())[:3000]
-    
+    # clean_text = " ".join(text.strip().replace("\n", " ").replace("\r", "").split())[:3000]
+    clean_text = text.strip()
     prompt = PromptTemplate.from_template(summarize_prompt_template)
     llm = Ollama(model="gemma3:1b") 
     chain = prompt | llm

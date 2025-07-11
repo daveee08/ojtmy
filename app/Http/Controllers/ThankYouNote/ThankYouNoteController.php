@@ -34,6 +34,8 @@ class ThankYouNoteController extends Controller
      */
     public function generate(Request $request)
     {
+
+        set_time_limit(0);
         $validated = $request->validate([
             'reason' => 'required|string',
         ]);
@@ -48,7 +50,7 @@ class ThankYouNoteController extends Controller
 
             $response = Http::Timeout(0)
             ->asMultipart()
-            ->post('http://127.0.0.1:5001/generate-thankyou', $multipartData);
+            ->post('http://192.168.50.10:8003/generate-thankyou', $multipartData);
 
 
             Log::info('Thank you generator response:', ['response' => $response -> body()]);
@@ -66,6 +68,7 @@ class ThankYouNoteController extends Controller
                 // ✅ External redirect
                 return redirect()->to("/chat/history/{$messageId}");
             }
+            return back()->withErrors(['error' => 'No message ID returned from the server.']);
         }
         catch (\Exception $e) {
             return back()->with('error', 'An error occurred while generating ideas: ' . $e->getMessage());

@@ -20,7 +20,7 @@
         }
 
         body {
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Poppins', system-ui, sans-serif;
             background-color: var(--light-grey);
             color: var(--dark);
             margin: 0;
@@ -33,10 +33,13 @@
             height: 100vh;
             width: 240px;
             background-color: var(--white);
-            padding: 100px 10px 30px;
             box-shadow: 2px 0 10px rgba(0, 0, 0, 0.06);
             z-index: 1000;
             transition: width 0.3s ease, padding 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            padding: 110px 10px;
+            padding-bottom: 50px;
         }
 
         .sidebar.collapsed {
@@ -51,6 +54,16 @@
             margin-bottom: 20px;
             text-align: center;
             transition: opacity 0.2s ease;
+            flex-shrink: 0;
+            /* Prevent shrinking in collapsed mode */
+        }
+
+        #sessionList {
+            overflow-y: auto;
+            flex-grow: 1;
+            padding-right: 1px;
+            scrollbar-width: thin;
+            scrollbar-color: #f5f5f5 transparent;
         }
 
         .sidebar.collapsed h2 {
@@ -162,7 +175,7 @@
         const userId = {{ Auth::id() ?? 1 }};
         const currentPath = window.location.pathname;
 
-        fetch(`http://192.168.50.144:5001/sessions/${userId}`)
+        fetch(`http://localhost:5001/sessions/${userId}`)
             .then(response => response.json())
             .then(data => {
                 sessionList.innerHTML = '';

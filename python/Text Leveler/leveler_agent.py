@@ -4,12 +4,17 @@ from pydantic import BaseModel
 from langchain_community.llms import Ollama
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_community.document_loaders.pdf import PyPDFLoader
-import shutil, os, re, tempfile, uvicorn, traceback
+import shutil, os, re, tempfile, uvicorn, traceback, sys
 from typing import Optional
-from chat_router import chat_router
-from db_utils import create_session_and_parameter_inputs, insert_message
 from langchain_core.messages import HumanMessage, AIMessage
 from fastapi.middleware.cors import CORSMiddleware
+
+current_script_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.join(current_script_dir, '..', '..')
+sys.path.insert(0, project_root)
+
+from python.chat_router import chat_router
+from python.db_utilss import create_session_and_parameter_inputs, insert_message
 
 # --- Prompt Templates ---
 manual_topic_template = """
@@ -111,9 +116,7 @@ def load_pdf_content(pdf_path: str) -> str:
 
 # --- Output Cleaner ---
 def clean_output(text: str) -> str:
-    text = re.sub(r"\*\*(.*?)\*\*", r"\1", text)
-    text = re.sub(r"\*(.*?)\*", r"\1", text)
-    text = re.sub(r"^\s*[\*\-]\s*", "", text, flags=re.MULTILINE)
+    text = re.sub(r"\s+\n", "\n", text)
     return text.strip()
 
 # --- Main Output Generation Function ---

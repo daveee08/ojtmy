@@ -61,16 +61,14 @@ class LevelerController extends Controller
         }
     
         $responseData = $response->json();
-        logger($responseData); // ✅ Log the response
+        logger($responseData);
     
         $messageId = $responseData['message_id'] ?? null;
     
         if ($messageId) {
-            // ✅ External redirect
             return redirect()->to("/chat/history/{$messageId}");
         }
     
-        // fallback if missing message ID
         return view('Text Leveler.leveler', [
             'response' => $responseData['output'] ?? 'No output (no message ID)'
         ]);

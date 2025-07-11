@@ -19,7 +19,6 @@
         }
 
         .content {
-            margin-left: 240px;
             padding: 40px;
 
         }

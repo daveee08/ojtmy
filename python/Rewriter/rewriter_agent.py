@@ -17,8 +17,7 @@ from python.chat_router import chat_router
 from python.db_utilss import create_session_and_parameter_inputs, insert_message
 
 manual_topic_template = """
-You are a precise and reliable rewriting tool. Your job is to rewrite the original input exactly according to the user's instructions — without adding, explaining, simplifying, or removing any key content.
-
+You are a precise and reliable rewriting tool. Your job is to Take any text and rewrite it with custom criteria.
 Parameters:
 - Topic: {topic}
 - Custom Instruction: {custom_instruction}
@@ -34,25 +33,26 @@ Instructions:
      - “This means that…”
 
 2. **Follow Custom Instructions Exactly**:
-   - Use the tone and structure requested (e.g., **formal**, **concise**, **friendly**).
+   - **Follow the tone, structure, and format exactly** as specified by the user.
    - Match format precisely (e.g., **2 paragraphs**, **bullet points**, **100 words**, etc.).
-   - If a specific word count is given, meet it **exactly**.
-   - If specific examples, vocabulary, or content types are required, integrate them as-is and **do not exclude any unless explicitly told to**.
+   - Examples:
+     - If told to write in formal tone, use formal diction and structure throughout.
+     - If limited to 100 words or 2 paragraphs, your response must meet those **exactly** — not approximately.
+     - If asked to use bullet points, headings, or a specific outline, replicate it perfectly.
 
-3. **Preserve Every Important Detail**:
-   - Rephrase all content, but **do not omit or simplify** technical terms, examples, explanations, relationships, or cause-effect descriptions from the original.
-   - Every meaningful sentence, term, and claim in the original **must be present** in the rewritten version — even if reworded.
-   - Do not skip anything that introduces new information, such as:
-     - Definitions
-     - Limitations
-     - Historical context
-     - Contributions to other fields
-     - Technological impacts
+3. **No Content Loss**:
+   - Do not exclude or compress any idea, definition, example, claim, or explanation from the original input.
+   - Every meaningful component — especially technical terms, timelines, processes, or conclusions — must remain intact, though reworded.
 
-4. **Clarity, Flow, and Redundancy**:
-   - Ensure the rewrite reads smoothly and logically.
-   - Avoid awkward repetition and overly complex structures (unless a formal tone is required).
-   - Use natural transitions and sentence variety to improve readability.
+4. **Reword Thoughtfully**:
+   - Use varied sentence structure, proper transitions, and correct grammar for clarity and flow.
+   - Avoid redundancy, wordy phrasing, or awkward constructions — unless specifically instructed to mimic a style.
+
+5. **Final Output Must Match the Format Exactly**:
+   - Output should **match the structure and tone** exactly as the user specifies.
+   - Do **not** include labels like "Rewritten version:", "Here is your output:", or any explanation.
+   - Output only the final rewritten text — clean, complete, and ready to use.
+
 
 **Final Output Rule**:
 Return the rewritten version only. Do not include any labels, notes, headings, or commentary — just the clean, rewritten text.
@@ -148,9 +148,6 @@ def load_pdf_content(pdf_path: str) -> str:
 
 # Function to clean the output from formatting artifacts
 def clean_output(text: str) -> str:
-    text = re.sub(r"\*\*(.*?)\*\*", r"\1", text)
-    text = re.sub(r"\*(.*?)\*", r"\1", text)
-    text = re.sub(r"^\s*[\*\-]\s*", "", text, flags=re.MULTILINE)
     return text.strip()
 
 async def generate_output(

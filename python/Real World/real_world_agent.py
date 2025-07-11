@@ -96,9 +96,9 @@ async def real_world_agent(topic: str, grade_level: str) -> str:
     return clean_output(result)
 
 def clean_output(text: str) -> str:
-    text = re.sub(r"\*\*(.*?)\*\*", r"\1", text)  # Remove bold formatting
-    text = re.sub(r"\*(.*?)\*", r"\1", text)  # Remove italic formatting
-    text = re.sub(r"^\s*[\*\-]\s*", "", text, flags=re.MULTILINE)  # Remove bullet points
+    # text = re.sub(r"\*\*(.*?)\*\*", r"\1", text)  # Remove bold formatting
+    # text = re.sub(r"\*(.*?)\*", r"\1", text)  # Remove italic formatting
+    # text = re.sub(r"^\s*[\*\-]\s*", "", text, flags=re.MULTILINE)  # Remove bullet points
     # text = re.sub(r"\*\*(.*?)\*\*", r"<strong>\1</strong>", text)  # Convert bold to HTML
     # text = re.sub(r"\*(.*?)\*", r"<em>\1</em>", text)  # Convert italic to HTML
     return text.strip()

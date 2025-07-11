@@ -105,9 +105,9 @@ async def proofread_agent(profile: str, text: str) -> str:
     return clean_output(result)  # Make sure clean_output exists and works
 
 def clean_output(text: str) -> str:
-    text = re.sub(r"\*\*(.*?)\*\*", r"\1", text)  # Remove bold formatting
-    text = re.sub(r"\*(.*?)\*", r"\1", text)  # Remove italic formatting
-    text = re.sub(r"^\s*[\*\-]\s*", "", text, flags=re.MULTILINE)  # Remove bullet points
+    # text = re.sub(r"\*\*(.*?)\*\*", r"\1", text)  # Remove bold formatting
+    # text = re.sub(r"\*(.*?)\*", r"\1", text)  # Remove italic formatting
+    # text = re.sub(r"^\s*[\*\-]\s*", "", text, flags=re.MULTILINE)  # Remove bullet points
     return text.strip()
 
 @app.post("/proofread")

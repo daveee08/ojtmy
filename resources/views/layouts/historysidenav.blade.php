@@ -46,6 +46,10 @@
             padding: 120px 10px 40px;
         }
 
+        .sidebar.collapsed .delete-btn {
+            display: none !important;
+        }
+
         .sidebar h2 {
             font-size: 1.2rem;
             font-weight: 700;

@@ -96,9 +96,9 @@ async def real_world_agent(topic: str, grade_level: str) -> str:
     return clean_output(result)
 
 def clean_output(text: str) -> str:
-    text = re.sub(r"\*\*(.*?)\*\*", r"\1", text)  # Remove bold formatting
-    text = re.sub(r"\*(.*?)\*", r"\1", text)  # Remove italic formatting
-    text = re.sub(r"^\s*[\*\-]\s*", "", text, flags=re.MULTILINE)  # Remove bullet points
+    # text = re.sub(r"\*\*(.*?)\*\*", r"\1", text)  # Remove bold formatting
+    # text = re.sub(r"\*(.*?)\*", r"\1", text)  # Remove italic formatting
+    # text = re.sub(r"^\s*[\*\-]\s*", "", text, flags=re.MULTILINE)  # Remove bullet points
     # text = re.sub(r"\*\*(.*?)\*\*", r"<strong>\1</strong>", text)  # Convert bold to HTML
     # text = re.sub(r"\*(.*?)\*", r"<em>\1</em>", text)  # Convert italic to HTML
     return text.strip()
@@ -112,7 +112,6 @@ async def real_world_endpoint(data: RealWorldInput = Depends(RealWorldInput.as_f
         filled_prompt = base_instructions.format(grade_level=data.grade_level, topic=data.topic)
 
         scope_vars = {
-            "topic": data.topic,
             "grade_level": data.grade_level
         }
         session_id = create_session_and_parameter_inputs(

@@ -119,7 +119,7 @@ class ExplanationsInput(BaseModel):
             message_id=message_id
         )
 
-model = Ollama(model="llama3")
+model = Ollama(model="gemma:2b")
 manual_prompt = ChatPromptTemplate.from_template(manual_concept_template)
 pdf_prompt = ChatPromptTemplate.from_template(pdf_concept_template)
 
@@ -131,77 +131,79 @@ def load_pdf_content(pdf_path: str) -> str:
     return "\n".join(doc.page_content for doc in documents)
 
 def clean_output(text: str) -> str:
-    """
-    Cleans and formats the LLM output into HTML.
-    This function specifically targets markdown bolding, italicizing specific labels,
-    removing code blocks, and converting bullet points to HTML lists.
+    # """
+    # Cleans and formats the LLM output into HTML.
+    # This function specifically targets markdown bolding, italicizing specific labels,
+    # removing code blocks, and converting bullet points to HTML lists.
 
-    Args:
-        text (str): The raw text output from the LLM.
+    # Args:
+    #     text (str): The raw text output from the LLM.
 
-    Returns:
-        str: The cleaned and HTML-formatted string.
-    """
-    if not isinstance(text, str):
-        logger.warning(f"Expected string for clean_output, got {type(text)}")
-        return "" # Or raise TypeError
+    # Returns:
+    #     str: The cleaned and HTML-formatted string.
+    # """
+    # if not isinstance(text, str):
+    #     logger.warning(f"Expected string for clean_output, got {type(text)}")
+    #     return "" # Or raise TypeError
 
-    # 1. Convert Markdown bold (**text**, *text*) to <b>text</b>
-    # This regex is more robust to variations in asterisk count
-    text = re.sub(r"\*{1,2}([^\n*]+?)\*{1,2}", r"<b>\1</b>", text)
-    # Handle bold headings on their own line (e.g., `**My Heading**`)
-    text = re.sub(r"^\*\*([^\n]+?)\*\*$", r"<b>\1</b>", text, flags=re.MULTILINE)
-    text = re.sub(r"^\*([^\n]+?)\*$", r"<b>\1</b>", text, flags=re.MULTILINE)
+    # # 1. Convert Markdown bold (**text**, *text*) to <b>text</b>
+    # # This regex is more robust to variations in asterisk count
+    # text = re.sub(r"\*{1,2}([^\n*]+?)\*{1,2}", r"<b>\1</b>", text)
+    # # Handle bold headings on their own line (e.g., `**My Heading**`)
+    # text = re.sub(r"^\*\*([^\n]+?)\*\*$", r"<b>\1</b>", text, flags=re.MULTILINE)
+    # text = re.sub(r"^\*([^\n]+?)\*$", r"<b>\1</b>", text, flags=re.MULTILINE)
 
 
-    # 2. Italicize specific labels like _Example: or _Analogy:
-    text = re.sub(r"_(Example|Analogy):", r"<i>\1:</i>", text)
+    # # 2. Italicize specific labels like _Example: or _Analogy:
+    # text = re.sub(r"_(Example|Analogy):", r"<i>\1:</i>", text)
 
-    # 3. Remove markdown code blocks (``` blocks)
-    text = re.sub(r"```.*?```", "", text, flags=re.DOTALL)
+    # # 3. Remove markdown code blocks (``` blocks)
+    # text = re.sub(r"```.*?```", "", text, flags=re.DOTALL)
 
-    # 4. Process lines to build HTML structure
-    lines = text.splitlines()
-    html_lines = []
-    in_list = False
+    # # 4. Process lines to build HTML structure
+    # lines = text.splitlines()
+    # html_lines = []
+    # in_list = False
 
-    for line in lines:
-        stripped_line = line.strip()
+    # for line in lines:
+    #     stripped_line = line.strip()
 
-        # Handle bullet points
-        if re.match(r"^[•\*\-]\s+", stripped_line):
-            content = re.sub(r"^[•\*\-]\s+", "", stripped_line)
-            if not in_list:
-                html_lines.append("<ul>")
-                in_list = True
-            html_lines.append(f"<li>{content}</li>")
-        else:
-            # If we were in a list and the current line is not a list item, close the list
-            if in_list:
-                html_lines.append("</ul>")
-                in_list = False
+    #     # Handle bullet points
+    #     if re.match(r"^[•\*\-]\s+", stripped_line):
+    #         content = re.sub(r"^[•\*\-]\s+", "", stripped_line)
+    #         if not in_list:
+    #             html_lines.append("<ul>")
+    #             in_list = True
+    #         html_lines.append(f"<li>{content}</li>")
+    #     else:
+    #         # If we were in a list and the current line is not a list item, close the list
+    #         if in_list:
+    #             html_lines.append("</ul>")
+    #             in_list = False
 
-            # Add paragraph or heading, if content exists
-            if stripped_line:
-                # Check if it's already a bold HTML heading from previous steps
-                if stripped_line.startswith('<b>') and stripped_line.endswith('</b>'):
-                    html_lines.append(f"{stripped_line}<br><br>")
-                else:
-                    html_lines.append(f"{stripped_line}<br>")
+    #         # Add paragraph or heading, if content exists
+    #         if stripped_line:
+    #             # Check if it's already a bold HTML heading from previous steps
+    #             if stripped_line.startswith('<b>') and stripped_line.endswith('</b>'):
+    #                 html_lines.append(f"{stripped_line}<br><br>")
+    #             else:
+    #                 html_lines.append(f"{stripped_line}<br>")
 
-    # Ensure list is closed if the text ends with a list
-    if in_list:
-        html_lines.append("</ul>")
+    # # Ensure list is closed if the text ends with a list
+    # if in_list:
+    #     html_lines.append("</ul>")
 
-    html_output = "".join(html_lines)
+    # html_output = "".join(html_lines)
 
-    # 5. Cleanup excessive breaks (e.g., more than 2 in a row)
-    html_output = re.sub(r"(<br>\s*){3,}", "<br><br>", html_output)
-    # Remove leading/trailing <br> tags if any
-    html_output = re.sub(r"^(<br>\s*)+", "", html_output)
-    html_output = re.sub(r"(<br>\s*)+$", "", html_output)
+    # # 5. Cleanup excessive breaks (e.g., more than 2 in a row)
+    # html_output = re.sub(r"(<br>\s*){3,}", "<br><br>", html_output)
+    # # Remove leading/trailing <br> tags if any
+    # html_output = re.sub(r"^(<br>\s*)+", "", html_output)
+    # html_output = re.sub(r"(<br>\s*)+$", "", html_output)
 
-    return html_output.strip()
+    # return html_output.strip()
+
+    return text.strip()  # Simplified for now, can be expanded later
 
 async def generate_output(
     input_type: str,

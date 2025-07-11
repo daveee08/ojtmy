@@ -29,7 +29,7 @@ def insert_title(session_id: int, text: str):
 
     try:
         # Title generation model and prompt
-        model = OllamaLLM(model="llama3:latest")
+        model = OllamaLLM(model="gemma:2b")
         prompt_template = ChatPromptTemplate.from_template("""
         You are an expert title generator. Your job is to create a concise, relevant, and engaging title based only on the provided conversation.
 
@@ -96,7 +96,8 @@ def create_session_and_parameter_inputs(user_id, agent_id, scope_vars, human_top
         print(input_keys)
 
         # 🔹 Step 2: Build input_data dynamically from scope_vars
-        input_data = {key: scope_vars.get(key, "").strip() for key in input_keys}
+        # input_data = {key: scope_vars.get(key, "").strip() for key in input_keys}
+        input_data = {key: str(scope_vars.get(key, "")).strip() for key in input_keys}
         available_data = {k: v for k, v in input_data.items() if v}
         combined_input = "; ".join(f"{k}={v}" for k, v in available_data.items())
 

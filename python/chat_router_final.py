@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Form, HTTPException
+from fastapi import APIRouter, Depends, Form, HTTPException, status
 from pydantic import BaseModel
 from typing import Literal, List, Dict, Optional
 
@@ -24,7 +24,7 @@ except ImportError:
  # Or a dummy function that raise
 
 chat_router = APIRouter()
-llm = Ollama(model="gemma3:1b")
+llm = Ollama(model="gemma:2b")
 
 # -------------------------------
 # Request & Response Models
@@ -261,5 +261,23 @@ def get_chat_history(message_id: int) -> Dict:
                 "session_id": message_id,
                 "conversation": messages
             }
+    finally:
+        db.close()
+
+@chat_router.delete("/sessions/{user_id}/{session_id}", status_code=status.HTTP_200_OK)
+def delete_session(user_id: int, session_id: int):
+    db = get_db_connection()
+    try:
+        with db.cursor() as cursor:
+            # Delete related messages first to maintain referential integrity
+            cursor.execute("DELETE FROM messages WHERE user_id = %s AND message_id = %s", (user_id, session_id))
+
+            # Optionally also delete from sessions table
+            cursor.execute("DELETE FROM sessions WHERE id = %s", (session_id,))
+
+            db.commit()
+            return {"message": "Session deleted successfully."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to delete session: {str(e)}")
     finally:
         db.close()

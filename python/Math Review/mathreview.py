@@ -13,11 +13,11 @@ current_script_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.join(current_script_dir, '..', '..')
 sys.path.insert(0, project_root)
 
-from python.chat_router import chat_router
-from python.db_utilss import create_session_and_parameter_inputs, insert_message
+from python.chat_router_final import chat_router
+from python.db_utils_final import create_session_and_parameter_inputs, insert_message
 
 # --- Prompt Template ---
-math_review_template = """
+prompt_template = """
 You are an expert math educator and problem designer. Your goal is to create engaging, clear, and precisely leveled math review problems.
 
 Your output must consist *only* of a numbered list of word problems, with no introductory text, titles, explanations, or solutions.
@@ -146,7 +146,7 @@ class MathReviewFormInput(BaseModel):
 
 # --- LangChain & FastAPI Setup ---
 model = Ollama(model="llama3")
-math_prompt = ChatPromptTemplate.from_template(math_review_template)
+prompt_template = ChatPromptTemplate.from_template(prompt_template)
 
 # --- Output Cleaner ---
 def clean_output(text: str) -> str:
@@ -165,7 +165,7 @@ async def generate_math_review(
         "math_content": math_content,
         "additional_criteria": additional_criteria
     }
-    chain = math_prompt | model
+    chain = prompt_template | model
     result = chain.invoke(prompt_input)
     return clean_output(result)
 
@@ -180,20 +180,26 @@ async def math_review_api(form_data: MathReviewFormInput = Depends(MathReviewFor
             additional_criteria=form_data.additional_criteria
         )
         scope_vars = {
-            "grade_level": form_data.grade_level,
-            "number_of_problems": form_data.number_of_problems,
-            "math_content": form_data.math_content,
-            "additional_criteria": form_data.additional_criteria
+            "grade_level": form_data.grade_level.strip(),
+            "number_of_problems": str(form_data.number_of_problems).strip(),
+            "math_content": form_data.math_content.strip(),
+            "additional_criteria": form_data.additional_criteria.strip()
         }
 
-        topic = form_data.math_content
+        filled_prompt = prompt_template.format(
+            math_content=form_data.math_content.strip(), 
+            grade_level=form_data.grade_level.strip(), 
+            number_of_problems=str(form_data.number_of_problems),  # ✅ added this
+            additional_criteria=form_data.additional_criteria.strip()
+        )
 
         session_id = create_session_and_parameter_inputs(
             user_id=form_data.user_id,
             agent_id=22,
             scope_vars=scope_vars,
             human_topic=form_data.math_content,
-            ai_output=output
+            ai_output=output,
+            agent_prompt=filled_prompt
         )
         return {"output": output, "message_id": session_id}
     except Exception as e:

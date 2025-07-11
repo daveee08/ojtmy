@@ -18,6 +18,56 @@ def insert_message(cursor, user_id, agent_id, session_id, parameter_inputs_id, s
         """,
         (user_id, agent_id, session_id, parameter_inputs_id, sender, topic, agent_prompt_id)
     )
+
+def insert_title(session_id: int, text: str):
+    from langchain_ollama import OllamaLLM
+    from langchain_core.prompts import ChatPromptTemplate
+
+    db = get_db_connection()
+    cursor = db.cursor()
+
+    try:
+        # Title generation model and prompt
+        model = OllamaLLM(model="gemma3:1b")
+        prompt_template = ChatPromptTemplate.from_template("""
+        You are an expert title generator. Your sole purpose is to create a concise, relevant, and engaging title based on the provided conversation.
+
+        The text is:
+        {text}
+
+        Output:
+        Please provide only the generated title. Do not include any additional text, explanations, or formatting. The title should be:
+
+        Concise: Ideally 3–7 words.
+        Relevant: Accurately reflect the main topic or purpose of the conversation.
+        Engaging: Spark interest and clearly indicate the content.
+        Unique: Avoid generic phrases like "Chat with user" or "Conversation summary."
+        """)
+        chain = prompt_template | model
+
+        # Generate the title
+        result = chain.invoke({"text": text})
+        title = result.strip()
+
+        # Insert into conversation_title table
+        cursor.execute(
+            """
+            INSERT INTO conversation_title (message_id, title, created_at, updated_at)
+            VALUES (%s, %s, NOW(), NOW())
+            """,
+            (session_id, title)
+        )
+
+        db.commit()
+        return title
+
+    except Exception as e:
+        db.rollback()
+        raise Exception(f"Error inserting title: {e}")
+    finally:
+        db.close()
+
+
 def create_session_and_parameter_inputs(user_id, agent_id, scope_vars, human_topic, ai_output, agent_prompt):
     db = get_db_connection()
     cursor = db.cursor()
@@ -72,7 +122,22 @@ def create_session_and_parameter_inputs(user_id, agent_id, scope_vars, human_top
         insert_message(cursor, user_id, agent_id, session_id, parameter_inputs_id, "human", human_topic, agent_prompt_id)
         insert_message(cursor, user_id, agent_id, session_id, parameter_inputs_id, "ai", ai_output, agent_prompt_id)
 
+        initial_convo = human_topic + ai_output
+
+        try:
+            insert_title(session_id=session_id, text=initial_convo)
+        except Exception as e:
+            print(f"Failed to generate title: {e}")  # or use logging
+
+
         db.commit()
+
+        # Then generate and insert title
+        initial_convo = (human_topic + "\n" + ai_output)
+        try:
+            insert_title(session_id=session_id, text=initial_convo)
+        except Exception as e:
+            print(f"Failed to generate title: {e}")
         return session_id
 
     finally:

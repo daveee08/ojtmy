@@ -141,7 +141,7 @@ class AssignmentScaffolderInput(BaseModel):
         )
 
 # LangChain setup
-model = Ollama(model="llama3")
+model = Ollama(model="gemma:2b")
 scaffolder_prompt = ChatPromptTemplate.from_template(assignment_scaffolder_template)
 
 # Load PDF content
@@ -153,14 +153,15 @@ def load_pdf_content(pdf_path: str) -> str:
     return "\n".join(doc.page_content for doc in documents)
 
 def clean_output(text: str) -> str:
-    text = re.sub(r'<[^>]+>', '', text)                                # Remove HTML
-    text = re.sub(r'\*\*(.*?)\*\*', r'\1', text)                       # Remove Markdown bold
-    text = re.sub(r'^\*\s*|\s*\*$', '', text, flags=re.MULTILINE)     # Strip stray asterisks
-    text = re.sub(r'^[ \t]*[+\*\-][ \t]*', '• ', text, flags=re.MULTILINE)  # Normalize bullets
-    text = re.sub(r'_+', '', text)                                     # Remove underscores
-    text = re.sub(r'[ \t]+$', '', text, flags=re.MULTILINE)            # Trim trailing spaces
-    text = "\n".join(line.strip() for line in text.splitlines())       # Strip each line
-    text = re.sub(r'\n\s*\n\s*\n+', '\n\n', text)                      # Limit blank lines
+    # text = re.sub(r'<[^>]+>', '', text)                                # Remove HTML
+    # text = re.sub(r'\*\*(.*?)\*\*', r'\1', text)                       # Remove Markdown bold
+    # text = re.sub(r'^\*\s*|\s*\*$', '', text, flags=re.MULTILINE)     # Strip stray asterisks
+    # text = re.sub(r'^[ \t]*[+\*\-][ \t]*', '• ', text, flags=re.MULTILINE)  # Normalize bullets
+    # text = re.sub(r'_+', '', text)                                     # Remove underscores
+    # text = re.sub(r'[ \t]+$', '', text, flags=re.MULTILINE)            # Trim trailing spaces
+    # text = "\n".join(line.strip() for line in text.splitlines())       # Strip each line
+    # text = re.sub(r'\n\s*\n\s*\n+', '\n\n', text)                      # Limit blank lines
+    
     return text.strip()
 
 # Generation logic

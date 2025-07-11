@@ -1,4 +1,5 @@
 import mysql.connector
+import re
 
 INPUT_KEYS = ["grade_level", "learning_speed", "custom_instructions", "text_type", "text_length"]
 
@@ -47,7 +48,12 @@ def insert_title(session_id: int, text: str):
 
         # Generate the title
         result = chain.invoke({"text": text})
+
+        
         title = result.strip()
+        title = re.sub(r"\*\*(.*?)\*\*", r"\1", text)
+        title = re.sub(r"\*(.*?)\*", r"\1", text)
+        title = re.sub(r"^\s*[\*\-]\s*", "", text, flags=re.MULTILINE)
 
         # Insert into conversation_title table
         cursor.execute(

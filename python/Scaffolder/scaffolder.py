@@ -147,7 +147,7 @@ class ScaffolderInput(BaseModel):
             message_id=message_id
         )
 
-model = Ollama(model="llama3")
+model = Ollama(model="gemma:2b")
 manual_prompt = ChatPromptTemplate.from_template(manual_topic_template)
 pdf_prompt = ChatPromptTemplate.from_template(pdf_topic_template)
 
@@ -159,9 +159,9 @@ def load_pdf_content(pdf_path: str) -> str:
     return "\n".join(doc.page_content for doc in documents)
 
 def clean_output(text: str) -> str:
-    text = re.sub(r"\*\*(.*?)\*\*", r"\1", text)
-    text = re.sub(r"\*(.*?)\*", r"\1", text)
-    text = re.sub(r"^\s*[\*\-]\s*", "", text, flags=re.MULTILINE)
+    # text = re.sub(r"\*\*(.*?)\*\*", r"\1", text)
+    # text = re.sub(r"\*(.*?)\*", r"\1", text)
+    # text = re.sub(r"^\s*[\*\-]\s*", "", text, flags=re.MULTILINE)
     return text.strip()
     
 async def generate_output(

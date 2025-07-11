@@ -44,14 +44,16 @@ Topic: "{topic}"
 grade_level: {grade_level}
 
 Guidelines:
-- Return only the five starters, each on its own line (no numbering, no bullets).
+- Return only the five starters, each on its own line, numbered 1 to 5.
 - Do NOT complete the thought. Starters must remain open‑ended.
-- Avoid phrases like "This topic is about...".
-- Tone and vocabulary should match the grade level:
+- Avoid questions, especially yes/no questions.
+- Avoid phrases like "This topic is about..." or "I think that..."
+- Tone and vocabulary should match the grade level.
+- Each starter should naturally lead into a full sentence, not a title or headline.
 
 """
 
-model = OllamaLLM(model="gemma3:1b")
+model = OllamaLLM(model="gemma3:latest")
 prompt_template = ChatPromptTemplate.from_template(prompt_template)
 
 # --------------------------------------------------------------------------- #

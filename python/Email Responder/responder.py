@@ -18,7 +18,7 @@ from python.db_utilss import create_session_and_parameter_inputs, insert_message
 
 # Instruction template
 template = """
-Your task is to draft a professional email response based on the user's intent and the original message received.
+Your task is toGenerate a custom professional email in response to an email that you received based on the user's intent and the original message received.
 
 Parameters:
 - Author Name: {author}
@@ -27,22 +27,25 @@ Parameters:
 - Tone: {tone}
 
 Instructions:
-- Compose an email reply that reflects the user's intent and the tone.
-- Do NOT reverse the roles: this is a response **from the user**, not from the original sender.
-- Always begin with a line like:
-    - Subject: Re: [your subject or topic] — with no leading spaces or indentation.
-- Adjust the greeting and closing to reflect the selected tone:
-    - Formal: "Dear [Name]," | "Sincerely," or "With respect,"
-    - Friendly: "Hi [Name]," or "Hello [Name]," | "Warm regards," or "Take care,"
-    - Concise: "Hello [Name]," | "Best," or "Regards,"
-    - Apologetic: "Dear [Name]," | "Apologies," or "Thank you again,"
-    - Assertive: "Dear [Name]," | "Respectfully," or "Thank you for your attention,"
-- Follow any formatting preferences (e.g., word limit, paragraph count, bullets, numbered list) exactly as given. Match the requested structure and layout.
-- Do not use placeholder phrases like “[Name]”; use an inferred or polite general salutation if needed.
-- Keep formatting readable with paragraph breaks.
-- End with a closing line and the sender's name.
 
-Respond with the email only — no labels, commentary, or explanation.
+Write an email from the user (the author) replying to the provided email.
+- Reflect the user’s communication intent and follow the selected tone accurately.
+- The output should begin with this format on the first line:
+- Subject: Re: [insert appropriate subject from the email]
+- Use appropriate greetings and sign-offs based on the specified tone:
+    - Formal: “Dear [Name],” | “Sincerely,” or “With respect,”
+    - Friendly: “Hi [Name],” or “Hello [Name],” | “Warm regards,” or “Take care,”
+    - Concise: “Hello [Name],” | “Best,” or “Regards,”
+    - Apologetic: “Dear [Name],” | “Apologies,” or “Thank you again,”
+    - Assertive: “Dear [Name],” | “Respectfully,” or “Thank you for your attention,”
+- Avoid generic placeholders (e.g., “[Name]”); use a specific name if present, or a courteous general greeting (e.g., “Dear Hiring Team,”).
+- Use a specific name if mentioned; otherwise, use a polite general salutation (e.g., “Dear Hiring Team,”).
+- Keep the tone consistent throughout the email.
+- Format the email with clear paragraph breaks for readability.
+- Apply any requested formatting or structure (e.g., word limit, bullet points) as needed.
+- End with a proper sign-off and the author’s full name.
+
+Response Only — do not include instructions, tags, or explanations.
 """
 
 app = FastAPI(debug=True)
@@ -84,28 +87,28 @@ class ResponderInput(BaseModel):
         )
 
 # LangChain setup
-model = Ollama(model="llama3")
+model = Ollama(model="gemma:2b")
 concept_template = ChatPromptTemplate.from_template(template)
 
 # Clean output from formatting artifacts
 def clean_output(text: str) -> str:
-    import re
+    # import re
 
-    text = text.strip()
+    # text = text.strip()
 
-    # Normalize Subject line: extract and rewrap
-    match = re.match(r"^Subject:\s*(.+)", text)
-    if match:
-        subject = match.group(0)
-        remaining = text[len(subject):].lstrip()
-        text = f"<p>{subject}</p><br>{remaining}"
-    else:
-        # If no clear Subject line, keep the original
-        text = text
+    # # Normalize Subject line: extract and rewrap
+    # match = re.match(r"^Subject:\s*(.+)", text)
+    # if match:
+    #     subject = match.group(0)
+    #     remaining = text[len(subject):].lstrip()
+    #     text = f"<p>{subject}</p><br>{remaining}"
+    # else:
+    #     # If no clear Subject line, keep the original
+    #     text = text
 
-    # Remove markdown artifacts
-    text = re.sub(r"\*\*(.*?)\*\*", r"\1", text)  # bold markdown
-    text = re.sub(r"\*(.*?)\*", r"\1", text)      # italic markdown
+    # # Remove markdown artifacts
+    # text = re.sub(r"\*\*(.*?)\*\*", r"\1", text)  # bold markdown
+    # text = re.sub(r"\*(.*?)\*", r"\1", text)      # italic markdown
 
     return text.strip()
 

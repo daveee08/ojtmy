@@ -68,7 +68,7 @@ Changes made:
 ===END_CHANGES===
 """
 
-model = OllamaLLM(model="gemma3:1b")
+model = OllamaLLM(model="gemma3:latest")
 proofreader_prompt = ChatPromptTemplate.from_template(prompt_template)
 
 

@@ -45,9 +45,7 @@ class RewriterController extends Controller
                 'name'     => 'pdf_file',
                 'contents' => fopen($pdf->getPathname(), 'r'),
                 'filename' => $pdf->getClientOriginalName(),
-                'headers'  => [
-                    'compContent-Type' => $pdf->getMimeType()
-                ],
+                'headers'  => ['Content-Type' => $pdf->getMimeType()],
             ];
         }
 

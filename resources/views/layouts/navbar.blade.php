@@ -113,7 +113,7 @@
         .sidebar:not(.collapsed) a[data-bs-toggle="tooltip"] .link-text {
             pointer-events: none;
         }
-        
+
         .content {
             flex: 1;
             padding: 50px 30px;
@@ -186,23 +186,6 @@
                 <i class="bi bi-people"></i>
                 <span class="link-text">About</span>
             </a>
-
-            @auth
-                <form method="POST" action="{{ url('/logout') }}" style="margin-top: 30px;">
-                    @csrf
-                    <button type="submit" class="btn btn-link"
-                        style="color: #e91e63; text-decoration: none; font-weight: 600;">
-                        <span class="link-text">Logout</span>
-                    </button>
-                </form>
-            @else
-                <a href="{{ url('/login') }}" style="color: #e91e63; font-weight: 600;">
-                    <span class="link-text">Login</span>
-                </a>
-                <a href="{{ url('/register') }}" style="color: #e91e63; font-weight: 600;">
-                    <span class="link-text">Register</span>
-                </a>
-            @endauth
         </div>
 
         <!-- Content -->

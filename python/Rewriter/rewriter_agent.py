@@ -135,7 +135,7 @@ class RewriterInput(BaseModel):
             message_id=message_id
         )
 
-model = Ollama(model="llama3")
+model = Ollama(model="gemma:2b")
 manual_prompt = ChatPromptTemplate.from_template(manual_topic_template)
 pdf_prompt = ChatPromptTemplate.from_template(pdf_topic_template)
 

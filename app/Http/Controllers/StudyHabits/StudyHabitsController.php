@@ -12,7 +12,7 @@ class StudyHabitsController extends Controller
    public function fetchUserSession()
     {
         $userId = Auth::id();
-        $response = Http::get("http:/192.168.50.40:8004/sessions/$userId");
+        $response = Http::get("http://127.0.1:5001/sessions/$userId");
         return response()->json($response->json());
         // return view('Text Proofreader.proofreader');
     }
@@ -35,7 +35,7 @@ class StudyHabitsController extends Controller
         ];
         $response = Http::timeout(0)
             ->asMultipart()
-            ->post('http:/192.168.50.40:8004/study_habits', $multipartData); // Adjusted URL to match your FastAPI endpoint
+            ->post('http://127.0.1:5001/study_habits', $multipartData); // Adjusted URL to match your FastAPI endpoint
         
         if ($response->failed()) {
             logger()->error('FastAPI Study Habits error', ['body' => $response->body()]);

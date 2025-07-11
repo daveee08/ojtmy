@@ -112,7 +112,6 @@ async def real_world_endpoint(data: RealWorldInput = Depends(RealWorldInput.as_f
         filled_prompt = base_instructions.format(grade_level=data.grade_level, topic=data.topic)
 
         scope_vars = {
-            "topic": data.topic,
             "grade_level": data.grade_level
         }
         session_id = create_session_and_parameter_inputs(

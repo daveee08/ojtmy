@@ -35,6 +35,7 @@ GRADE_LEVEL_PROFILES = {
     "senior high": "Use a semi‑formal tone. Invite analysis or comparison.",
     "college": "Use an academic tone. Encourage critical thinking and synthesis.",
 }
+
 prompt_template = """
 You are an AI writing coach for {grade_level} students.
 Your task is to generate **exactly five** open‑ended sentence starters
@@ -47,10 +48,9 @@ Guidelines:
 - Return only the five starters, each on its own line (no numbering, no bullets).
 - Do NOT complete the thought. Starters must remain open‑ended.
 - Avoid phrases like "This topic is about...".
-- Tone and vocabulary should match the grade level:
+- Tone and vocabulary should match the grade level: {grade_level_guidance}
 
 """
-
 model = OllamaLLM(model="gemma3:1b")
 prompt_template = ChatPromptTemplate.from_template(prompt_template)
 

@@ -60,12 +60,12 @@ Respond in this format:
 Corrected text:
 [Your corrected version]
 
-===END_CORRECTED===
+
 
 Changes made:
 [List of major changes]
 
-===END_CHANGES===
+
 """
 
 model = OllamaLLM(model="gemma3:latest")

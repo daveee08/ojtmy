@@ -13,10 +13,10 @@ current_script_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.join(current_script_dir, '..', '..')
 sys.path.insert(0, project_root)
 
-from python.chat_router import chat_router
-from python.db_utilss import create_session_and_parameter_inputs, insert_message
+from python.chat_router_final import chat_router
+from python.db_utils_final import create_session_and_parameter_inputs, insert_message
 
-manual_topic_template = """
+prompt_template = """
 You are a precise and reliable rewriting tool. Your job is to Take any text and rewrite it with custom criteria.
 Parameters:
 - Topic: {topic}
@@ -58,48 +58,6 @@ Instructions:
 Return the rewritten version only. Do not include any labels, notes, headings, or commentary — just the clean, rewritten text.
 """
 
-pdf_topic_template = """
-You are a precise and reliable rewriting tool. Your job is to rewrite the original input exactly according to the user's instructions — without adding, explaining, simplifying, or removing any key content.
-
-Parameters:
-- Topic: {topic}
-- Custom Instruction: {custom_instruction}
-
-Instructions:
-
-1. **Rewriting Only**:
-   - Rephrase the original input into the format specified by the user.
-   - Do not summarize, explain, expand, or reduce the meaning.
-   - Avoid commentary phrases such as:
-     - “In other words…”
-     - “To clarify…”
-     - “This means that…”
-
-2. **Follow Custom Instructions Exactly**:
-   - Use the tone and structure requested (e.g., **formal**, **concise**, **friendly**).
-   - Match format precisely (e.g., **2 paragraphs**, **bullet points**, **100 words**, etc.).
-   - If a specific word count is given, meet it **exactly**.
-   - If specific examples, vocabulary, or content types are required, integrate them as-is and **do not exclude any unless explicitly told to**.
-
-3. **Preserve Every Important Detail**:
-   - Rephrase all content, but **do not omit or simplify** technical terms, examples, explanations, relationships, or cause-effect descriptions from the original.
-   - Every meaningful sentence, term, and claim in the original **must be present** in the rewritten version — even if reworded.
-   - Do not skip anything that introduces new information, such as:
-     - Definitions
-     - Limitations
-     - Historical context
-     - Contributions to other fields
-     - Technological impacts
-
-4. **Clarity, Flow, and Redundancy**:
-   - Ensure the rewrite reads smoothly and logically.
-   - Avoid awkward repetition and overly complex structures (unless a formal tone is required).
-   - Use natural transitions and sentence variety to improve readability.
-
-**Final Output Rule**:
-Return the rewritten version only. Do not include any labels, notes, headings, or commentary — just the clean, rewritten text.
-"""
-
 app = FastAPI(debug=True)
 app.include_router(chat_router)
 
@@ -136,8 +94,7 @@ class RewriterInput(BaseModel):
         )
 
 model = Ollama(model="gemma:2b")
-manual_prompt = ChatPromptTemplate.from_template(manual_topic_template)
-pdf_prompt = ChatPromptTemplate.from_template(pdf_topic_template)
+prompt_template = ChatPromptTemplate.from_template(prompt_template)
 
 def load_pdf_content(pdf_path: str) -> str:
     if not os.path.exists(pdf_path):
@@ -164,12 +121,10 @@ async def generate_output(
             tmp_path = tmp.name
 
         topic = load_pdf_content(tmp_path)
-        os.unlink(tmp_path)  # Delete file after use
-        prompt = pdf_prompt
-    else: # This 'else' block will catch anything not 'pdf'
+        os.unlink(tmp_path) 
+    else:
         if not topic.strip():
             raise ValueError("Text input is required")
-        prompt = manual_prompt
 
     # Compose input dict for prompt
     prompt_input = {
@@ -177,7 +132,7 @@ async def generate_output(
         "custom_instruction": custom_instruction
     }
 
-    chain = prompt | model
+    chain = prompt_template | model
     result = chain.invoke(prompt_input)
     return clean_output(result)
 
@@ -200,15 +155,19 @@ async def rewriter_api(
         scope_vars = {
             "custom_instruction": form_data.custom_instruction
         }
-
-        human_topic = form_data.topic if form_data.input_type != "pdf" else "[PDF Input]"
+        
+        filled_prompt = prompt_template.format(
+            topic=form_data.topic.strip(),
+            custom_instruction=form_data.custom_instruction.strip()
+        )
 
         session_id = create_session_and_parameter_inputs(
             user_id=form_data.user_id,
             agent_id=8,
             scope_vars=scope_vars,
-            human_topic=human_topic,
-            ai_output=output
+            human_topic=form_data.topic,
+            ai_output=output,
+            agent_prompt=filled_prompt
         )
         
         return {"output": output, "message_id": session_id}

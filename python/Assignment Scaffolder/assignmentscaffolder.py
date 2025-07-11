@@ -17,7 +17,7 @@ from python.chat_router import chat_router
 from python.db_utilss import create_session_and_parameter_inputs, insert_message
 
 # Assignment Scaffolding Prompt Template
-assignment_scaffolder_template = """
+prompt_template = """
 You are an educational assistant.
 
 Your task is to turn the following prompt into a fully scaffolded, student-friendly assignment for **Grade {grade_level}** students.
@@ -142,7 +142,7 @@ class AssignmentScaffolderInput(BaseModel):
 
 # LangChain setup
 model = Ollama(model="gemma:2b")
-scaffolder_prompt = ChatPromptTemplate.from_template(assignment_scaffolder_template)
+scaffolder_prompt = ChatPromptTemplate.from_template(prompt_template)
 
 # Load PDF content
 def load_pdf_content(pdf_path: str) -> str:
@@ -153,15 +153,6 @@ def load_pdf_content(pdf_path: str) -> str:
     return "\n".join(doc.page_content for doc in documents)
 
 def clean_output(text: str) -> str:
-    # text = re.sub(r'<[^>]+>', '', text)                                # Remove HTML
-    # text = re.sub(r'\*\*(.*?)\*\*', r'\1', text)                       # Remove Markdown bold
-    # text = re.sub(r'^\*\s*|\s*\*$', '', text, flags=re.MULTILINE)     # Strip stray asterisks
-    # text = re.sub(r'^[ \t]*[+\*\-][ \t]*', '• ', text, flags=re.MULTILINE)  # Normalize bullets
-    # text = re.sub(r'_+', '', text)                                     # Remove underscores
-    # text = re.sub(r'[ \t]+$', '', text, flags=re.MULTILINE)            # Trim trailing spaces
-    # text = "\n".join(line.strip() for line in text.splitlines())       # Strip each line
-    # text = re.sub(r'\n\s*\n\s*\n+', '\n\n', text)                      # Limit blank lines
-    
     return text.strip()
 
 # Generation logic
@@ -189,7 +180,7 @@ async def generate_output(
         "grade_level": grade_level,
     }
 
-    chain = scaffolder_prompt | model
+    chain = prompt_template | model
     result = chain.invoke(prompt_input)
     return clean_output(result)
 
@@ -214,14 +205,18 @@ async def informational_api(
             "grade_level": form_data.grade_level
         }
 
-        human_topic = form_data.topic if form_data.input_type != "pdf" else "[PDF Input]"
+        filled_prompt = prompt_template.format(
+            topic=form_data.topic.strip(),
+            grade_level=form_data.grade_level.strip()
+        )
 
         session_id = create_session_and_parameter_inputs(
             user_id=form_data.user_id,
             agent_id=6,
             scope_vars=scope_vars,
-            human_topic=human_topic,
-            ai_output=output
+            human_topic=form_data.topic,
+            ai_output=output,
+            agent_prompt=filled_prompt
         )
 
         return {"output": output, "message_id": session_id}

@@ -28,7 +28,7 @@ def insert_title(session_id: int, text: str):
 
     try:
         # Title generation model and prompt
-        model = OllamaLLM(model="gemma3:1b")
+        model = OllamaLLM(model="gemma:2b")
         prompt_template = ChatPromptTemplate.from_template("""
         You are an expert title generator. Your sole purpose is to create a concise, relevant, and engaging title based on the provided conversation.
 

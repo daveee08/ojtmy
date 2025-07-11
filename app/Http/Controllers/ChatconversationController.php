@@ -85,4 +85,30 @@ class ChatconversationController extends Controller
             ], 500);
         }
     }
+
+    public function deleteSession($session_id)
+    {
+        $userId = Auth::id();
+
+        try {
+            // Forward DELETE request to FastAPI
+            $response = Http::delete("http://localhost:5001/sessions/{$userId}/{$session_id}");
+
+            if ($response->successful()) {
+                return response()->json(['message' => 'Session deleted successfully.']);
+            }
+
+            return response()->json([
+                'error' => 'Failed to delete session.',
+                'status' => $response->status(),
+                'message' => $response->body()
+            ], $response->status());
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'An error occurred while deleting the session.',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

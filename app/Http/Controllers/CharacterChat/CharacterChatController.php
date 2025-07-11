@@ -39,7 +39,7 @@ class CharacterChatController extends Controller
 
             $response = Http::Timeout(0)
             ->asMultipart()
-            ->post('http://127.0.0.1:5001/generate-characterchat', $multipartData);
+            ->post('http://192.168.50.10:8003/generate-characterchat', $multipartData);
 
 
             Log::info('Thank you generator response:', ['response' => $response -> body()]);

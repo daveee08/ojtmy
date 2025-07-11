@@ -166,9 +166,9 @@ def extract_text_from_pdf(path: str) -> str:
     return " ".join([page.page_content for page in pages[:2]])
 
 def clean_output(text: str) -> str:
-    text = re.sub(r"\*\*(.*?)\*\*", r"\1", text)
-    text = re.sub(r"\*(.*?)\*", r"\1", text)
-    text = re.sub(r"^\s*[\*\-]\s*", "", text, flags=re.MULTILINE)
+    # text = re.sub(r"\*\*(.*?)\*\*", r"\1", text)
+    # text = re.sub(r"\*(.*?)\*", r"\1", text)
+    text = re.sub(r'\"', '', text)
     return text.strip()
 
 async def generate_output_with_file(grade_level, topic="", add_cont=""):

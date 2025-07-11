@@ -84,9 +84,9 @@ async def explain_topic_step_by_step(grade_level: str, topic: str) -> str:
     return clean_output(result)
 
 def clean_output(text: str) -> str:
-    text = re.sub(r"\*\*(.*?)\*\*", r"\1", text)
-    text = re.sub(r"\*(.*?)\*", r"\1", text)
-    text = re.sub(r"^\s*[\*\-]\s*", "", text, flags=re.MULTILINE)
+    # text = re.sub(r"\*\*(.*?)\*\*", r"\1", text)
+    # text = re.sub(r"\*(.*?)\*", r"\1", text)
+    # text = re.sub(r"^\s*[\*\-]\s*", "", text, flags=re.MULTILINE)
     return text.strip()
 
 

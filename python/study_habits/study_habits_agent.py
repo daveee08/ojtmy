@@ -71,7 +71,7 @@ Format guidelines:
 """
 
 # LLM setup
-model = OllamaLLM(model="gemma3:1b")
+model = OllamaLLM(model="gemma3:latest")
 
 # Build prompt with grade-level tone
 def build_prompt(goal: str, grade_level: str) -> str:

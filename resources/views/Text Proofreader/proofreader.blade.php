@@ -1,160 +1,172 @@
-@extends('layouts.app')
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🕵️ AI Agent Text Proofreader</title>
 
-@section('content')
+    {{-- Bootstrap CSS --}}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
 
-<div id="loading-overlay">
-  <div class="spinner-border text-primary" role="status" style="width: 2.5rem; height: 2.5rem;">
-    <span class="visually-hidden">Loading...</span>
-  </div>
-  <p class="mt-3 text-center fw-semibold" style="color:#0d6efd;">Please wait...</p>
-</div>
+    {{-- Google Font: Poppins --}}
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 
-<style>
-  body {
-    background-color: #f5f7fa;
-    font-family: 'Inter', 'Poppins', sans-serif;
-  }
+    {{-- Custom Style --}}
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+        .text-highlight {
+            color: #ec008c;
+            font-weight: 700;
+        }
+        .form-label {
+            color: #333;
+            font-weight: 600;
+        }
+        .btn-primary {
+            background-color: #ec008c;
+            border-color: #ec008c;
+        }
+        .btn-primary:hover {
+            background-color: #c30074;
+            border-color: #c30074;
+        }
+    </style>
+</head>
+<body>
+    <div class="container my-5">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h1 class="card-title text-center mb-3">
+                 <span class="text-highlight">🕵️ AI Agent Text Proofreader</span>
+                </h1>
+                <h5 class="text-muted text-center mb-4">
+                    This tool helps you proofread your text using AI—fixing grammar, spelling, punctuation, and clarity.
+                </h5>
 
-  .ck-card {
-    background: #ffffff;
-    border-radius: 14px;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
-    padding: 40px;
-    border: none;
-  }
+                <form action="{{ route('proofreader.process') }}" method="POST" enctype="multipart/form-data">
+                    @csrf
 
-  .ck-title {
-    font-size: 1.9rem;
-    font-weight: 600;
-    color: #EC298B;
-    text-align: center;
-    margin-bottom: 30px;
-  }
+                    {{-- Profile selection --}}
+                    <div class="mb-3">
+                        <label for="profile" class="form-label">Choose a profile type:</label>
+                        <select class="form-select" id="profile" name="profile">
+                            <option value="academic" {{ old('profile', $old['profile'] ?? '') === 'academic' ? 'selected' : '' }}>Academic</option>
+                            <option value="casual" {{ old('profile', $old['profile'] ?? '') === 'casual' ? 'selected' : '' }}>Casual</option>
+                            <option value="concise" {{ old('profile', $old['profile'] ?? '') === 'concise' ? 'selected' : '' }}>Concise</option>
+                        </select>
+                        @error('profile')
+                            <small class="text-danger">{{ $message }}</small>
+                        @enderror
+                    </div>
 
-  .ck-btn {
-    background-color: #EC298B;
-    color: white;
-    border: none;
-    padding: 12px 24px;
-    font-size: 15px;
-    font-weight: 500;
-    border-radius: 8px;
-    transition: all 0.25s ease;
-  }
+                    {{-- Input type toggle --}}
+                    <div class="mb-3">
+                        <label for="input_type" class="form-label">Choose input type:</label>
+                        <select class="form-select" id="input_type" onchange="toggleInputType()">
+                            <option value="text">Text Input</option>
+                            {{-- <option value="pdf">PDF Upload</option> --}}
+                        </select>
+                    </div>
 
-  .ck-btn:hover {
-    background-color: #c30074;
-  }
+                    {{-- Text input --}}
+                    <div class="mb-3" id="text-input-group">
+                        <label for="text" class="form-label">Enter your text:</label>
+                        <textarea class="form-control" id="text" name="text" rows="10" placeholder="Paste your text here...">{{ old('text', $old['text'] ?? '') }}</textarea>
+                        @error('text')
+                            <small class="text-danger">{{ $message }}</small>
+                        @enderror
+                    </div>
 
-  .form-control {
-    border-radius: 8px;
-    font-size: 15px;
-  }
+                    {{-- PDF upload --}}
+                    {{-- <div class="mb-3 d-none" id="pdf-input-group">
+                        <label for="pdf" class="form-label">Upload a PDF to proofread:</label>
+                        <input class="form-control" type="file" id="pdf" name="pdf" accept="application/pdf">
+                        @error('pdf')
+                            <small class="text-danger">{{ $message }}</small>
+                        @enderror
+                    </div> --}}
 
-  .form-control:focus {
-    border-color: #EC298B;
-    box-shadow: 0 0 0 0.2rem rgba(236, 41, 139, 0.2);
-  }
+                    {{-- Submit button with spinner --}}
+                    <div class="d-grid d-md-flex justify-content-md-end">
+                        <button type="submit" id="submitBtn" class="btn btn-primary px-4" disabled>
+                            <span id="btnText">Submit</span>
+                            <span id="btnSpinner" class="spinner-border spinner-border-sm d-none ms-2" role="status" aria-hidden="true"></span>
+                        </button>
+                    </div>
+                </form>
 
-  .alert-success .ck-title-small {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #EC298B;
-  }
+                {{-- Response --}}
+                @if(isset($response))
+                    <div class="alert alert-success mt-4">
+                        <h5 class="text-highlight">Corrected Text</h5>
+                        <p>{{ $response['corrected'] }}</p>
 
-  .alert-success ul {
-    padding-left: 20px;
-  }
+                        <h6 class="text-highlight">Changes Made</h6>
+                        <ul>
+                            @foreach($response['changes'] as $change)
+                                <li>{{ ltrim($change, '* ') }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
 
-  .alert-success ul li {
-    margin-bottom: 8px;
-    line-height: 1.6;
-  }
-</style>
-
-<div class="container py-5">
-  <div class="row justify-content-center">
-    <div class="col-md-10 col-lg-8">
-      <div class="ck-card">
-        <h2 class="ck-title">🕵️ AI Agent Text Proofreader</h2>
-        <p class="text-muted text-center mb-4">
-          Proofread your writing with AI. This tool fixes grammar, punctuation, clarity, and more.
-        </p>
-
-        <form action="{{ route('proofreader.process') }}" method="POST" id="proofForm">
-          @csrf
-
-          <div class="mb-3">
-            <label for="profile" class="form-label">Choose a profile type:</label>
-            <select class="form-select" id="profile" name="profile" required>
-              <option value="academic" {{ old('profile', $old['profile'] ?? '') === 'academic' ? 'selected' : '' }}>Academic</option>
-              <option value="casual" {{ old('profile', $old['profile'] ?? '') === 'casual' ? 'selected' : '' }}>Casual</option>
-              <option value="concise" {{ old('profile', $old['profile'] ?? '') === 'concise' ? 'selected' : '' }}>Concise</option>
-            </select>
-            @error('profile')
-              <small class="text-danger">{{ $message }}</small>
-            @enderror
-          </div>
-
-          <div class="mb-3">
-            <label for="text" class="form-label">Enter your text to proofread:</label>
-            <textarea class="form-control" id="text" name="text" rows="8" placeholder="Paste your content here..." required>{{ old('text', $old['text'] ?? '') }}</textarea>
-            @error('text')
-              <small class="text-danger">{{ $message }}</small>
-            @enderror
-          </div>
-
-          <div class="text-center mt-4">
-            <button type="submit" id="submitBtn" class="ck-btn">
-              <span id="btnText">Submit</span>
-              <span id="btnSpinner" class="spinner-border spinner-border-sm d-none ms-2" role="status" aria-hidden="true"></span>
-            </button>
-          </div>
-        </form>
-
-        @if(isset($response))
-          <div class="alert alert-success mt-4">
-            <h5 class="ck-title-small">Corrected Text</h5>
-            <p>{{ $response['corrected'] }}</p>
-
-            <h6 class="ck-title-small mt-4">Changes Made</h6>
-            <ul>
-              @foreach($response['changes'] as $change)
-                <li>{{ ltrim($change, '* ') }}</li>
-              @endforeach
-            </ul>
-          </div>
-        @endif
-
-        @if($errors->has('error'))
-          <div class="alert alert-danger mt-4">
-            {{ $errors->first('error') }}
-          </div>
-        @endif
-      </div>
+                {{-- Error --}}
+                @if($errors->has('error'))
+                    <div class="alert alert-danger mt-4">
+                        {{ $errors->first('error') }}
+                    </div>
+                @endif
+            </div>
+        </div>
+       {{-- Fullscreen loading overlay --}}
+    <div id="loadingOverlay" class="position-fixed top-0 start-0 w-100 h-100 justify-content-center align-items-center bg-white bg-opacity-75 d-none" style="z-index: 9999; display: flex;">
+        <div class="text-center">
+            <div class="spinner-border text-highlight mb-3" role="status" style="width: 3rem; height: 3rem;"></div>
+            <div class="fw-semibold text-highlight">Please wait...</div>
+        </div>
     </div>
-  </div>
-</div>
 
-<script>
-  document.addEventListener('DOMContentLoaded', function () {
-    const form = document.getElementById('proofForm');
-    const submitBtn = document.getElementById('submitBtn');
-    const btnText = document.getElementById('btnText');
-    const btnSpinner = document.getElementById('btnSpinner');
-    const loadingOverlay = document.getElementById('loading-overlay');
+    {{-- Bootstrap JS --}}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
 
-    form.addEventListener('submit', function () {
-      loadingOverlay.style.display = 'flex';
-      submitBtn.disabled = true;
-      btnText.textContent = 'Submitting...';
-      btnSpinner.classList.remove('d-none');
-    });
+    {{-- Toggle Input + Loading Spinner --}}
+    <script>
+        function toggleInputType() {
+            const inputType = document.getElementById('input_type').value;
+            const textGroup = document.getElementById('text-input-group');
+            // const pdfGroup = document.getElementById('pdf-input-group');
 
-    window.addEventListener('load', function () {
-      loadingOverlay.style.display = 'none';
-    });
-  });
-</script>
+            if (inputType === 'pdf') {
+                textGroup.classList.add('d-none');
+                // pdfGroup.classList.remove('d-none');
+            } else {
+                textGroup.classList.remove('d-none');
+                // pdfGroup.classList.add('d-none');
+            }
+        }
 
-@endsection
+        document.addEventListener('DOMContentLoaded', function () {
+            toggleInputType();
+
+            const form = document.querySelector('form');
+            const submitBtn = document.getElementById('submitBtn');
+            const btnText = document.getElementById('btnText');
+            const btnSpinner = document.getElementById('btnSpinner');
+            const loadingOverlay = document.getElementById('loadingOverlay');
+
+            submitBtn.disabled = false;
+
+            form.addEventListener('submit', function () {
+                loadingOverlay.classList.remove('d-none');
+                submitBtn.disabled = true;
+                btnText.textContent = 'Submitting...';
+                btnSpinner.classList.remove('d-none');
+            });
+        });
+    </script>
+</body>
+</html>
+
+

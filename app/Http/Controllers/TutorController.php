@@ -12,7 +12,7 @@ class TutorController extends Controller
     public function fetchUserSessions()
     {
         $userId = Auth::id();
-        $response = Http::get("http://localhost:5001/sessions/$userId");
+        $response = Http::get("http://192.168.50.10:8002/sessions/$userId");
         return response()->json($response->json());
     }
     public function showForm(Request $request)
@@ -49,7 +49,7 @@ class TutorController extends Controller
         try {
             $response = Http::timeout(0)
                 ->asMultipart()
-                ->post('http://localhost:5001/tutor', $multipartData);
+                ->post('http://192.168.50.10:8002/tutor', $multipartData);
 
             if ($response->failed()) {
                 logger()->error('Tutor API failed', ['body' => $response->body()]);

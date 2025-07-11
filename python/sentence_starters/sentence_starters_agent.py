@@ -35,7 +35,6 @@ GRADE_LEVEL_PROFILES = {
     "senior high": "Use a semi‑formal tone. Invite analysis or comparison.",
     "college": "Use an academic tone. Encourage critical thinking and synthesis.",
 }
-
 prompt_template = """
 You are an AI writing coach for {grade_level} students.
 Your task is to generate **exactly five** open‑ended sentence starters
@@ -45,13 +44,16 @@ Topic: "{topic}"
 grade_level: {grade_level}
 
 Guidelines:
-- Return only the five starters, each on its own line (no numbering, no bullets).
+- Return only the five starters, each on its own line, numbered 1 to 5.
 - Do NOT complete the thought. Starters must remain open‑ended.
-- Avoid phrases like "This topic is about...".
-- Tone and vocabulary should match the grade level: {grade_level_guidance}
+- Avoid questions, especially yes/no questions.
+- Avoid phrases like "This topic is about..." or "I think that..."
+- Tone and vocabulary should match the grade level.
+- Each starter should naturally lead into a full sentence, not a title or headline.
 
 """
-model = OllamaLLM(model="gemma3:1b")
+
+model = OllamaLLM(model="gemma3:latest")
 prompt_template = ChatPromptTemplate.from_template(prompt_template)
 
 # --------------------------------------------------------------------------- #
@@ -87,9 +89,9 @@ async def sentence_starters(grade_level: str, topic: str) -> list[str]:
     return clean_output(result)
 
 def clean_output(text: str) -> list[str]:
-    # text = re.sub(r"\*\*(.*?)\*\*", r"\1", text)
-    # text = re.sub(r"\*(.*?)\*", r"\1", text)
-    # text = re.sub(r"^\s*[\*\-]\s*", "", text, flags=re.MULTILINE)
+    text = re.sub(r"\*\*(.*?)\*\*", r"\1", text)
+    text = re.sub(r"\*(.*?)\*", r"\1", text)
+    text = re.sub(r"^\s*[\*\-]\s*", "", text, flags=re.MULTILINE)
     return text.strip()
 
 @app.post("/sentence-starters")

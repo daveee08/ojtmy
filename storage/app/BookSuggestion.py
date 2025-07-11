@@ -20,7 +20,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"], # CONSIDER: Restrict this to specific frontend domains in production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -30,7 +30,11 @@ class SuggestionRequest(BaseModel):
     interests: str
     grade_level: str
 
-MODEL = "gemma3:12b"
+# Use environment variables for model and host/port configuration
+MODEL = os.getenv("OLLAMA_MODEL", "gemma3:12b")
+FASTAPI_HOST = os.getenv("FASTAPI_HOST", "127.0.0.1")
+FASTAPI_PORT = int(os.getenv("FASTAPI_PORT", 5005))
+
 try:
     llm = ChatOllama(model=MODEL, temperature=0.1)
 except Exception as e:
@@ -496,4 +500,4 @@ async def suggest_book(
         return JSONResponse(status_code=500, content={"detail": str(e)})
 
 if __name__ == "__main__":
-    uvicorn.run("BookSuggestion:app", host="127.0.0.1", port=5005, reload=False) 
+    uvicorn.run("BookSuggestion:app", host=FASTAPI_HOST, port=FASTAPI_PORT, reload=False) 

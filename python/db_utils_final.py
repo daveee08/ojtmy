@@ -28,20 +28,20 @@ def insert_title(session_id: int, text: str):
 
     try:
         # Title generation model and prompt
-        model = OllamaLLM(model="gemma3:1b")
+        model = OllamaLLM(model="llama3:latest")
         prompt_template = ChatPromptTemplate.from_template("""
-        You are an expert title generator. Your sole purpose is to create a concise, relevant, and engaging title based on the provided conversation.
+        You are an expert title generator. Your job is to create a concise, relevant, and engaging title based only on the provided conversation.
 
-        The text is:
+        Guidelines:
+        - Concise: Ideally 3–7 words.
+        - Relevant: Reflect the main topic or goal.
+        - Engaging: Make it interesting and informative.
+        - Unique: Avoid generic titles like "Chat with user" or "Conversation summary".
+
+        Only return the title. Do not include explanations, formatting, or extra text.
+
+        Conversation:
         {text}
-
-        Output:
-        Please provide only the generated title. Do not include any additional text, explanations, or formatting. The title should be:
-
-        Concise: Ideally 3–7 words.
-        Relevant: Accurately reflect the main topic or purpose of the conversation.
-        Engaging: Spark interest and clearly indicate the content.
-        Unique: Avoid generic phrases like "Chat with user" or "Conversation summary."
         """)
         chain = prompt_template | model
 
@@ -122,12 +122,12 @@ def create_session_and_parameter_inputs(user_id, agent_id, scope_vars, human_top
         insert_message(cursor, user_id, agent_id, session_id, parameter_inputs_id, "human", human_topic, agent_prompt_id)
         insert_message(cursor, user_id, agent_id, session_id, parameter_inputs_id, "ai", ai_output, agent_prompt_id)
 
-        initial_convo = human_topic + ai_output
+        # initial_convo = human_topic + ai_output
 
-        try:
-            insert_title(session_id=session_id, text=initial_convo)
-        except Exception as e:
-            print(f"Failed to generate title: {e}")  # or use logging
+        # try:
+        #     insert_title(session_id=session_id, text=initial_convo)
+        # except Exception as e:
+        #     print(f"Failed to generate title: {e}")  # or use logging
 
 
         db.commit()

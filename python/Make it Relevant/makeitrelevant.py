@@ -13,11 +13,11 @@ current_script_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.join(current_script_dir, '..', '..')
 sys.path.insert(0, project_root)
 
-from python.chat_router import chat_router
-from python.db_utilss import create_session_and_parameter_inputs, insert_message
+from python.chat_router_final import chat_router
+from python.db_utils_final import create_session_and_parameter_inputs, insert_message
 
 # --- Prompt Template ---
-make_relevant_template = """
+prompt_template = """
 You are an educational assistant, skilled at helping students connect academic concepts to their real-world interests. Your goal is to create meaningful, tailored content.
 
 Your task is to connect what you're learning to your interests and the world.
@@ -115,7 +115,7 @@ class MakeRelevantFormInput(BaseModel):
 
 # --- LangChain Setup ---
 model = Ollama(model="llama3")
-relevant_prompt = ChatPromptTemplate.from_template(make_relevant_template)
+prompt_template = ChatPromptTemplate.from_template(prompt_template)
 
 # --- Output Cleaner ---
 def clean_output(text: str) -> str:
@@ -132,7 +132,7 @@ async def generate_relevant_connection(
         "learning_topic": learning_topic,
         "interests": interests
     }
-    chain = relevant_prompt | model
+    chain = prompt_template | model
     result = chain.invoke(prompt_input)
     return clean_output(result)
 
@@ -148,12 +148,19 @@ async def make_relevant_api(form_data: MakeRelevantFormInput = Depends(MakeRelev
         
         scope_vars = {}
 
+        filled_prompt = prompt_template.format(
+            learning_topic=form_data.learning_topic.strip(), 
+            grade_level=form_data.grade_level.strip(), 
+            interests=form_data.interests.strip()
+        )
+
         session_id = create_session_and_parameter_inputs(
             user_id=form_data.user_id,
             agent_id=23,
             scope_vars=scope_vars,
             human_topic=form_data.learning_topic,
-            ai_output=output
+            ai_output=output,
+            agent_prompt=filled_prompt
         )
 
         return {"output": output, 'message_id': session_id}

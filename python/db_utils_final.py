@@ -81,7 +81,8 @@ def create_session_and_parameter_inputs(user_id, agent_id, scope_vars, human_top
         print(input_keys)
 
         # 🔹 Step 2: Build input_data dynamically from scope_vars
-        input_data = {key: scope_vars.get(key, "").strip() for key in input_keys}
+        # input_data = {key: scope_vars.get(key, "").strip() for key in input_keys}
+        input_data = {key: str(scope_vars.get(key, "")).strip() for key in input_keys}
         available_data = {k: v for k, v in input_data.items() if v}
         combined_input = "; ".join(f"{k}={v}" for k, v in available_data.items())
 

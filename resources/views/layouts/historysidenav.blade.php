@@ -192,68 +192,65 @@
                 if (!data.length) {
                     sessionList.innerHTML = '<p>No sessions yet.</p>';
                 } else {
-                    [...data].reverse().forEach(sessionId => {
-                        const link = document.createElement('a');
-                        link.href = `/chat/history/${sessionId}`;
-                        link.className = 'session-link';
+                    data.reverse().forEach(session => {
+                    const sessionId = session.message_id;
+                    const sessionTitle = session.title || `Session ${sessionId}`;
 
-                        link.innerHTML = `
-                <div style="display: flex; align-items: center;">
-                    <i class="bi bi-chat-dots"></i>
-                    <span class="link-text">Session ${sessionId}</span>
-                </div>
-                <button class="delete-btn" title="Delete session"><i class="bi bi-trash"></i></button>
-            `;
+                    const link = document.createElement('a');
+                    link.href = `/chat/history/${sessionId}`;
+                    link.className = 'session-link';
 
-                        if (currentPath.includes(`/chat/history/${sessionId}`)) {
-                            link.classList.add('active');
-                            // Scroll to active
-                            setTimeout(() => {
-                                link.scrollIntoView({
-                                    behavior: 'smooth',
-                                    block: 'center'
-                                });
-                            }, 0);
-                        }
+                    link.innerHTML = `
+                        <div style="display: flex; align-items: center;">
+                            <i class="bi bi-chat-dots"></i>
+                            <span class="link-text">${sessionTitle}</span>
+                        </div>
+                        <button class="delete-btn" title="Delete session"><i class="bi bi-trash"></i></button>
+                    `;
 
-                        const deleteBtn = link.querySelector('.delete-btn');
-                        deleteBtn.addEventListener('click', (e) => {
-                            e.preventDefault();
-                            fetch(`/api/sessions/${sessionId}`, {
-                                    method: 'DELETE',
-                                    headers: {
-                                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                        'Content-Type': 'application/json'
-                                    }
-                                })
-                                .then(res => {
-                                    if (res.ok) {
-                                        link.remove();
-                                        if (currentPath.includes(`/chat/history/${sessionId}`)) {
-                                            fetch(`{{ route('api.user_sessions') }}`)
-                                                .then(res => res.json())
-                                                .then(newSessions => {
-                                                    if (newSessions.length) {
-                                                        const latestId = newSessions[newSessions
-                                                            .length - 1];
-                                                        window.location.href =
-                                                            `/chat/history/${latestId}`;
-                                                    } else {
-                                                        window.location.href = `/tools`;
-                                                    }
-                                                });
-                                        }
-                                    } else {
-                                        console.error("Failed to delete session", res.statusText);
-                                    }
-                                })
-                                .catch(err => {
-                                    console.error("Delete error:", err);
-                                });
+                    if (currentPath.includes(`/chat/history/${sessionId}`)) {
+                        link.classList.add('active');
+                        setTimeout(() => {
+                            link.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }, 0);
+                    }
+
+                    const deleteBtn = link.querySelector('.delete-btn');
+                    deleteBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        fetch(`/api/sessions/${sessionId}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Content-Type': 'application/json'
+                            }
+                        })
+                        .then(res => {
+                            if (res.ok) {
+                                link.remove();
+                                if (currentPath.includes(`/chat/history/${sessionId}`)) {
+                                    fetch(`{{ route('api.user_sessions') }}`)
+                                        .then(res => res.json())
+                                        .then(newSessions => {
+                                            if (newSessions.length) {
+                                                const latestId = newSessions[newSessions.length - 1].message_id;
+                                                window.location.href = `/chat/history/${latestId}`;
+                                            } else {
+                                                window.location.href = `/tools`;
+                                            }
+                                        });
+                                }
+                            } else {
+                                console.error("Failed to delete session", res.statusText);
+                            }
+                        })
+                        .catch(err => {
+                            console.error("Delete error:", err);
                         });
-
-                        sessionList.appendChild(link);
                     });
+
+                    sessionList.appendChild(link);
+                });
                 }
             })
             .catch(error => {

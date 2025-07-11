@@ -215,20 +215,27 @@ async def chat_api(request: ChatRequestForm = Depends(ChatRequestForm.as_form)):
 #     return {"response": result}
 
 
-@chat_router.get("/sessions/{user_id}", response_model=List[int])
-def get_session_ids_by_user(user_id: int):
+@chat_router.get("/sessions/{user_id}", response_model=List[Dict])
+def get_sessions_with_titles(user_id: int):
     db = get_db_connection()
     cursor = db.cursor()
     try:
-        # with db.cursor() as cursor:
-            cursor.execute("""
-                SELECT DISTINCT message_id
-                FROM messages
-                WHERE user_id = %s
-                ORDER BY message_id ASC
-            """, (user_id,))
-            rows = cursor.fetchall()
-            return [row[0] for row in rows]
+        cursor.execute("""
+            SELECT DISTINCT m.message_id, ct.title
+            FROM messages m
+            LEFT JOIN conversation_title ct ON m.message_id = ct.message_id
+            WHERE m.user_id = %s
+            ORDER BY m.message_id ASC
+        """, (user_id,))
+        rows = cursor.fetchall()
+
+        return [
+            {
+                "message_id": row[0],
+                "title": row[1] or f"Session {row[0]}"
+            }
+            for row in rows
+        ]
     finally:
         db.close()
 

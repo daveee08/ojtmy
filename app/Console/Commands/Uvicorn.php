@@ -107,7 +107,7 @@ $$/   $$/  $$$$$$/  $$/       $$/  $$/  $$/  $$$$$$$/ $$/
              [
                 'name' => '5 questions API',
                 'path' => base_path('python\five_questions'), // Directory where your Python file is
-                'file_and_app_instance' => 'five_questions_agent:app', // e.g., if you have main.py and `app = FastAPI()`
+                'file_and_app_instance' => 'five_question_agent:app', // e.g., if you have main.py and `app = FastAPI()`
                 'port' => 8008
             ],
           

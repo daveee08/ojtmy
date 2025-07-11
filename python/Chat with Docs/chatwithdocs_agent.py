@@ -81,9 +81,6 @@ def load_pdf_content(pdf_path: str) -> str:
 
 # Function to clean the output from formatting artifacts
 def clean_output(text: str) -> str:
-    text = re.sub(r"\*\*(.*?)\*\*", r"\1", text)
-    text = re.sub(r"\*(.*?)\*", r"\1", text)
-    text = re.sub(r"^\s*[\*\-]\s*", "", text, flags=re.MULTILINE)
     return text.strip()
 
 async def generate_output(

@@ -11,7 +11,7 @@ class RealWorldController extends Controller
     public function fetchUserSession()
     {
         $yserId = Auth::id();
-        $response = Http::get("http://127.0.1:5001/sessions/$yserId");
+        $response = Http::get("http://192.168.50.40:8007/sessions/$yserId");
         return response()->json($response->json());
         // return view('Real World Connections.realworld');
     }
@@ -36,7 +36,7 @@ class RealWorldController extends Controller
 
     $response = Http::timeout(0)
         ->asMultipart()
-        ->post('http://127.0.1:5001/real_world', $multipartData); // Adjusted URL to match your FastAPI endpoint
+        ->post('http://192.168.50.40:8007/real_world', $multipartData); // Adjusted URL to match your FastAPI endpoint
 
     if ($response->failed()) {
         logger()->error('FastAPI Real World error', ['body' => $response->body()]);

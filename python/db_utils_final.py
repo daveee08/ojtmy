@@ -51,9 +51,18 @@ def insert_title(session_id: int, text: str):
 
         
         title = result.strip()
-        title = re.sub(r"\*\*(.*?)\*\*", r"\1", text)
-        title = re.sub(r"\*(.*?)\*", r"\1", text)
-        title = re.sub(r"^\s*[\*\-]\s*", "", text, flags=re.MULTILINE)
+
+        # Remove bold markdown
+        title = re.sub(r"\*\*(.*?)\*\*", r"\1", title)
+
+        # Remove italic markdown
+        title = re.sub(r"\*(.*?)\*", r"\1", title)
+
+        # Remove leading bullet markers (in case model adds them)
+        title = re.sub(r"^\s*[\*\-]\s*", "", title, flags=re.MULTILINE)
+
+        # Remove leading/trailing quotation marks (single or double)
+        title = title.strip('"\'')
 
         # Insert into conversation_title table
         cursor.execute(

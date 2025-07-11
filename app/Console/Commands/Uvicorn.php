@@ -55,12 +55,12 @@ $$/   $$/  $$$$$$/  $$/       $$/  $$/  $$/  $$$$$$$/ $$/
         // Define your FastAPI apps, their directories, filenames, and ports
         // 'file_and_app_instance' should be 'your_python_file_name_without_py:your_fastapi_app_instance_name'
         $fastApiApps = [
-            [
-                'name' => 'Chat Router API',
-                'path' => base_path('python/Tutor Agent'), // Directory where your Python file is
-                'file_and_app_instance' => 'chat_router_feb:chat_router', // e.g., if you have main.py and `app = FastAPI()`
-                'port' => 8001,
-            ],
+            // [
+            //     'name' => 'Chat Router API',
+            //     'path' => base_path('python/Tutor Agent'), // Directory where your Python file is
+            //     'file_and_app_instance' => 'chat_router_feb:chat_router', // e.g., if you have main.py and `app = FastAPI()`
+            //     'port' => 8001,
+            // ],
             [
                 'name' => 'Tutor Agent API',
                 'path' => base_path('python/Tutor Agent'), // Directory where your Python file is
@@ -79,80 +79,120 @@ $$/   $$/  $$$$$$/  $$/       $$/  $$/  $$/  $$$$$$$/ $$/
                 'file_and_app_instance' => 'email-writer:app', // e.g., if you have main.py and `app = FastAPI()`
                 'port' => 8003
             ],
-            [
-                'name' => 'Paolo API',
-                'path' => base_path('python'), // Directory where your Python file is
-                'file_and_app_instance' => 'paolo:app', // e.g., if you have main.py and `app = FastAPI()`
+              [
+                'name' => 'Study Habits API',
+                'path' => base_path('python\study_habits'), // Directory where your Python file is
+                'file_and_app_instance' => 'study_habits_agent:app', // e.g., if you have main.py and `app = FastAPI()`
                 'port' => 8004
             ],
+           
+            [
+                'name' => 'Sentence Starters API',
+                'path' => base_path('python\sentence_starters'), // Directory where your Python file is
+                'file_and_app_instance' => 'sentence_starters_agent:app', // e.g., if you have main.py and `app = FastAPI()`
+                'port' => 8005
+            ],
+             [
+                'name' => 'Proofreader API',
+                'path' => base_path('python\proofreader'), // Directory where your Python file is
+                'file_and_app_instance' => 'proofreader:app', // e.g., if you have main.py and `app = FastAPI()`
+                'port' => 8006
+            ],
+             [
+                'name' => 'Real World Agent API',
+                'path' => base_path('python\Real World'), // Directory where your Python file is
+                'file_and_app_instance' => 'real_world_agent:app', // e.g., if you have main.py and `app = FastAPI()`
+                'port' => 8007
+            ],
+             [
+                'name' => '5 questions API',
+                'path' => base_path('python\five_questions'), // Directory where your Python file is
+                'file_and_app_instance' => 'five_questions_agent:app', // e.g., if you have main.py and `app = FastAPI()`
+                'port' => 8008
+            ],
+          
             [
                 'name' => 'Mav Leveler with Chat Router API',
                 'path' => base_path('python\Text Leveler'), // Directory where your Python file is
                 'file_and_app_instance' => 'leveler_agent:app', // e.g., if you have main.py and `app = FastAPI()`
-                'port' => 8005
+                'port' => 8009
             ],
             [
                 'name' => 'Mav Informational API',
                 'path' => base_path('python\Informational Text'), // Directory where your Python file is
                 'file_and_app_instance' => 'informational_agent:app', // e.g., if you have main.py and `app = FastAPI()`
-                'port' => 8006
+                'port' => 8010
             ],
             [
                 'name' => 'Mav Chat with Docs API',
                 'path' => base_path('python\Chat with Docs'), // Directory where your Python file is
                 'file_and_app_instance' => 'chatwithdocs_agent:app', // e.g., if you have main.py and `app = FastAPI()`
-                'port' => 8007
+                'port' => 8011
             ],
-            // [
-            //     'name' => 'Bea Ass Scaffolder API',
-            //     'path' => base_path('python\Assignment Scaffolder'), // Directory where your Python file is
-            //     'file_and_app_instance' => 'assignmentscaffolder:app', // e.g., if you have main.py and `app = FastAPI()`
-            //     'port' => 8008
-            // ],
+            [
+                'name' => 'Mav Math Review API',
+                'path' => base_path('python\five_questions'), // Directory where your Python file is
+                'file_and_app_instance' => 'mathreview:app', // e.g., if you have main.py and `app = FastAPI()`
+                'port' => 8012
+            ],
+            [
+                'name' => 'Mav Make it Relevant API',
+                'path' => base_path('python\Make it Relevant'), // Directory where your Python file is
+                'file_and_app_instance' => 'makeitrelevant:app', // e.g., if you have main.py and `app = FastAPI()`
+                'port' => 8013
+            ],
+            [
+                'name' => 'Bea Ass Scaffolder API',
+                'path' => base_path('python\Assignment Scaffolder'), // Directory where your Python file is
+                'file_and_app_instance' => 'assignmentscaffolder:app', // e.g., if you have main.py and `app = FastAPI()`
+                'port' => 8014
+            ],
             [
                 'name' => 'Bea Email Responder API',
                 'path' => base_path('python\Email Responder'), // Directory where your Python file is
                 'file_and_app_instance' => 'responder:app', // e.g., if you have main.py and `app = FastAPI()`
-                'port' => 8009
+                'port' => 8015
             ],
             [
                 'name' => 'Bea Text Scaffolder API',
                 'path' => base_path('python\Scaffolder'), // Directory where your Python file is
                 'file_and_app_instance' => 'scaffolder:app', // e.g., if you have main.py and `app = FastAPI()`
-                'port' => 8010
+                'port' => 8016
             ],
             [
                 'name' => 'Bea Rewriter API',
                 'path' => base_path('python\Rewriter'), // Directory where your Python file is
                 'file_and_app_instance' => 'rewriter_agent:app', // e.g., if you have main.py and `app = FastAPI()`
-                'port' => 8011
+                'port' => 8017
             ],
             [
                 'name' => 'Bea explainer API',
                 'path' => base_path('python'), // Directory where your Python file is
                 'file_and_app_instance' => 'explanations:app', // e.g., if you have main.py and `app = FastAPI()`
-                'port' => 8012
+                'port' => 8018
             ],
             
-            // 
-            // [
-            //     'name' => 'Thank you note API',
-            //     'path' => base_path('python\Thank You Note'), // Directory where your Python file is
-            //     'file_and_app_instance' => 'thankyounote:app', // e.g., if you have main.py and `app = FastAPI()`
-            //     'port' => 8003
-            // ],
             [
                 'name' => 'Translator API',
                 'path' => base_path('python/translator'), // Directory where your Python file is
                 'file_and_app_instance' => 'translator_agent:app', // e.g., if you have main.py and `app = FastAPI()`
-                'port' => 8013
+                'port' => 8019
             ],
-             [
-                'name' => 'Sentence Starter API',
-                'path' => base_path('python/sentence_starters'), // Directory where your Python file is
-                'file_and_app_instance' => 'sentence_starters_agent:app', // e.g., if you have main.py and `app = FastAPI()`
-                'port' => 8014
-            ],            
+            [
+                'name' => 'Step by Step AGent',
+                'path' => base_path('python'), // Directory where your Python file is
+                'file_and_app_instance' => 'step_tutor_agent:app', // e.g., if you have main.py and `app = FastAPI()`
+                'port' => 8020
+            ],
+            [
+                'name' => 'Social Stories AGent',
+                'path' => base_path('python\Social Stories'), // Directory where your Python file is
+                'file_and_app_instance' => 'social_stories_agent:app', // e.g., if you have main.py and `app = FastAPI()`
+                'port' => 8021
+            ],
+            
+
+                    
             
             // Add more FastAPI apps as needed
         ];

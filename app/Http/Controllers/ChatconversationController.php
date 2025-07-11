@@ -46,7 +46,7 @@ class ChatconversationController extends Controller
 
         $response = Http::asMultipart()
             ->timeout(0)
-            ->post('http://192.168.50.10:8002/chat', $formData);
+            ->post('http://localhost:5001/chat', $formData);
     
         if ($response->failed()) {
             \Log::error('FastAPI error', ['body' => $response->body()]);
@@ -64,7 +64,7 @@ class ChatconversationController extends Controller
 
         try {
             // Make the server-side request to your external session service
-            $response = Http::get("http://192.168.50.10:8002/sessions/{$userId}");
+            $response = Http::get("http://localhost:5001/sessions/{$userId}");
 
             if ($response->successful()) {
                 // Return the data directly as JSON

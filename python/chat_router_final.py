@@ -7,6 +7,8 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables import RunnableWithMessageHistory
 from langchain_core.messages import HumanMessage, AIMessage, BaseMessage
 from langchain_core.runnables.history import BaseChatMessageHistory
+from fastapi.middleware.cors import CORSMiddleware
+
 
 try:
     from python.db_utils_final import get_db_connection

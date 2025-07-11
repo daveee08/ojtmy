@@ -19,6 +19,8 @@ class EmailWriterController extends Controller
 
     public function generate(Request $request)
     {
+
+        set_time_limit(0);
         $validated = $request->validate([
             'email_input' => 'required|string',
 

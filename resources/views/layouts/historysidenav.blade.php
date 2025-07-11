@@ -38,8 +38,7 @@
             transition: width 0.3s ease, padding 0.3s ease;
             display: flex;
             flex-direction: column;
-            padding: 110px 10px;
-            padding-bottom: 50px;
+            padding: 110px 10px 50px;
         }
 
         .sidebar.collapsed {
@@ -55,7 +54,10 @@
             text-align: center;
             transition: opacity 0.2s ease;
             flex-shrink: 0;
-            /* Prevent shrinking in collapsed mode */
+        }
+
+        .sidebar.collapsed h2 {
+            opacity: 0;
         }
 
         #sessionList {
@@ -66,14 +68,10 @@
             scrollbar-color: #f5f5f5 transparent;
         }
 
-        .sidebar.collapsed h2 {
-            opacity: 0;
-        }
-
-        .sidebar a {
+        .session-link {
             display: flex;
             align-items: center;
-            gap: 10px;
+            justify-content: space-between;
             color: var(--dark);
             text-decoration: none;
             margin: 6px 0;
@@ -81,37 +79,42 @@
             padding: 10px 12px;
             border-radius: 8px;
             transition: background 0.3s ease, color 0.3s ease;
+            position: relative;
         }
 
-        .sidebar a:hover {
+        .session-link i {
+            margin-right: 8px;
+        }
+
+        .session-link:hover {
             background-color: var(--hover-grey);
             color: var(--pink);
         }
 
-        .sidebar a.active {
+        .session-link.active {
             background-color: #F5F5F5;
         }
 
-        .sidebar.collapsed a {
+        .session-link .delete-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: #dc3545;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        .session-link:hover .delete-btn {
+            display: inline;
+        }
+
+        .sidebar.collapsed .session-link {
             justify-content: center;
-            font-size: 0.9rem;
             padding: 10px 8px;
         }
 
-        .sidebar a i {
-            font-size: 1.2rem;
-        }
-
-        .link-text {
-            white-space: nowrap;
-            overflow: hidden;
-            opacity: 1;
-            transition: opacity 0.3s ease, width 0.3s ease;
-        }
-
-        .sidebar.collapsed .link-text {
-            opacity: 0;
-            width: 0;
+        .sidebar.collapsed .session-link .link-text {
+            display: none;
         }
 
         .content {
@@ -172,15 +175,15 @@
             document.body.classList.toggle("sidebar-collapsed");
         });
 
-        const userId = {{ Auth::id() ?? 'null' }}; // Use 'null' instead of 1 if not authenticated for clarity
+        const userId = {{ Auth::id() ?? 'null' }};
         const currentPath = window.location.pathname;
 
-        // Fetch from your Laravel endpoint
-        fetch(`{{ route('api.user_sessions') }}`) // Use the named route to ensure correct URL
+        fetch(`{{ route('api.user_sessions') }}`)
             .then(response => {
                 if (!response.ok) {
-                    // If the HTTP response is not OK (e.g., 401, 403, 500), throw an error
-                    return response.json().then(err => { throw err; });
+                    return response.json().then(err => {
+                        throw err;
+                    });
                 }
                 return response.json();
             })
@@ -189,15 +192,65 @@
                 if (!data.length) {
                     sessionList.innerHTML = '<p>No sessions yet.</p>';
                 } else {
-                    data.forEach(sessionId => {
+                    [...data].reverse().forEach(sessionId => {
                         const link = document.createElement('a');
-                        link.href = `/chat/history/${sessionId}`; // Still points to your Laravel chat history route
-                        link.innerHTML = `<i class="bi bi-chat-dots"></i> <span class="link-text">Session ${sessionId}</span>`;
+                        link.href = `/chat/history/${sessionId}`;
+                        link.className = 'session-link';
 
-                        // Add active class if this is the current session
+                        link.innerHTML = `
+                <div style="display: flex; align-items: center;">
+                    <i class="bi bi-chat-dots"></i>
+                    <span class="link-text">Session ${sessionId}</span>
+                </div>
+                <button class="delete-btn" title="Delete session"><i class="bi bi-trash"></i></button>
+            `;
+
                         if (currentPath.includes(`/chat/history/${sessionId}`)) {
                             link.classList.add('active');
+                            // Scroll to active
+                            setTimeout(() => {
+                                link.scrollIntoView({
+                                    behavior: 'smooth',
+                                    block: 'center'
+                                });
+                            }, 0);
                         }
+
+                        const deleteBtn = link.querySelector('.delete-btn');
+                        deleteBtn.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            fetch(`/api/sessions/${sessionId}`, {
+                                    method: 'DELETE',
+                                    headers: {
+                                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                        'Content-Type': 'application/json'
+                                    }
+                                })
+                                .then(res => {
+                                    if (res.ok) {
+                                        link.remove();
+                                        if (currentPath.includes(`/chat/history/${sessionId}`)) {
+                                            fetch(`{{ route('api.user_sessions') }}`)
+                                                .then(res => res.json())
+                                                .then(newSessions => {
+                                                    if (newSessions.length) {
+                                                        const latestId = newSessions[newSessions
+                                                            .length - 1];
+                                                        window.location.href =
+                                                            `/chat/history/${latestId}`;
+                                                    } else {
+                                                        window.location.href = `/tools`;
+                                                    }
+                                                });
+                                        }
+                                    } else {
+                                        console.error("Failed to delete session", res.statusText);
+                                    }
+                                })
+                                .catch(err => {
+                                    console.error("Delete error:", err);
+                                });
+                        });
 
                         sessionList.appendChild(link);
                     });
@@ -208,12 +261,12 @@
                 let errorMessage = 'Error loading sessions.';
                 if (error.message) {
                     errorMessage += ` Details: ${error.message}`;
-                } else if (error.error) { // If the Laravel JSON error has an 'error' field
+                } else if (error.error) {
                     errorMessage += ` Details: ${error.error}`;
                 }
                 sessionList.innerHTML = `<p>${errorMessage}</p><p>Auth ID is ${userId}</p>`;
             });
-        </script>
+    </script>
 </body>
 
 </html>

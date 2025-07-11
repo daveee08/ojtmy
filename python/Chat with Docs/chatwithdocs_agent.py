@@ -13,10 +13,10 @@ current_script_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.join(current_script_dir, '..', '..')
 sys.path.insert(0, project_root)
 
-from python.chat_router import chat_router
-from python.db_utilss import create_session_and_parameter_inputs, insert_message
+from python.chat_router_final import chat_router
+from python.db_utils_final import create_session_and_parameter_inputs, insert_message
 
-prompt = """
+prompt_template = """
 You are a helpful and student-friendly tutor. Your job is to explain the following topics clearly and simply, as if you're teaching a student.
 
 Topics:
@@ -70,7 +70,7 @@ class InformationalInput(BaseModel):
         )
 
 model = Ollama(model="llama3")
-prompt = ChatPromptTemplate.from_template(prompt)
+prompt_template = ChatPromptTemplate.from_template(prompt_template)
 
 def load_pdf_content(pdf_path: str) -> str:
     if not os.path.exists(pdf_path):
@@ -122,7 +122,7 @@ async def generate_output(
     "topic_1": topic_1,
     }
     
-    chain = prompt | model
+    chain = prompt_template | model
     result = chain.invoke(prompt_input)
     return clean_output(result)
 
@@ -147,15 +147,19 @@ async def chatwithdocs_api(
         )
 
         scope_vars = {}
-
-        human_topic = form_data.topic if form_data.input_type != "pdf" else "[PDF Input]"
+        
+        filled_prompt = prompt_template.format(
+            topic=form_data.topic.strip(),
+            topic_1=form_data.topic_1.strip(),
+        )
 
         session_id = create_session_and_parameter_inputs(
             user_id=form_data.user_id,
             agent_id=7,
             scope_vars=scope_vars,
-            human_topic=human_topic,
-            ai_output=output
+            human_topic=form_data.topic,
+            ai_output=output,
+            agent_prompt=filled_prompt
         )
 
         return {"output": output, 'message_id': session_id}

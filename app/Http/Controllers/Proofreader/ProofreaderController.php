@@ -37,7 +37,7 @@ class ProofreaderController extends Controller
 
         $response = Http::timeout(0)
             ->asMultipart()
-            ->post('http://127.0.1:5001/proofread', $multipartData);
+            ->post('http://127.0.0.1:5001/proofread', $multipartData);
         
         if ($response->failed()) {
             logger()->error('FastAPI Proofreader error', ['body' => $response->body()]);

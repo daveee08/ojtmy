@@ -109,7 +109,7 @@ async def study_habits_agent(grade_level: str, goal: str) -> str:
 
 # Clean markdown-like formatting
 def clean_output(text: str) -> str:
-    text = re.sub(r"[*_`]", "", text)  # removes *, _, ` characters
+    # text = re.sub(r"[*_`]", "", text)  # removes *, _, ` characters
     return text.strip()
 
 # FastAPI endpoint

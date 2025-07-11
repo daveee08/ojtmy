@@ -1,4 +1,5 @@
 import mysql.connector
+import re
 
 INPUT_KEYS = ["grade_level", "learning_speed", "custom_instructions", "text_type", "text_length"]
 
@@ -30,24 +31,38 @@ def insert_title(session_id: int, text: str):
         # Title generation model and prompt
         model = OllamaLLM(model="gemma:2b")
         prompt_template = ChatPromptTemplate.from_template("""
-        You are an expert title generator. Your sole purpose is to create a concise, relevant, and engaging title based on the provided conversation.
+        You are an expert title generator. Your job is to create a concise, relevant, and engaging title based only on the provided conversation.
 
-        The text is:
+        Guidelines:
+        - Concise: Ideally 3–7 words.
+        - Relevant: Reflect the main topic or goal.
+        - Engaging: Make it interesting and informative.
+        - Unique: Avoid generic titles like "Chat with user" or "Conversation summary".
+
+        Only return the title. Do not include explanations, formatting, or extra text.
+
+        Conversation:
         {text}
-
-        Output:
-        Please provide only the generated title. Do not include any additional text, explanations, or formatting. The title should be:
-
-        Concise: Ideally 3–7 words.
-        Relevant: Accurately reflect the main topic or purpose of the conversation.
-        Engaging: Spark interest and clearly indicate the content.
-        Unique: Avoid generic phrases like "Chat with user" or "Conversation summary."
         """)
         chain = prompt_template | model
 
         # Generate the title
         result = chain.invoke({"text": text})
+
+        
         title = result.strip()
+
+        # Remove bold markdown
+        title = re.sub(r"\*\*(.*?)\*\*", r"\1", title)
+
+        # Remove italic markdown
+        title = re.sub(r"\*(.*?)\*", r"\1", title)
+
+        # Remove leading bullet markers (in case model adds them)
+        title = re.sub(r"^\s*[\*\-]\s*", "", title, flags=re.MULTILINE)
+
+        # Remove leading/trailing quotation marks (single or double)
+        title = title.strip('"\'')
 
         # Insert into conversation_title table
         cursor.execute(
@@ -81,7 +96,8 @@ def create_session_and_parameter_inputs(user_id, agent_id, scope_vars, human_top
         print(input_keys)
 
         # 🔹 Step 2: Build input_data dynamically from scope_vars
-        input_data = {key: scope_vars.get(key, "").strip() for key in input_keys}
+        # input_data = {key: scope_vars.get(key, "").strip() for key in input_keys}
+        input_data = {key: str(scope_vars.get(key, "")).strip() for key in input_keys}
         available_data = {k: v for k, v in input_data.items() if v}
         combined_input = "; ".join(f"{k}={v}" for k, v in available_data.items())
 
@@ -122,12 +138,12 @@ def create_session_and_parameter_inputs(user_id, agent_id, scope_vars, human_top
         insert_message(cursor, user_id, agent_id, session_id, parameter_inputs_id, "human", human_topic, agent_prompt_id)
         insert_message(cursor, user_id, agent_id, session_id, parameter_inputs_id, "ai", ai_output, agent_prompt_id)
 
-        initial_convo = human_topic + ai_output
+        # initial_convo = human_topic + ai_output
 
-        try:
-            insert_title(session_id=session_id, text=initial_convo)
-        except Exception as e:
-            print(f"Failed to generate title: {e}")  # or use logging
+        # try:
+        #     insert_title(session_id=session_id, text=initial_convo)
+        # except Exception as e:
+        #     print(f"Failed to generate title: {e}")  # or use logging
 
 
         db.commit()

@@ -13,11 +13,11 @@ current_script_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.join(current_script_dir, '..', '..')
 sys.path.insert(0, project_root)
 
-from python.chat_router import chat_router
-from python.db_utilss import create_session_and_parameter_inputs, insert_message
+from python.chat_router_final import chat_router
+from python.db_utils_final import create_session_and_parameter_inputs, insert_message
 
 # --- Prompt Templates ---
-manual_topic_template = """
+prompt_template = """
 You are an experienced and friendly virtual tutor who helps students understand academic topics clearly and effectively.
 
 Your goal is to explain the topic in a way that matches the student's grade level and learning needs.
@@ -26,28 +26,6 @@ Parameters:
 - Grade Level: {grade_level}
 - Learning speed: {learning_speed}
 - Topic: {topic}
-
-Instructions:
-- Provide a detailed explanation of the topic.
-- Use examples, analogies, or simple breakdowns appropriate for the student's grade level.
-- Address any specific learning needs or context provided.
-- Do NOT just define terms — aim to build understanding.
-- Do NOT summarize — explain thoroughly.
-- Use clear language, step-by-step logic, and relevant examples.
-- Adapt your explanation based on any additional learning notes provided.
-
-Respond ONLY with the explanation text (no extra commentary).
-"""
-
-pdf_topic_template = """
-You are a knowledgeable and supportive virtual tutor.
-
-You will receive content extracted from a textbook or document (such as a PDF). Your task is to explain this content in a way that is understandable to a student at the given grade level.
-
-Parameters:
-- Grade Level: {grade_level}
-- Learning speed: {learning_speed}
-- Extracted Content: {topic}
 
 Instructions:
 - Provide a detailed explanation of the topic.
@@ -103,8 +81,7 @@ class LevelerFormInput(BaseModel):
 
 # --- LangChain Setup ---
 model = Ollama(model="llama3")
-manual_prompt = ChatPromptTemplate.from_template(manual_topic_template)
-pdf_prompt = ChatPromptTemplate.from_template(pdf_topic_template)
+prompt_template = ChatPromptTemplate.from_template(prompt_template)
 
 # --- PDF Loader ---
 def load_pdf_content(pdf_path: str) -> str:
@@ -135,11 +112,9 @@ async def generate_output(
 
         topic = load_pdf_content(tmp_path)
         os.unlink(tmp_path)
-        prompt = pdf_prompt
     else:
         if not topic.strip():
             raise ValueError("Text input is required.")
-        prompt = manual_prompt
 
     prompt_input = {
         "topic": topic,
@@ -147,7 +122,7 @@ async def generate_output(
         "learning_speed": learning_speed
     }
 
-    chain = prompt | model
+    chain = prompt_template | model
     result = chain.invoke(prompt_input)
     return clean_output(result)
 
@@ -173,14 +148,19 @@ async def leveler_api(
             "learning_speed": form_data.learning_speed,
         }
 
-        human_topic = form_data.topic if form_data.input_type != "pdf" else "[PDF Input]"
+        filled_prompt = prompt_template.format(
+            topic=form_data.topic.strip(), 
+            grade_level=form_data.grade_level.strip(), 
+            learning_speed=form_data.learning_speed.strip()
+        )
 
         session_id = create_session_and_parameter_inputs(
             user_id=form_data.user_id,
             agent_id=4,
             scope_vars=scope_vars,
-            human_topic=human_topic,
-            ai_output=output
+            human_topic=form_data.topic,
+            ai_output=output,
+            agent_prompt=filled_prompt
         )
 
         return {"output": output, "message_id": session_id}

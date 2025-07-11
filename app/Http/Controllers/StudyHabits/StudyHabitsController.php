@@ -12,7 +12,7 @@ class StudyHabitsController extends Controller
    public function fetchUserSession()
     {
         $userId = Auth::id();
-        $response = Http::get("http://127.0.0.1:5001/sessions/$userId");
+        $response = Http::get("http://127.0.1:5001/sessions/$userId");
         return response()->json($response->json());
         // return view('Text Proofreader.proofreader');
     }

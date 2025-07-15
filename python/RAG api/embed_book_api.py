@@ -43,13 +43,13 @@ def get_connection():
     return mysql.connector.connect(**DB)
 
 # --- Insert book metadata ---
-def insert_book(title, original_filename, faiss_path, desc=None):
+def insert_book(title, source, original_filename, faiss_path,  grade_level, desc):
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("""
-        INSERT INTO books (title, original_filename, faiss_index_path, description)
-        VALUES (%s, %s, %s, %s)
-    """, (title, original_filename, faiss_path, desc))
+        INSERT INTO books (title, source, original_filename, faiss_index_path, description, grade_level)
+        VALUES (%s, %s, %s, %s, %s, %s)
+    """, (title, source, original_filename, faiss_path, desc, grade_level))
     conn.commit()
     book_id = cursor.lastrowid
     cursor.close()
@@ -87,7 +87,10 @@ def insert_chunk(book_id, chapter_id, global_faiss_id, text):
 async def chunk_pdf(
     file: UploadFile = File(...),
     title: str = Form(None),
-    desc: str = Form(None)):
+    desc: str = Form(None),
+    source: str = Form(None),
+    grade_lvl: str = Form(None)):
+
 
     try:
         # Save temp file
@@ -129,7 +132,7 @@ async def chunk_pdf(
             filename_no_ext = title
 
         # Insert book metadata first
-        book_id = insert_book(filename_no_ext, file.filename, faiss_path, desc)
+        book_id = insert_book(filename_no_ext, source,file.filename, faiss_path, grade_level=grade_lvl,desc=desc)
 
         for chapter in chapters:
             match = re.match(r"^## Chapter (\d+):\s*(.+)", chapter.strip(), re.IGNORECASE)

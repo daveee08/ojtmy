@@ -1,7 +1,7 @@
 @extends('layouts.header')
 @extends('layouts.navbar')
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
+<meta name="csrf-token" content="{{ csrf_token() }}">
 @section('title', 'CK Virtual Tutor')
 
 @section('styles')
@@ -288,7 +288,7 @@
         <div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
-                    <form id="uploadForm">
+                    <form id="uploadForm" action="{{ url('/upload-endpoint') }}" method="POST" enctype="multipart/form-data">
                         <div class="modal-header">
                             <h5 class="modal-title" id="uploadModalLabel">Upload PDF Details</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -304,9 +304,9 @@
                                 <label for="gradeLevel" class="form-label">Grade Level</label>
                                 <select class="form-select" id="gradeLevel" name="grade_level" required>
                                     <option value="">Select Grade</option>
-                                    <option value="1">Grade 1</option>
-                                    <option value="2">Grade 2</option>
-                                    <option value="3">Grade 3</option>
+                                    <option value="Grade 1">Grade 1</option>
+                                    <option value="Grade 2">Grade 2</option>
+                                    <option value="Grade 3">Grade 3</option>
                                     <!-- Add more as needed -->
                                 </select>
                             </div>
@@ -336,6 +336,9 @@
             </div>
         </div>
 
+        <div id="bookList" class="tool-grid mt-4">
+            <!-- Filtered books will appear here -->
+        </div>
 
     </div>
     </div>
@@ -345,10 +348,14 @@
             e.preventDefault();
 
             const formData = new FormData(this);
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
             // Example: Post to FastAPI or Laravel backend
             fetch("/upload-endpoint", {
                     method: "POST",
+                    headers: {
+                        "X-CSRF-TOKEN": csrfToken
+                    },
                     body: formData,
                 })
                 .then((res) => res.json())
@@ -384,7 +391,7 @@
 
             subjectSelect.addEventListener('change', function() {
                 const selectedGrade = this.value;
-                bookList.innerHTML = '';
+                bookList.innerHTML = ' ';
 
                 if (!selectedGrade) return;
 

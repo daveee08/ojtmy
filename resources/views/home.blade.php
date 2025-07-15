@@ -2,7 +2,7 @@
 @extends('layouts.navbar')
 
 
-@section('title', 'Home - CK Tools')
+@section('title', 'Home')
 
 @section('styles')
     <style>

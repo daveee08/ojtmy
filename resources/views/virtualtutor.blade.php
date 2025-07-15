@@ -2,7 +2,7 @@
 @extends('layouts.navbar')
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-@section('title', 'Home - CK AI Tools')
+@section('title', 'CK Virtual Tutor')
 
 @section('styles')
     <style>
@@ -188,7 +188,7 @@
 
         <div class="tool-grid">
             <div class="tool-grid">
-                <a href="http://192.168.50.144:8000/leveler" target="_blank" class="tool-card-link">
+                <a href="https://chatgpt.com" target="_blank" class="tool-card-link">
                     <div class="tool-card">
                         <div class="tool-card-content">
                             <div class="tool-card-icon">
@@ -203,7 +203,7 @@
                     </div>
                 </a>
 
-                <a href="http://127.0.0.1:5001/summarize" target="_blank" class="tool-card-link">
+                <a href="https://www.questionai.com/" target="_blank" class="tool-card-link">
                     <div class="tool-card">
                         <div class="tool-card-content">
                             <div class="tool-card-icon">
@@ -218,7 +218,7 @@
                     </div>
                 </a>
 
-                <a href="https://tse4.mm.bing.net/th/id/OIP.eEW3EGenj4Djze7zv31PKAHaLG?rs=1&pid=ImgDetMain&o=7&rm=3"
+                <a href="https://math-gpt.org/"
                     target="_blank" class="tool-card-link">
                     <div class="tool-card">
                         <div class="tool-card-content">

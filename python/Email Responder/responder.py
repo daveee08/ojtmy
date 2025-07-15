@@ -17,7 +17,7 @@ from python.chat_router import chat_router
 from python.db_utilss import create_session_and_parameter_inputs, insert_message
 
 # Instruction template
-template = """
+prompt_template = """
 Your task is toGenerate a custom professional email in response to an email that you received based on the user's intent and the original message received.
 
 Parameters:
@@ -88,28 +88,10 @@ class ResponderInput(BaseModel):
 
 # LangChain setup
 model = Ollama(model="gemma:2b")
-concept_template = ChatPromptTemplate.from_template(template)
+prompt_template = ChatPromptTemplate.from_template(prompt_template)
 
 # Clean output from formatting artifacts
 def clean_output(text: str) -> str:
-    # import re
-
-    # text = text.strip()
-
-    # # Normalize Subject line: extract and rewrap
-    # match = re.match(r"^Subject:\s*(.+)", text)
-    # if match:
-    #     subject = match.group(0)
-    #     remaining = text[len(subject):].lstrip()
-    #     text = f"<p>{subject}</p><br>{remaining}"
-    # else:
-    #     # If no clear Subject line, keep the original
-    #     text = text
-
-    # # Remove markdown artifacts
-    # text = re.sub(r"\*\*(.*?)\*\*", r"\1", text)  # bold markdown
-    # text = re.sub(r"\*(.*?)\*", r"\1", text)      # italic markdown
-
     return text.strip()
 
 # Email generation logic
@@ -126,7 +108,7 @@ async def generate_output(
         "tone": tone,
     }
 
-    chain = concept_template | model
+    chain = prompt_template | model
     result = chain.invoke(prompt_input)
     return clean_output(result)
 
@@ -150,12 +132,20 @@ async def responder_api(
             "tone": form_data.tone
         }
 
+        filled_prompt = prompt_template.format(
+            author=form_data.author.strip(),
+            email=form_data.email.strip(),
+            intent=form_data.intent.strip(),
+            tone=form_data.tone.strip()
+        )
+
         session_id = create_session_and_parameter_inputs(
             user_id=form_data.user_id,
             agent_id=11,
             scope_vars=scope_vars,
             human_topic=form_data.intent,
-            ai_output=output
+            ai_output=output,
+            agent_prompt=filled_prompt
         )
 
         return {"output": output, "message_id": session_id}

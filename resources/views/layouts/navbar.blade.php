@@ -181,6 +181,12 @@
                 <i class="bi bi-tools"></i>
                 <span class="link-text">Tools</span>
             </a>
+            
+             <a href="{{ url('/virtual_tutor') }}" class="{{ request()->is('virtual_tutor') ? 'active-link' : '' }}"
+                data-bs-toggle="tooltip" title="Virtual Tutor">
+                <i class="bi bi-robot"></i>
+                <span class="link-text">Virtual Tutor</span>
+            </a>
             <a href="{{ url('/about') }}" class="{{ request()->is('about') ? 'active-link' : '' }}"
                 data-bs-toggle="tooltip" title="About">
                 <i class="bi bi-people"></i>

@@ -16,52 +16,7 @@ sys.path.insert(0, project_root)
 from python.chat_router import chat_router
 from python.db_utilss import create_session_and_parameter_inputs, insert_message
 
-manual_topic_template = """
-You are an educational assistant.
-
-Your task is to generate only **literal comprehension questions** and **vocabulary definitions** based on a given academic text. Your goal is to support accurate, age-appropriate understanding of the topic for {grade_level} students.
-
-Parameters:
-- Grade Level: {grade_level}
-- Topic: {topic}
-- Number of Vocabulary Words: {vocab_limit}
-- Number of Literal Questions: {literal_questions}
-
-Output Instructions:
-
-1. Start with the heading **Vocabulary:** and list up to {vocab_limit} important words found in the text.
-   - Each word must be followed by a short, clear definition suitable for {grade_level}.
-   - Use simple, age-appropriate language. Avoid:
-     - Technical jargon
-     - Abstract phrasing
-     - Circular or overly complex definitions
-
-2. Then write the heading **Questions:** and list exactly {literal_questions} literal comprehension questions.
-   - Questions must be based strictly on facts **explicitly stated** in the original text.
-   - Avoid interpretation, inference, summarizing, or “Why/How” questions unless clearly supported by the text.
-   - Phrase questions in a direct, concrete way that matches the reading level.
-
-3. Use this exact format (and nothing else):
-
-Vocabulary:
-1. Word: Definition.
-2. Word: Definition.
-
-Questions:
-1. Literal question?
-2. Literal question?
-
-Formatting Rules:
-- Do **not** include any of the following:
-  - Explanations, summaries, or extra commentary
-  - Labels such as “Definition:”, “Term:”, or “Answer:”
-  - Paragraphs or introductory text
-  - Any text outside the required Vocabulary and Questions sections
-
-Return only the formatted output. Do not add headings, titles, or instructional notes.
-"""
-
-pdf_topic_template = """
+prompt_template = """
 You are an educational assistant.
 
 Your task is to generate only **literal comprehension questions** and **vocabulary definitions** based on a given academic text. Your goal is to support accurate, age-appropriate understanding of the topic for {grade_level} students.
@@ -148,8 +103,7 @@ class ScaffolderInput(BaseModel):
         )
 
 model = Ollama(model="gemma:2b")
-manual_prompt = ChatPromptTemplate.from_template(manual_topic_template)
-pdf_prompt = ChatPromptTemplate.from_template(pdf_topic_template)
+prompt_template = ChatPromptTemplate.from_template(prompt_template)
 
 def load_pdf_content(pdf_path: str) -> str:
     if not os.path.exists(pdf_path):
@@ -159,9 +113,6 @@ def load_pdf_content(pdf_path: str) -> str:
     return "\n".join(doc.page_content for doc in documents)
 
 def clean_output(text: str) -> str:
-    # text = re.sub(r"\*\*(.*?)\*\*", r"\1", text)
-    # text = re.sub(r"\*(.*?)\*", r"\1", text)
-    # text = re.sub(r"^\s*[\*\-]\s*", "", text, flags=re.MULTILINE)
     return text.strip()
     
 async def generate_output(
@@ -180,11 +131,9 @@ async def generate_output(
 
         topic = load_pdf_content(tmp_path)
         os.unlink(tmp_path)
-        prompt = pdf_prompt
     else:
         if not topic.strip():
             raise ValueError("Text input is required")
-        prompt = manual_prompt
 
     prompt_input = {
         "topic": topic,
@@ -193,7 +142,7 @@ async def generate_output(
         "vocab_limit": vocab_limit
     }
 
-    chain = prompt | model
+    chain = prompt_template | model
     result = chain.invoke(prompt_input)
     return clean_output(result)
 
@@ -221,14 +170,20 @@ async def scaffolder_api(
             'vocab_limit': form_data.vocab_limit
         }
 
-        human_topic = form_data.topic if form_data.input_type != "pdf" else "[PDF Input]"
+        filled_prompt = prompt_template.format(
+            topic=form_data.topic.strip(),
+            grade_level=form_data.grade_level.strip(),
+            vocab_limit=form_data.vocab_limit.strip(),
+            literal_questions=form_data.literal_questions.strip()
+        )
 
         session_id = create_session_and_parameter_inputs(
             user_id=form_data.user_id,
             agent_id=9,
             scope_vars=scope_vars,
-            human_topic=human_topic,
-            ai_output=output
+            human_topic=form_data.topic,
+            ai_output=output,
+            agent_prompt=filled_prompt
         )
 
         return {"output": output, "message_id": session_id}

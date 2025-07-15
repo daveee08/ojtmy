@@ -24,7 +24,7 @@ except ImportError:
  # Or a dummy function that raise
 
 chat_router = APIRouter()
-llm = Ollama(model="gemma3:1b")
+llm = Ollama(model="gemma:2b")
 
 # -------------------------------
 # Request & Response Models

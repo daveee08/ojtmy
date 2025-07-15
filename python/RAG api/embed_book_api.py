@@ -1,8 +1,10 @@
-from fastapi import FastAPI, UploadFile, File, Form
+from fastapi import FastAPI, UploadFile, File, Form, Query
 from fastapi.responses import JSONResponse
 from docling.document_converter import DocumentConverter
 from transformers import AutoTokenizer
 from sentence_transformers import SentenceTransformer
+from fastapi.middleware.cors import CORSMiddleware
+
 import faiss, os, mysql.connector, requests
 import numpy as np
 import re
@@ -13,6 +15,14 @@ from pydantic import BaseModel
 
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Or limit to ["http://localhost:8000"]
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # --- Constants ---
 OLLAMA_MODEL = "gemma3:1b"
@@ -283,15 +293,8 @@ def get_books():
     try:
         conn = get_connection()
 
-        # db = mysql.connector.connect(
-        #     host="127.0.0.1",
-        #     user="root",
-        #     password="",
-        #     database="your_database_name"  # Replace with your DB name
-        # )
-
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT id AS book_id, title, description FROM books")
+        cursor.execute("SELECT id AS book_id, title, description, grade_level FROM books")
         books = cursor.fetchall()
 
         return {"status": "success", "books": books}
@@ -300,7 +303,7 @@ def get_books():
         return JSONResponse(status_code=500, content={"error": str(e)})
     
 
-@app.get("/chapters")
+@app.post("/chapters")
 def get_chapters(book_id: int = Form(...)):
     try:
         conn = get_connection()

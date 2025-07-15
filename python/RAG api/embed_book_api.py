@@ -4,6 +4,7 @@ from docling.document_converter import DocumentConverter
 from transformers import AutoTokenizer
 from sentence_transformers import SentenceTransformer
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse, Response
 
 import faiss, os, mysql.connector, requests
 import numpy as np
@@ -11,6 +12,7 @@ import re
 import tempfile
 # from query_api import router as query_router
 from pydantic import BaseModel
+import fitz
 
 
 
@@ -326,6 +328,73 @@ def get_chapters(book_id: int = Form(...)):
             "book_id": book_id,
             "chapters": chapters
         }
+
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
+    
+
+
+from fastapi.responses import Response
+import os
+import fitz  # PyMuPDF
+
+@app.get("/view-chapter")
+def view_chapter(book_id: int = Query(...), chapter_number: int = Query(...)):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        # 1. Get book source file
+        cursor.execute("SELECT source FROM books WHERE id = %s", (book_id,))
+        book = cursor.fetchone()
+        if not book:
+            return JSONResponse(status_code=404, content={"error": "Book not found"})
+
+        file_path = book["source"]
+        if not os.path.exists(file_path):
+            return JSONResponse(status_code=404, content={"error": "PDF file not found on disk."})
+
+        # 2. Get chapter start and end pages
+        cursor.execute("""
+            SELECT start_page, end_page, chapter_title
+            FROM chapters 
+            WHERE chapter_number = %s AND book_id = %s
+        """, (chapter_number, book_id))
+        chapter = cursor.fetchone()
+        cursor.close()
+        conn.close()
+
+        if not chapter or chapter["start_page"] is None or chapter["end_page"] is None:
+            return JSONResponse(status_code=404, content={"error": "Chapter page range not found"})
+
+        # 3. Extract chapter pages
+        pdf_in = fitz.open(file_path)
+        pdf_out = fitz.open()
+
+        for i in range(chapter["start_page"] - 1, chapter["end_page"]):
+            pdf_out.insert_pdf(pdf_in, from_page=i, to_page=i)
+
+        tmp_path = f"temp_chapter_{book_id}_{chapter_number}.pdf"
+        pdf_out.set_metadata({
+            "title": f"Chapter {chapter_number} - {chapter['chapter_title']}"
+        })
+        pdf_out.save(tmp_path)
+        pdf_out.close()
+        pdf_in.close()
+
+        # 4. Read file and return inline
+        with open(tmp_path, "rb") as f:
+            pdf_data = f.read()
+
+        headers = {
+            "Content-Type": "application/pdf",
+            "Content-Disposition": f'inline; filename="chapter_{book_id}_{chapter_number}.pdf"'
+        }
+
+        # Optional cleanup after read
+        os.remove(tmp_path)
+
+        return Response(content=pdf_data, media_type="application/pdf", headers=headers)
 
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})

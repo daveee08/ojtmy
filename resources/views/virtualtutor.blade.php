@@ -42,16 +42,15 @@
             margin-bottom: 30px;
         }
 
-        .search-wrapper input {
-            width: 100%;
+        .search-wrapper select {
             max-width: 400px;
-            padding: 10px 16px 10px 40px;
+            padding: 10px 16px 10px 16px;
             font-size: 1rem;
             border: 1px solid #ccc;
-            border-radius: 30px;
             outline: none;
-            background: #fff url('data:image/svg+xml;utf8,<svg fill="gray" height="16" viewBox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C8.01 14 6 11.99 6 9.5S8.01 5 10.5 5 15 7.01 15 9.5 12.99 14 10.5 14z"/></svg>') no-repeat 12px center;
-            background-size: 18px 18px;
+            background-color: #fff;
+            background-image: none;
+            box-shadow: none;
             transition: 0.3s;
         }
 
@@ -179,11 +178,18 @@
     <div class="container">
         <div class="hero">
             <h1>Welcome to CK Virtual Tutor</h1>
-            <p>AI-powered tutor will utilize a local knowledge base sourced from CK Grade 7 books in Science, English, and Math.</p>
+            <p>AI-powered tutor will utilize a local knowledge base sourced from CK Grade 7 books in Science, English, and
+                Math.</p>
         </div>
 
-        <div class="search-wrapper">
-            <input type="text" id="toolSearch" placeholder="Search tools...">
+        <!-- 📌 Add Chapter/Subject Selector Here -->
+        <div class="search-wrapper mb-4">
+            <select id="subjectSelect" class="form-select">
+                <option value="">Select Grade Level</option>
+                <option value="1">Grade 1</option>
+                <option value="2">Grade 2</option>
+                <option value="3">Grade 3</option>
+            </select>
         </div>
 
         <div class="tool-grid">

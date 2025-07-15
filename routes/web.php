@@ -62,6 +62,11 @@ Route::get('virtual_tutor', function () {
     return view('virtualtutor');
 });
 
+Route::get('virtual_tutor_chat', function () {
+    return view('virtualtutorchat');
+});
+
+
 // Authentication Routes
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');

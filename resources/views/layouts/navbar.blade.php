@@ -264,22 +264,38 @@
     </div>
 
     <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
         const toggleBtn = document.getElementById("toggleSidebar");
         const sidebar = document.getElementById("sidebar");
         const content = document.getElementById("mainContent");
 
+        // Load sidebar state from localStorage
+        const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+        if (isCollapsed) {
+            sidebar.classList.add('collapsed');
+            content.classList.add('expanded');
+        } else {
+            sidebar.classList.remove('collapsed');
+            content.classList.remove('expanded');
+        }
+
+        // Toggle sidebar and content, save state
         toggleBtn.addEventListener("click", () => {
             sidebar.classList.toggle("collapsed");
             content.classList.toggle("expanded");
+            const isCollapsedNow = sidebar.classList.contains('collapsed');
+            localStorage.setItem('sidebarCollapsed', isCollapsedNow);
         });
 
+        // Initialize Bootstrap tooltips
         const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
         tooltipTriggerList.forEach(el => {
             new bootstrap.Tooltip(el);
         });
 
+        // Handle chapter selection
         function handleChapterChange(select) {
             const chapter = select.value;
             if (chapter) {
@@ -287,7 +303,8 @@
                 // You can add logic here
             }
         }
-    </script>
+    });
+</script>
 
 </body>
 

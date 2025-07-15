@@ -58,6 +58,10 @@ Route::get('/about', function () {
     return view('about');
 });
 
+Route::get('virtual_tutor', function () {
+    return view('virtualtutor');
+});
+
 // Authentication Routes
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');

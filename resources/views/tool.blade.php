@@ -2,7 +2,7 @@
 @extends('layouts.navbar')
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-@section('title', 'Home - CK AI Tools')
+@section('title', 'Home - CK Virtual Tutor ')
 
 @section('styles')
     <style>
@@ -152,6 +152,7 @@
             font-size: 1.2rem;
             cursor: pointer;
             transition: color 0.02s ease;
+            z-index: 10
         }
 
         .tool-card-link:hover .tool-card {
@@ -170,10 +171,43 @@
                 grid-template-columns: 1fr;
             }
         }
+        .tool-card-favorite {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            color: #ccc;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+        .tool-card-favorite.favorited {
+            color: #FFD700; /* Gold color for favorited star */
+        }
+
+        /* New CSS for the favorites section */
+        .favorites-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px; /* Space between favorites and main grid */
+        }
+
+        .favorites-section {
+            margin-bottom: 30px;
+        }
+
+        .favorites-section h2 {
+            font-size: 1.8rem;
+            color: #333;
+            margin-bottom: 20px;
+            /* border-bottom: 2px solid #e91e63; */
+            padding-bottom: 10px;
+        }
+        
+        
     </style>
 
 @endsection
-
 
 @section('content')
     <div class="container">
@@ -187,467 +221,598 @@
             <input type="text" id="toolSearch" placeholder="Search tools...">
         </div>
 
-        <div class="tool-grid">
-            <div class="tool-grid">
-                <a href="http://192.168.50.144:8000/leveler" target="_blank" class="tool-card-link">
-                    <div class="tool-card">
-                        <div class="tool-card-content">
-                            <div class="tool-card-icon">
-                                <img src="{{ asset('icons/text leveler.png') }}" alt="Text Leveler Icon">
-                                {{-- Image src left blank for you to fill --}}
-                            </div>
-                            <div class="tool-card-text">
-                                <h5>Text Leveler</h5>
-                                <p>Adjust text difficulty to match your reading level and comprehension needs.</p>
-                            </div>
-                        </div>
-                    </div>
-                </a>
-
-                <a href="http://127.0.0.1:5001/summarize" target="_blank" class="tool-card-link">
-                    <div class="tool-card">
-                        <div class="tool-card-content">
-                            <div class="tool-card-icon">
-                                <img src="{{ asset('icons/summarizer.png') }}" alt="Text Summarizer Icon">
-                                {{-- Image src left blank for you to fill --}}
-                            </div>
-                            <div class="tool-card-text">
-                                <h5>Text Summarizer</h5>
-                                <p>Simplify long text into concise, easy-to-understand summaries.</p>
-                            </div>
-                        </div>
-                    </div>
-                </a>
-
-                <a href="https://tse4.mm.bing.net/th/id/OIP.eEW3EGenj4Djze7zv31PKAHaLG?rs=1&pid=ImgDetMain&o=7&rm=3"
-                    target="_blank" class="tool-card-link">
-                    <div class="tool-card">
-                        <div class="tool-card-content">
-                            <div class="tool-card-icon">
-                                <img src="{{ asset('icons/conceptual.png') }}" alt="Conceptual Understanding Icon">
-                                {{-- Image src left blank for you to fill --}}
-                            </div>
-                            <div class="tool-card-text">
-                                <h5>Conceptual Understanding</h5>
-                                <p>Get writing feedback on grammar, structure, and clarity to build stronger writing skills.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </a>
-
-                <a href="https://tse4.mm.bing.net/th/id/OIP.eEW3EGenj4Djze7zv31PKAHaLG?rs=1&pid=ImgDetMain&o=7&rm=3"
-                    target="_blank" class="tool-card-link">
-                    <div class="tool-card">
-                        <div class="tool-card-content">
-                            <div class="tool-card-icon">
-                                <img src="{{ asset('icons/text rewritter.png') }}" alt="Text Rewriter Icon">
-                                {{-- Image src left blank for you to fill --}}
-                            </div>
-                            <div class="tool-card-text">
-                                <h5>Text Rewriter</h5>
-                                <p>Rephrase sentences to enhance expression and explore new ways of writing.</p>
-                            </div>
-                        </div>
-                    </div>
-                </a>
-
-                <a href="http://192.168.50.18:5001/proofreader" target="_blank" class="tool-card-link">
-                    <div class="tool-card">
-                        <div class="tool-card-content">
-                            <div class="tool-card-icon">
-                                <img src="{{ asset('icons/proofreader.png') }}" alt="Text Proofreader Icon">
-                                {{-- Image src left blank for you to fill --}}
-                            </div>
-                            <div class="tool-card-text">
-                                <h5>Text Proofreader</h5>
-                                <p>Automatically catch and correct grammar, spelling, and punctuation errors.</p>
-                            </div>
-                        </div>
-                    </div>
-                </a>
-
-                <a href="http://127.0.0.1:5001/generate-quiz" target="_blank" class="tool-card-link">
-                    <div class="tool-card">
-                        <div class="tool-card-content">
-                            <div class="tool-card-icon">
-                                <img src="{{ asset('icons/quizme.png') }}" alt="Quiz Me! Icon"> {{-- Image src left blank for you to fill --}}
-                            </div>
-                            <div class="tool-card-text">
-                                <h5>Quiz Me!</h5>
-                                <p>Asks questions to test knowledge and boost learning in a fun way.</p>
-                            </div>
-                        </div>
-                    </div>
-                </a>
-
-                <a href="http://192.168.50.123:5001/scaffolder" target="_blank" class="tool-card-link">
-                    <div class="tool-card">
-                        <div class="tool-card-content">
-                            <div class="tool-card-icon">
-                                <img src="{{ asset('icons/text scaff.png') }}" alt="Text Scaffolder Icon">
-                                {{-- Image src left blank for you to fill --}}
-                            </div>
-                            <div class="tool-card-text">
-                                <h5>Text Scaffolder</h5>
-                                <p>Scaffold any text for better comprehension.</p>
-                            </div>
-                        </div>
-                    </div>
-                </a>
-
-                <a href="http://192.168.50.144:5001/informational" target="_blank" class="tool-card-link">
-                    <div class="tool-card">
-                        <div class="tool-card-content">
-                            <div class="tool-card-icon">
-                                <img src="{{ asset('icons/infotext.png') }}" alt="Informational Text Icon">
-                                {{-- Image src left blank for you to fill --}}
-                            </div>
-                            <div class="tool-card-text">
-                                <h5>Informational Text</h5>
-                                <p>Create original texts on any topic for your class.</p>
-                            </div>
-                        </div>
-                    </div>
-                </a>
-
-                <a href="http://127.0.0.1:5001/step-tutor" target="_blank" class="tool-card-link">
-                    <div class="tool-card">
-                        <div class="tool-card-content">
-                            <div class="tool-card-icon">
-                                <img src="{{ asset('icons/stepbystep.png') }}" alt="Step by Step Icon">
-                                {{-- Image src left blank for you to fill --}}
-                            </div>
-                            <div class="tool-card-text">
-                                <h5>Step by Step</h5>
-                                <p>Get guided instructions for any task or subject.</p>
-                            </div>
-                        </div>
-                    </div>
-                </a>
-
-                <a href="http://127.0.0.1:5001/5questions" target="_blank" class="tool-card-link">
-                    <div class="tool-card">
-                        <div class="tool-card-content">
-                            <div class="tool-card-icon">
-                                <img src="{{ asset('icons/five.png') }}" alt="Five Questions Icon"> {{-- Image src left blank for you to fill --}}
-                            </div>
-                            <div class="tool-card-text">
-                                <h5>Five Questions</h5>
-                                <p>Use AI to challenge your thinking with 5 custom questions.</p>
-                            </div>
-                        </div>
-                    </div>
-                </a>
-
-                <a href="https://tse4.mm.bing.net/th/id/OIP.eEW3EGenj4Djze7zv31PKAHaLG?rs=1&pid=ImgDetMain&o=7&rm=3"
-                    target="_blank" class="tool-card-link">
-                    <div class="tool-card">
-                        <div class="tool-card-content">
-                            <div class="tool-card-icon">
-                                <img src="{{ asset('icons/realworld.png') }}" alt="Real World Connections Icon">
-                                {{-- Image src left blank for you to fill --}}
-                            </div>
-                            <div class="tool-card-text">
-                                <h5>Real World Connections</h5>
-                                <p>Generate real world examples for what you're learning about!</p>
-                            </div>
-                        </div>
-                    </div>
-                </a>
-
-                <a href="http://127.0.0.1:5001/studyhabits" target="_blank" class="tool-card-link">
-                    <div class="tool-card">
-                        <div class="tool-card-content">
-                            <div class="tool-card-icon">
-                                <img src="{{ asset('icons/studyhabits.png') }}" alt="Study Habits Icon">
-                                {{-- Image src left blank for you to fill --}}
-                            </div>
-                            <div class="tool-card-text">
-                                <h5>Study Habits</h5>
-                                <p>Get a plan and study tips to prepare for any test, assignment, or project.</p>
-                            </div>
-                        </div>
-                    </div>
-                </a>
-
-                <a href="https://tse4.mm.bing.net/th/id/OIP.eEW3EGenj4Djze7zv31PKAHaLG?rs=1&pid=ImgDetMain&o=7&rm=3"
-                    target="_blank" class="tool-card-link">
-                    <div class="tool-card">
-                        <div class="tool-card-content">
-                            <div class="tool-card-icon">
-                                <img src="{{ asset('icons/text translator.png') }}" alt="Text Translator Icon">
-                                {{-- Image src left blank for you to fill --}}
-                            </div>
-                            <div class="tool-card-text">
-                                <h5>Text Translator</h5>
-                                <p>Translate any text or uploaded document into any language.</p>
-                            </div>
-                        </div>
-                    </div>
-                </a>
-
-                <a href="https://tse4.mm.bing.net/th/id/OIP.eEW3EGenj4Djze7zv31PKAHaLG?rs=1&pid=ImgDetMain&o=7&rm=3"
-                    target="_blank" class="tool-card-link">
-                    <div class="tool-card">
-                        <div class="tool-card-content">
-                            <div class="tool-card-icon">
-                                <img src="{{ asset('icons/sentencestarter.png') }}" alt="Sentence Starters Icon">
-                                {{-- Image src left blank for you to fill --}}
-                            </div>
-                            <div class="tool-card-text">
-                                <h5>Sentence Starters</h5>
-                                <p>Get ideas to help you get started with writing on any topic.</p>
-                            </div>
-                        </div>
-                    </div>
-                </a>
-
-                <a href="http://192.168.50.123:5001/assignmentscaffolder" target="_blank" class="tool-card-link">
-                    <div class="tool-card">
-                        <div class="tool-card-content">
-                            <div class="tool-card-icon">
-                                <img src="{{ asset('icons/scaff.png') }}" alt="Assignment Scaffolder Icon">
-                                {{-- Image src left blank for you to fill --}}
-                            </div>
-                            <div class="tool-card-text">
-                                <h5>Assignment Scaffolder</h5>
-                                <p>Helps break down assignments into easy, step-by-step parts for better planning and
-                                    progress.</p>
-                            </div>
-                        </div>
-                    </div>
-                </a>
-
-                <a href="http://127.0.0.1:5001/5questions" target="_blank" class="tool-card-link">
-                    <div class="tool-card">
-                        <div class="tool-card-content">
-                            <div class="tool-card-icon">
-                                <img src="{{ asset('icons/coachsports.png') }}" alt="Coach’s Sports Practice Icon">
-                                {{-- Image src left blank for you to fill --}}
-                            </div>
-                            <div class="tool-card-text">
-                                <h5>Coach’s Sports Practice</h5>
-                                <p>Leads fun drills to build athletic skills and teamwork.</p>
-                            </div>
-                        </div>
-                    </div>
-                </a>
-
-                <a href="http://127.0.0.1:5001/5questions" target="_blank" class="tool-card-link">
-                    <div class="tool-card">
-                        <div class="tool-card-content">
-                            <div class="tool-card-icon">
-                                <img src="{{ asset('icons/email.png') }}" alt="Email Writer Icon"> {{-- Image src left blank for you to fill --}}
-                            </div>
-                            <div class="tool-card-text">
-                                <h5>Email Writer</h5>
-                                <p>Helps draft clear, professional emails for any occasion or purpose.</p>
-                            </div>
-                        </div>
-                    </div>
-                </a>
-
-                <a href="http://192.168.50.123:5001/explanations" target="_blank" class="tool-card-link">
-                    <div class="tool-card">
-                        <div class="tool-card-content">
-                            <div class="tool-card-icon">
-                                <img src="{{ asset('icons/multiple.png') }}" alt="Multiple Explanations Icon">
-                                {{-- Image src left blank for you to fill --}}
-                            </div>
-                            <div class="tool-card-text">
-                                <h5>Multiple Explanations Generator</h5>
-                                <p>Provides different ways to explain and supporting diverse learning styles.</p>
-                            </div>
-                        </div>
-                    </div>
-                </a>
-
-                <a href="http://127.0.0.1:5004/generate-joke" target="_blank" class="tool-card-link">
-                    <div class="tool-card">
-                        <div class="tool-card-content">
-                            <div class="tool-card-icon">
-                                <img src="{{ asset('icons/teacherjoke.png') }}" alt="Teacher Jokes Icon">
-                                {{-- Image src left blank for you to fill --}}
-                            </div>
-                            <div class="tool-card-text">
-                                <h5>Teacher Jokes</h5>
-                                <p>Generates classroom-friendly jokes to lighten the mood and bring smiles to learning.</p>
-                            </div>
-                        </div>
-                    </div>
-                </a>
-
-                <a href="http://127.0.0.1:8001/generate-thankyou" target="_blank" class="tool-card-link">
-                    <div class="tool-card">
-                        <div class="tool-card-content">
-                            <div class="tool-card-icon">
-                                <img src="{{ asset('icons/ty.png') }}" alt="Thank You Note Icon"> {{-- Image src left blank for you to fill --}}
-                            </div>
-                            <div class="tool-card-text">
-                                <h5>Thank You Note</h5>
-                                <p>Crafts short, heartfelt messages to show appreciation for any occasion.</p>
-                            </div>
-                        </div>
-                    </div>
-                </a>
-
-                <a href="http://127.0.0.1:5002/generate-tongue-twister" target="_blank" class="tool-card-link">
-                    <div class="tool-card">
-                        <div class="tool-card-content">
-                            <div class="tool-card-icon">
-                                <img src="{{ asset('icons/tonguetwister.png') }}" alt="Tongue Twisters Icon">
-                                {{-- Image src left blank for you to fill --}}
-                            </div>
-                            <div class="tool-card-text">
-                                <h5>Tongue Twisters</h5>
-                                <p>Creates fun and tricky phrases to challenge speech and boost pronunciation skills.</p>
-                            </div>
-                        </div>
-                    </div>
-                </a>
-
-                <a href="http://127.0.0.1:5001/5questions" target="_blank" class="tool-card-link">
-                    <div class="tool-card">
-                        <div class="tool-card-content">
-                            <div class="tool-card-icon">
-                                <img src="{{ asset('icons/quote.png') }}" alt="Quote of the Day Icon">
-                                {{-- Image src left blank for you to fill --}}
-                            </div>
-                            <div class="tool-card-text">
-                                <h5>Quote of the Day</h5>
-                                <p>Generate an inspiring or thoughtful quote to spark reflection and motivation.</p>
-                            </div>
-                        </div>
-                    </div>
-                </a>
-
-                <a href="http://192.168.50.123:5001/responder" target="_blank" class="tool-card-link">
-                    <div class="tool-card">
-                        <div class="tool-card-content">
-                            <div class="tool-card-icon">
-                                <img src="{{ asset('icons/responder.png') }}" alt="Email ResponderIcon">
-                            </div>
-                            <div class="tool-card-text">
-                                <h5>Email Responder</h5>
-                                <p>Generate a professional response based on a received email and your intended message.</p>
-                            </div>
-                        </div>
-                    </div>
-                </a>
-
-                <a href="http://127.0.0.1:5001/makeitrelevant" target="_blank" class="tool-card-link">
-                    <div class="tool-card">
-                        <div class="tool-card-content">
-                            <div class="tool-card-icon">
-                                <img src="{{ asset('icons/relevant.png') }}" alt="Make It Relevant Icon">
-                            </div>
-                            <div class="tool-card-text">
-                                <h5>Make It Relevant!</h5>
-                                <p>Generate ideas that make a topic relevant to your class based on their interests and
-                                    background.</p>
-                            </div>
-                        </div>
-                    </div>
-                </a>
-
-                <a href="http://192.168.50.144:5001/chatwithdocs" target="_blank" class="tool-card-link">
-                    <div class="tool-card">
-                        <div class="tool-card-content">
-                            <div class="tool-card-icon">
-                                <img src="{{ asset('icons/docs.png') }}" alt="Chat with Docs Icon">
-                            </div>
-                            <div class="tool-card-text">
-                                <h5>Chat with Docs</h5>
-                                <p>Upload a document and have an AI-powered chat with it.</p>
-                            </div>
-                        </div>
-                    </div>
-                </a>
-
-                <a href="http://127.0.0.1:5001/mathreview" target="_blank" class="tool-card-link">
-                    <div class="tool-card">
-                        <div class="tool-card-content">
-                            <div class="tool-card-icon">
-                                <img src="{{ asset('icons/math.png') }}" alt="Math Review Icon">
-                            </div>
-                            <div class="tool-card-text">
-                                <h5>Math Review</h5>
-                                <p>Generate review questions to improve your math skills and understanding.</p>
-                            </div>
-                        </div>
-                    </div>
-                </a>
-
-                <a href="http://127.0.0.1:5001/mathreview" target="_blank" class="tool-card-link">
-                    <div class="tool-card">
-                        <div class="tool-card-content">
-                            <div class="tool-card-icon">
-                                <img src="{{ asset('icons/chatbot.png') }}" alt="Chatbot Icon">
-                            </div>
-                            <div class="tool-card-text">
-                                <h5>Character Chatbot</h5>
-                                <p>Chat with any historic figure, author, or recognizable character from a story.</p>
-                            </div>
-                        </div>
-                    </div>
-                </a>
-
-                <a href="http://127.0.0.1:5001/mathreview" target="_blank" class="tool-card-link">
-                    <div class="tool-card">
-                        <div class="tool-card-content">
-                            <div class="tool-card-icon">
-                                <img src="{{ asset('icons/idea.png') }}" alt="Idea Generator Icon">
-                            </div>
-                            <div class="tool-card-text">
-                                <h5>Idea Generator</h5>
-                                <p>Use AI as a thought partner to generate ideas on any topic.</p>
-                            </div>
-                        </div>
-                    </div>
-                </a>
-
-                <a href="http://127.0.0.1:5001/mathreview" target="_blank" class="tool-card-link">
-                    <div class="tool-card">
-                        <div class="tool-card-content">
-                            <div class="tool-card-icon">
-                                <img src="{{ asset('icons/content.png') }}" alt="Content Creator Icon">
-                            </div>
-                            <div class="tool-card-text">
-                                <h5>Content Creator</h5>
-                                <p>Generate academic content to help you learn.</p>
-                            </div>
-                        </div>
-                    </div>
-                </a>
-
-                <a href="http://127.0.0.1:5001/mathreview" target="_blank" class="tool-card-link">
-                    <div class="tool-card">
-                        <div class="tool-card-content">
-                            <div class="tool-card-icon">
-                                <img src="{{ asset('icons/stories.png') }}" alt="Social Stories Icon">
-                            </div>
-                            <div class="tool-card-text">
-                                <h5>Social Stories</h5>
-                                <p>Generate a social story about a particular event to help a student understand what to
-                                    expect in that situation.</p>
-                            </div>
-                        </div>
-                    </div>
-                </a>
-
-            </div>
+        <div class="favorites-section" id="favoritesSection" style="display: none;">
+            <h2>⭐ Your Favorite Tools</h2>
+            <div class="favorites-grid" id="favoritesGrid">
+                </div>
         </div>
-    </div>
+
+        <div class="tool-grid" id="allToolsGrid">
+            {{-- Text Leveler --}}
+            <a href="http://192.168.50.144:8000/leveler" target="_blank" class="tool-card-link" data-tool-id="text-leveler">
+                <div class="tool-card">
+                    <span class="tool-card-favorite" data-tool-id="text-leveler"><i class="fas fa-star"></i></span>
+                    <div class="tool-card-content">
+                        <div class="tool-card-icon">
+                            <img src="{{ asset('icons/text leveler.png') }}" alt="Text Leveler Icon">
+                        </div>
+                        <div class="tool-card-text">
+                            <h5>Text Leveler</h5>
+                            <p>Adjust text difficulty to match your reading level and comprehension needs.</p>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+            {{-- Text Summarizer --}}
+            <a href="http://127.0.0.1:5001/summarize" target="_blank" class="tool-card-link" data-tool-id="text-summarizer">
+                <div class="tool-card">
+                    <span class="tool-card-favorite" data-tool-id="text-summarizer"><i class="fas fa-star"></i></span>
+                    <div class="tool-card-content">
+                        <div class="tool-card-icon">
+                            <img src="{{ asset('icons/summarizer.png') }}" alt="Text Summarizer Icon">
+                        </div>
+                        <div class="tool-card-text">
+                            <h5>Text Summarizer</h5>
+                            <p>Simplify long text into concise, easy-to-understand summaries.</p>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+            {{-- Conceptual Understanding --}}
+            <a href="https://tse4.mm.bing.net/th/id/OIP.eEW3EGenj4Djze7zv31PKAHaLG?rs=1&pid=ImgDetMain&o=7&rm=3"
+                target="_blank" class="tool-card-link" data-tool-id="conceptual-understanding">
+                <div class="tool-card">
+                    <span class="tool-card-favorite" data-tool-id="conceptual-understanding"><i class="fas fa-star"></i></span>
+                    <div class="tool-card-content">
+                        <div class="tool-card-icon">
+                            <img src="{{ asset('icons/conceptual.png') }}" alt="Conceptual Understanding Icon">
+                        </div>
+                        <div class="tool-card-text">
+                            <h5>Conceptual Understanding</h5>
+                            <p>Get writing feedback on grammar, structure, and clarity to build stronger writing skills.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+            {{-- Text Rewriter --}}
+            <a href="https://tse4.mm.bing.net/th/id/OIP.eEW3EGenj4Djze7zv31PKAHaLG?rs=1&pid=ImgDetMain&o=7&rm=3"
+                target="_blank" class="tool-card-link" data-tool-id="text-rewriter">
+                <div class="tool-card">
+                    <span class="tool-card-favorite" data-tool-id="text-rewriter"><i class="fas fa-star"></i></span>
+                    <div class="tool-card-content">
+                        <div class="tool-card-icon">
+                            <img src="{{ asset('icons/text rewritter.png') }}" alt="Text Rewriter Icon">
+                        </div>
+                        <div class="tool-card-text">
+                            <h5>Text Rewriter</h5>
+                            <p>Rephrase sentences to enhance expression and explore new ways of writing.</p>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+            {{-- Text Proofreader --}}
+            <a href="http://192.168.50.18:5001/proofreader" target="_blank" class="tool-card-link" data-tool-id="text-proofreader">
+                <div class="tool-card">
+                    <span class="tool-card-favorite" data-tool-id="text-proofreader"><i class="fas fa-star"></i></span>
+                    <div class="tool-card-content">
+                        <div class="tool-card-icon">
+                            <img src="{{ asset('icons/proofreader.png') }}" alt="Text Proofreader Icon">
+                        </div>
+                        <div class="tool-card-text">
+                            <h5>Text Proofreader</h5>
+                            <p>Automatically catch and correct grammar, spelling, and punctuation errors.</p>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+            {{-- Quiz Me! --}}
+            <a href="http://127.0.0.1:5001/generate-quiz" target="_blank" class="tool-card-link" data-tool-id="quiz-me">
+                <div class="tool-card">
+                    <span class="tool-card-favorite" data-tool-id="quiz-me"><i class="fas fa-star"></i></span>
+                    <div class="tool-card-content">
+                        <div class="tool-card-icon">
+                            <img src="{{ asset('icons/quizme.png') }}" alt="Quiz Me! Icon">
+                        </div>
+                        <div class="tool-card-text">
+                            <h5>Quiz Me!</h5>
+                            <p>Asks questions to test knowledge and boost learning in a fun way.</p>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+            {{-- Text Scaffolder --}}
+            <a href="http://192.168.50.123:5001/scaffolder" target="_blank" class="tool-card-link" data-tool-id="text-scaffolder">
+                <div class="tool-card">
+                    <span class="tool-card-favorite" data-tool-id="text-scaffolder"><i class="fas fa-star"></i></span>
+                    <div class="tool-card-content">
+                        <div class="tool-card-icon">
+                            <img src="{{ asset('icons/text scaff.png') }}" alt="Text Scaffolder Icon">
+                        </div>
+                        <div class="tool-card-text">
+                            <h5>Text Scaffolder</h5>
+                            <p>Scaffold any text for better comprehension.</p>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+            {{-- Informational Text --}}
+            <a href="http://192.168.50.144:5001/informational" target="_blank" class="tool-card-link" data-tool-id="informational-text">
+                <div class="tool-card">
+                    <span class="tool-card-favorite" data-tool-id="informational-text"><i class="fas fa-star"></i></span>
+                    <div class="tool-card-content">
+                        <div class="tool-card-icon">
+                            <img src="{{ asset('icons/infotext.png') }}" alt="Informational Text Icon">
+                        </div>
+                        <div class="tool-card-text">
+                            <h5>Informational Text</h5>
+                            <p>Create original texts on any topic for your class.</p>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+            {{-- Step by Step --}}
+            <a href="http://127.0.0.1:5001/step-tutor" target="_blank" class="tool-card-link" data-tool-id="step-by-step">
+                <div class="tool-card">
+                    <span class="tool-card-favorite" data-tool-id="step-by-step"><i class="fas fa-star"></i></span>
+                    <div class="tool-card-content">
+                        <div class="tool-card-icon">
+                            <img src="{{ asset('icons/stepbystep.png') }}" alt="Step by Step Icon">
+                        </div>
+                        <div class="tool-card-text">
+                            <h5>Step by Step</h5>
+                            <p>Get guided instructions for any task or subject.</p>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+            {{-- Five Questions --}}
+            <a href="http://127.0.0.1:5001/5questions" target="_blank" class="tool-card-link" data-tool-id="five-questions">
+                <div class="tool-card">
+                    <span class="tool-card-favorite" data-tool-id="five-questions"><i class="fas fa-star"></i></span>
+                    <div class="tool-card-content">
+                        <div class="tool-card-icon">
+                            <img src="{{ asset('icons/five.png') }}" alt="Five Questions Icon">
+                        </div>
+                        <div class="tool-card-text">
+                            <h5>Five Questions</h5>
+                            <p>Use AI to challenge your thinking with 5 custom questions.</p>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+            {{-- Real World Connections --}}
+            <a href="https://tse4.mm.bing.net/th/id/OIP.eEW3EGenj4Djze7zv31PKAHaLG?rs=1&pid=ImgDetMain&o=7&rm=3"
+                target="_blank" class="tool-card-link" data-tool-id="real-world-connections">
+                <div class="tool-card">
+                    <span class="tool-card-favorite" data-tool-id="real-world-connections"><i class="fas fa-star"></i></span>
+                    <div class="tool-card-content">
+                        <div class="tool-card-icon">
+                            <img src="{{ asset('icons/realworld.png') }}" alt="Real World Connections Icon">
+                        </div>
+                        <div class="tool-card-text">
+                            <h5>Real World Connections</h5>
+                            <p>Generate real world examples for what you're learning about!</p>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+            {{-- Study Habits --}}
+            <a href="http://127.0.0.1:5001/studyhabits" target="_blank" class="tool-card-link" data-tool-id="study-habits">
+                <div class="tool-card">
+                    <span class="tool-card-favorite" data-tool-id="study-habits"><i class="fas fa-star"></i></span>
+                    <div class="tool-card-content">
+                        <div class="tool-card-icon">
+                            <img src="{{ asset('icons/studyhabits.png') }}" alt="Study Habits Icon">
+                        </div>
+                        <div class="tool-card-text">
+                            <h5>Study Habits</h5>
+                            <p>Get a plan and study tips to prepare for any test, assignment, or project.</p>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+            {{-- Text Translator --}}
+            <a href="https://tse4.mm.bing.net/th/id/OIP.eEW3EGenj4Djze7zv31PKAHaLG?rs=1&pid=ImgDetMain&o=7&rm=3"
+                target="_blank" class="tool-card-link" data-tool-id="text-translator">
+                <div class="tool-card">
+                    <span class="tool-card-favorite" data-tool-id="text-translator"><i class="fas fa-star"></i></span>
+                    <div class="tool-card-content">
+                        <div class="tool-card-icon">
+                            <img src="{{ asset('icons/text translator.png') }}" alt="Text Translator Icon">
+                        </div>
+                        <div class="tool-card-text">
+                            <h5>Text Translator</h5>
+                            <p>Translate any text or uploaded document into any language.</p>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+            {{-- Sentence Starters --}}
+            <a href="https://tse4.mm.bing.net/th/id/OIP.eEW3EGenj4Djze7zv31PKAHaLG?rs=1&pid=ImgDetMain&o=7&rm=3"
+                target="_blank" class="tool-card-link" data-tool-id="sentence-starters">
+                <div class="tool-card">
+                    <span class="tool-card-favorite" data-tool-id="sentence-starters"><i class="fas fa-star"></i></span>
+                    <div class="tool-card-content">
+                        <div class="tool-card-icon">
+                            <img src="{{ asset('icons/sentencestarter.png') }}" alt="Sentence Starters Icon">
+                        </div>
+                        <div class="tool-card-text">
+                            <h5>Sentence Starters</h5>
+                            <p>Get ideas to help you get started with writing on any topic.</p>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+            {{-- Assignment Scaffolder --}}
+            <a href="http://192.168.50.123:5001/assignmentscaffolder" target="_blank" class="tool-card-link" data-tool-id="assignment-scaffolder">
+                <div class="tool-card">
+                    <span class="tool-card-favorite" data-tool-id="assignment-scaffolder"><i class="fas fa-star"></i></span>
+                    <div class="tool-card-content">
+                        <div class="tool-card-icon">
+                            <img src="{{ asset('icons/scaff.png') }}" alt="Assignment Scaffolder Icon">
+                        </div>
+                        <div class="tool-card-text">
+                            <h5>Assignment Scaffolder</h5>
+                            <p>Helps break down assignments into easy, step-by-step parts for better planning and
+                                progress.</p>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+            {{-- Coach’s Sports Practice --}}
+            <a href="http://127.0.0.1:5001/5questions" target="_blank" class="tool-card-link" data-tool-id="coachs-sports-practice">
+                <div class="tool-card">
+                    <span class="tool-card-favorite" data-tool-id="coachs-sports-practice"><i class="fas fa-star"></i></span>
+                    <div class="tool-card-content">
+                        <div class="tool-card-icon">
+                            <img src="{{ asset('icons/coachsports.png') }}" alt="Coach’s Sports Practice Icon">
+                        </div>
+                        <div class="tool-card-text">
+                            <h5>Coach’s Sports Practice</h5>
+                            <p>Leads fun drills to build athletic skills and teamwork.</p>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+            {{-- Email Writer --}}
+            <a href="http://127.0.0.1:5001/5questions" target="_blank" class="tool-card-link" data-tool-id="email-writer">
+                <div class="tool-card">
+                    <span class="tool-card-favorite" data-tool-id="email-writer"><i class="fas fa-star"></i></span>
+                    <div class="tool-card-content">
+                        <div class="tool-card-icon">
+                            <img src="{{ asset('icons/email.png') }}" alt="Email Writer Icon">
+                        </div>
+                        <div class="tool-card-text">
+                            <h5>Email Writer</h5>
+                            <p>Helps draft clear, professional emails for any occasion or purpose.</p>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+            {{-- Multiple Explanations Generator --}}
+            <a href="http://192.168.50.123:5001/explanations" target="_blank" class="tool-card-link" data-tool-id="multiple-explanations-generator">
+                <div class="tool-card">
+                    <span class="tool-card-favorite" data-tool-id="multiple-explanations-generator"><i class="fas fa-star"></i></span>
+                    <div class="tool-card-content">
+                        <div class="tool-card-icon">
+                            <img src="{{ asset('icons/multiple.png') }}" alt="Multiple Explanations Icon">
+                        </div>
+                        <div class="tool-card-text">
+                            <h5>Multiple Explanations Generator</h5>
+                            <p>Provides different ways to explain and supporting diverse learning styles.</p>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+            {{-- Teacher Jokes --}}
+            <a href="http://127.0.0.1:5004/generate-joke" target="_blank" class="tool-card-link" data-tool-id="teacher-jokes">
+                <div class="tool-card">
+                    <span class="tool-card-favorite" data-tool-id="teacher-jokes"><i class="fas fa-star"></i></span>
+                    <div class="tool-card-content">
+                        <div class="tool-card-icon">
+                            <img src="{{ asset('icons/teacherjoke.png') }}" alt="Teacher Jokes Icon">
+                        </div>
+                        <div class="tool-card-text">
+                            <h5>Teacher Jokes</h5>
+                            <p>Generates classroom-friendly jokes to lighten the mood and bring smiles to learning.</p>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+            {{-- Thank You Note --}}
+            <a href="http://127.0.0.1:8001/generate-thankyou" target="_blank" class="tool-card-link" data-tool-id="thank-you-note">
+                <div class="tool-card">
+                    <span class="tool-card-favorite" data-tool-id="thank-you-note"><i class="fas fa-star"></i></span>
+                    <div class="tool-card-content">
+                        <div class="tool-card-icon">
+                            <img src="{{ asset('icons/ty.png') }}" alt="Thank You Note Icon">
+                        </div>
+                        <div class="tool-card-text">
+                            <h5>Thank You Note</h5>
+                            <p>Crafts short, heartfelt messages to show appreciation for any occasion.</p>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+            {{-- Tongue Twisters --}}
+            <a href="http://127.0.0.1:5002/generate-tongue-twister" target="_blank" class="tool-card-link" data-tool-id="tongue-twisters">
+                <div class="tool-card">
+                    <span class="tool-card-favorite" data-tool-id="tongue-twisters"><i class="fas fa-star"></i></span>
+                    <div class="tool-card-content">
+                        <div class="tool-card-icon">
+                            <img src="{{ asset('icons/tonguetwister.png') }}" alt="Tongue Twisters Icon">
+                        </div>
+                        <div class="tool-card-text">
+                            <h5>Tongue Twisters</h5>
+                            <p>Creates fun and tricky phrases to challenge speech and boost pronunciation skills.</p>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+            {{-- Quote of the Day --}}
+            <a href="http://127.0.0.1:5001/5questions" target="_blank" class="tool-card-link" data-tool-id="quote-of-the-day">
+                <div class="tool-card">
+                    <span class="tool-card-favorite" data-tool-id="quote-of-the-day"><i class="fas fa-star"></i></span>
+                    <div class="tool-card-content">
+                        <div class="tool-card-icon">
+                            <img src="{{ asset('icons/quote.png') }}" alt="Quote of the Day Icon">
+                        </div>
+                        <div class="tool-card-text">
+                            <h5>Quote of the Day</h5>
+                            <p>Generate an inspiring or thoughtful quote to spark reflection and motivation.</p>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+            {{-- Email Responder --}}
+            <a href="http://192.168.50.123:5001/responder" target="_blank" class="tool-card-link" data-tool-id="email-responder">
+                <div class="tool-card">
+                    <span class="tool-card-favorite" data-tool-id="email-responder"><i class="fas fa-star"></i></span>
+                    <div class="tool-card-content">
+                        <div class="tool-card-icon">
+                            <img src="{{ asset('icons/responder.png') }}" alt="Email ResponderIcon">
+                        </div>
+                        <div class="tool-card-text">
+                            <h5>Email Responder</h5>
+                            <p>Generate a professional response based on a received email and your intended message.</p>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+            {{-- Make It Relevant! --}}
+            <a href="http://127.0.0.1:5001/makeitrelevant" target="_blank" class="tool-card-link" data-tool-id="make-it-relevant">
+                <div class="tool-card">
+                    <span class="tool-card-favorite" data-tool-id="make-it-relevant"><i class="fas fa-star"></i></span>
+                    <div class="tool-card-content">
+                        <div class="tool-card-icon">
+                            <img src="{{ asset('icons/relevant.png') }}" alt="Make It Relevant Icon">
+                        </div>
+                        <div class="tool-card-text">
+                            <h5>Make It Relevant!</h5>
+                            <p>Generate ideas that make a topic relevant to your class based on their interests and
+                                background.</p>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+            {{-- Chat with Docs --}}
+            <a href="http://192.168.50.144:5001/chatwithdocs" target="_blank" class="tool-card-link" data-tool-id="chat-with-docs">
+                <div class="tool-card">
+                    <span class="tool-card-favorite" data-tool-id="chat-with-docs"><i class="fas fa-star"></i></span>
+                    <div class="tool-card-content">
+                        <div class="tool-card-icon">
+                            <img src="{{ asset('icons/docs.png') }}" alt="Chat with Docs Icon">
+                        </div>
+                        <div class="tool-card-text">
+                            <h5>Chat with Docs</h5>
+                            <p>Upload a document and have an AI-powered chat with it.</p>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+            {{-- Math Review --}}
+            <a href="http://127.0.0.1:5001/mathreview" target="_blank" class="tool-card-link" data-tool-id="math-review">
+                <div class="tool-card">
+                    <span class="tool-card-favorite" data-tool-id="math-review"><i class="fas fa-star"></i></span>
+                    <div class="tool-card-content">
+                        <div class="tool-card-icon">
+                            <img src="{{ asset('icons/math.png') }}" alt="Math Review Icon">
+                        </div>
+                        <div class="tool-card-text">
+                            <h5>Math Review</h5>
+                            <p>Generate review questions to improve your math skills and understanding.</p>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+            {{-- Character Chatbot --}}
+            <a href="http://127.0.0.1:5001/mathreview" target="_blank" class="tool-card-link" data-tool-id="character-chatbot">
+                <div class="tool-card">
+                    <span class="tool-card-favorite" data-tool-id="character-chatbot"><i class="fas fa-star"></i></span>
+                    <div class="tool-card-content">
+                        <div class="tool-card-icon">
+                            <img src="{{ asset('icons/chatbot.png') }}" alt="Chatbot Icon">
+                        </div>
+                        <div class="tool-card-text">
+                            <h5>Character Chatbot</h5>
+                            <p>Chat with any historic figure, author, or recognizable character from a story.</p>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+            {{-- Idea Generator --}}
+            <a href="http://127.0.0.1:5001/mathreview" target="_blank" class="tool-card-link" data-tool-id="idea-generator">
+                <div class="tool-card">
+                    <span class="tool-card-favorite" data-tool-id="idea-generator"><i class="fas fa-star"></i></span>
+                    <div class="tool-card-content">
+                        <div class="tool-card-icon">
+                            <img src="{{ asset('icons/idea.png') }}" alt="Idea Generator Icon">
+                        </div>
+                        <div class="tool-card-text">
+                            <h5>Idea Generator</h5>
+                            <p>Use AI as a thought partner to generate ideas on any topic.</p>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+            {{-- Content Creator --}}
+            <a href="http://127.0.0.1:5001/mathreview" target="_blank" class="tool-card-link" data-tool-id="content-creator">
+                <div class="tool-card">
+                    <span class="tool-card-favorite" data-tool-id="content-creator"><i class="fas fa-star"></i></span>
+                    <div class="tool-card-content">
+                        <div class="tool-card-icon">
+                            <img src="{{ asset('icons/content.png') }}" alt="Content Creator Icon">
+                        </div>
+                        <div class="tool-card-text">
+                            <h5>Content Creator</h5>
+                            <p>Generate academic content to help you learn.</p>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+            {{-- Social Stories --}}
+            <a href="http://127.0.0.1:5001/mathreview" target="_blank" class="tool-card-link" data-tool-id="social-stories">
+                <div class="tool-card">
+                    <span class="tool-card-favorite" data-tool-id="social-stories"><i class="fas fa-star"></i></span>
+                    <div class="tool-card-content">
+                        <div class="tool-card-icon">
+                            <img src="{{ asset('icons/stories.png') }}" alt="Social Stories Icon">
+                        </div>
+                        <div class="tool-card-text">
+                            <h5>Social Stories</h5>
+                            <p>Generate a social story about a particular event to help a student understand what to
+                                expect in that situation.</p>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+        </div>
     </div>
 
     <script>
-        document.getElementById('toolSearch').addEventListener('input', function() {
-            const query = this.value.toLowerCase();
-            const cards = document.querySelectorAll('.tool-card-link');
-            cards.forEach(link => {
-                const text = link.innerText.toLowerCase();
-                link.style.display = text.includes(query) ? 'block' : 'none';
+        document.addEventListener('DOMContentLoaded', function() {
+            const toolSearch = document.getElementById('toolSearch');
+            const allToolsGrid = document.getElementById('allToolsGrid');
+            const favoritesGrid = document.getElementById('favoritesGrid');
+            const favoritesSection = document.getElementById('favoritesSection');
+            const toolCards = document.querySelectorAll('.tool-card-link');
+            const favoriteButtons = document.querySelectorAll('.tool-card-favorite');
+
+            let favoritedTools = JSON.parse(localStorage.getItem('favoritedTools')) || [];
+
+            // Function to render favorites
+            function renderFavorites() {
+                favoritesGrid.innerHTML = ''; // Clear current favorites
+                if (favoritedTools.length > 0) {
+                    favoritesSection.style.display = 'block';
+                    favoritedTools.forEach(toolId => {
+                        const originalCard = document.querySelector(`.tool-card-link[data-tool-id="${toolId}"]`);
+                        if (originalCard) {
+                            const clonedCard = originalCard.cloneNode(true);
+                            const favoriteButton = clonedCard.querySelector('.tool-card-favorite');
+                            favoriteButton.classList.add('favorited');
+                            // Reattach event listener to the cloned favorite button
+                            favoriteButton.addEventListener('click', handleFavoriteClick);
+                            favoritesGrid.appendChild(clonedCard);
+                        }
+                    });
+                } else {
+                    favoritesSection.style.display = 'none';
+                }
+            }
+
+            // Function to update star icons on all cards
+            function updateAllStarIcons() {
+                favoriteButtons.forEach(button => {
+                    const toolId = button.dataset.toolId;
+                    button.classList.toggle('favorited', favoritedTools.includes(toolId));
+                });
+                // Update favorite buttons in favorites grid as well
+                const favoriteGridButtons = favoritesGrid.querySelectorAll('.tool-card-favorite');
+                favoriteGridButtons.forEach(button => {
+                    const toolId = button.dataset.toolId;
+                    button.classList.toggle('favorited', favoritedTools.includes(toolId));
+                });
+            }
+
+            // Handle favorite button click
+            function handleFavoriteClick(event) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                const button = event.currentTarget;
+                const toolId = button.dataset.toolId;
+                const isFavorited = favoritedTools.includes(toolId);
+
+                if (isFavorited) {
+                    // Remove from favorites
+                    favoritedTools = favoritedTools.filter(id => id !== toolId);
+                } else {
+                    // Add to favorites
+                    if (!favoritedTools.includes(toolId)) {
+                        favoritedTools.unshift(toolId);
+                    }
+                }
+
+                localStorage.setItem('favoritedTools', JSON.stringify(favoritedTools));
+                renderFavorites();
+                updateAllStarIcons();
+            }
+
+            // Initial render and star icon update
+            renderFavorites();
+            updateAllStarIcons();
+
+            // Attach event listeners to favorite buttons
+            favoriteButtons.forEach(button => {
+                button.addEventListener('click', handleFavoriteClick);
+            });
+
+            // Search functionality
+            toolSearch.addEventListener('input', function() {
+                const query = this.value.toLowerCase();
+                toolCards.forEach(link => {
+                    const text = link.innerText.toLowerCase();
+                    link.style.display = text.includes(query) ? 'block' : 'none';
+                });
+            });
+
+            // Prevent favorite button clicks from triggering link navigation
+            favoriteButtons.forEach(button => {
+                button.addEventListener('click', function(event) {
+                    event.stopPropagation();
+                });
             });
         });
     </script>

@@ -2,10 +2,16 @@
 <html lang="en">
 
 <head>
+    
     <meta charset="utf-8">
     <title>AI Tutor</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
+
+    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
+
+
+    
     <!-- Bootstrap 5 CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>

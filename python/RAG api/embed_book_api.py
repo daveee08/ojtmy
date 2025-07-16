@@ -5,16 +5,14 @@ from transformers import AutoTokenizer
 from sentence_transformers import SentenceTransformer
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, Response
-
+from utils.pdf_utils import extract_chapter_page_map, parse_chapter, get_page_range, chunk_texts, build_faiss_index
+from utils.db_utils import insert_book, insert_chapter, insert_chunk, get_connection
 import faiss, os, mysql.connector, requests
 import numpy as np
 import re
 import tempfile
-# from query_api import router as query_router
 from pydantic import BaseModel
 import fitz
-
-
 
 app = FastAPI()
 
@@ -38,50 +36,6 @@ os.makedirs("faiss_index", exist_ok=True)
 tokenizer = AutoTokenizer.from_pretrained(TOKENIZER)
 embedder = SentenceTransformer(EMBED_MODEL)
 
-# --- DB Connection ---
-def get_connection():
-    return mysql.connector.connect(**DB)
-
-# --- Insert book metadata ---
-def insert_book(title, source, original_filename, faiss_path,  grade_level, desc):
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("""
-        INSERT INTO books (title, source, original_filename, faiss_index_path, description, grade_level)
-        VALUES (%s, %s, %s, %s, %s, %s)
-    """, (title, source, original_filename, faiss_path, desc, grade_level))
-    conn.commit()
-    book_id = cursor.lastrowid
-    cursor.close()
-    conn.close()
-    return book_id
-
-# --- Insert chapter metadata ---
-def insert_chapter(book_id, chapter_number, chapter_title, start_page=None, end_page=None):
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("""
-        INSERT INTO chapters (book_id, chapter_number, chapter_title, start_page, end_page)
-        VALUES (%s, %s, %s, %s, %s)
-    """, (book_id, chapter_number, chapter_title, start_page, end_page))
-    conn.commit()
-    chapter_id = cursor.lastrowid
-    cursor.close()
-    conn.close()
-    return chapter_id
-
-# --- Insert chunk content ---
-def insert_chunk(book_id, chapter_id, global_faiss_id, text):
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("""
-        INSERT INTO chunks (book_id, chapter_id, global_faiss_id, text)
-        VALUES (%s, %s, %s, %s)
-    """, (book_id, chapter_id, global_faiss_id, text))
-    conn.commit()
-    cursor.close()
-    conn.close()
-
 # --- Main Endpoint ---
 @app.post("/chunk-and-embed/")
 async def chunk_pdf(
@@ -91,94 +45,56 @@ async def chunk_pdf(
     source: str = Form(None),
     grade_lvl: str = Form(None)):
 
-
     try:
-        # Save temp file
+        # Step 1: Save uploaded PDF
         with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
             tmp.write(await file.read())
             tmp_path = tmp.name
 
-        # Convert PDF
+        # Step 2: Convert to markdown
         doc = DocumentConverter().convert(tmp_path)
         markdown = doc.document.export_to_markdown()
-        filename_no_ext = os.path.splitext(file.filename)[0]
+        filename_no_ext = title or os.path.splitext(file.filename)[0]
         faiss_path = f"faiss_index/{filename_no_ext}.faiss"
 
-        # Extract chapter page ranges from provenance
-        chapter_page_map = {}
-        current_chapter = None
+        # Step 3: Map chapters to page numbers
+        chapter_page_map = extract_chapter_page_map(doc)
 
-        for item in doc.document.texts:
-            heading = item.text.strip() if item.text else ""
-            page_nos = {prov.page_no for prov in item.prov}
+        # Step 4: Insert book into DB
+        book_id = insert_book(filename_no_ext, source, file.filename, faiss_path, grade_level=grade_lvl, desc=desc)
 
-            match = re.match(r"^Chapter (\d+):", heading, re.IGNORECASE)
-            if match:
-                current_chapter = int(match.group(1))
-                chapter_page_map.setdefault(current_chapter, set()).update(page_nos)
-            elif current_chapter is not None:
-                # Continue collecting pages for the current chapter
-                chapter_page_map[current_chapter].update(page_nos)
-
-        # Split by chapter in Markdown
+        # Step 5: Split by chapters and process
+        texts, records = [], []
         chapters = re.split(r"(?=^## Chapter \d+:)", markdown, flags=re.MULTILINE)
-
-        records = []
-        texts = []
         global_id = 0
-        chapter_map = {}
 
-        if title:
-            filename_no_ext = title
-
-        # Insert book metadata first
-        book_id = insert_book(filename_no_ext, source,file.filename, faiss_path, grade_level=grade_lvl,desc=desc)
+        seen_chapters = set()
 
         for chapter in chapters:
-            match = re.match(r"^## Chapter (\d+):\s*(.+)", chapter.strip(), re.IGNORECASE)
-            if not match:
+            parsed = parse_chapter(chapter)
+            if not parsed:
                 continue
+            chapter_number, chapter_title, content = parsed
 
-            chapter_number = int(match.group(1))
-            chapter_title = match.group(2)
-            content = "\n".join(chapter.strip().splitlines()[1:]).strip()
-            sentences = re.split(r'\n\s*\n', content)
+            if chapter_number in seen_chapters:
+                continue
+            seen_chapters.add(chapter_number)
 
-            # Get page start and end
-            pages = sorted(chapter_page_map.get(chapter_number, []))
-            page_start = pages[0] if pages else None
-            page_end = pages[-1] if pages else None
+            chapter_id = insert_chapter(
+                book_id, chapter_number, chapter_title,
+                *chapter_page_map.get(chapter_number, (None, None))
+            )
 
-            chapter_id = insert_chapter(book_id, chapter_number, chapter_title, page_start, page_end)
-            chapter_map[chapter_number] = chapter_id
+            # Chunk and tokenize
+            chapter_records, chapter_texts, global_id = chunk_texts(content, chapter_id, book_id, global_id, tokenizer)
+            records.extend(chapter_records)
+            texts.extend(chapter_texts)
 
-            buffer = ""
-            for sentence in sentences:
-                candidate = buffer + "\n\n" + sentence if buffer else sentence
-                token_count = len(tokenizer.tokenize(candidate))
+        # Step 6: Create FAISS index
+        index = build_faiss_index(texts, faiss_path, embedder)
 
-                if token_count <= 512:
-                    buffer = candidate
-                else:
-                    texts.append(buffer)
-                    records.append((global_id, chapter_id, book_id, buffer))
-                    global_id += 1
-                    buffer = sentence
-
-            if buffer.strip():
-                texts.append(buffer.strip())
-                records.append((global_id, chapter_id, book_id, buffer.strip()))
-                global_id += 1
-
-        # Create FAISS index
-        embeddings = embedder.encode(texts, convert_to_numpy=True).astype("float32")
-        index = faiss.IndexFlatL2(embeddings.shape[1])
-        index.add(embeddings)
-        faiss.write_index(index, faiss_path)
-
-        # Insert chunks
-        for rec in records:
-            global_faiss_id, chapter_id, book_id, text = rec
+        # Step 7: Store chunks in DB
+        for global_faiss_id, chapter_id, book_id, text in records:
             insert_chunk(book_id, chapter_id, global_faiss_id, text)
 
         return {
@@ -191,12 +107,6 @@ async def chunk_pdf(
 
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
-
-# class QueryRequest(BaseModel):
-#     : str
-#     chapter_number: int
-#     question: str
-
 
 @app.post("/ask-question")
 def ask_question(
@@ -335,12 +245,6 @@ def get_chapters(book_id: int = Form(...)):
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
     
-
-
-from fastapi.responses import Response
-import os
-import fitz  # PyMuPDF
-
 @app.get("/view-chapter")
 def view_chapter(book_id: int = Query(...), chapter_number: int = Query(...)):
     try:

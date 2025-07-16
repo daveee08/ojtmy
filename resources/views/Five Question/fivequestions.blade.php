@@ -1,24 +1,26 @@
-@extends('layouts.app')
-
+@extends('layouts.bootstrap')
+@extends('layouts.header')
+@extends('layouts.navbaragent')
 @section('content')
+@section('title', '5 Questions Agent') 
 
 <div id="loading-overlay">
-  <div class="spinner-border text-primary" role="status" style="width: 2.5rem; height: 2.5rem;">
+  <div class="spinner-border" role="status" style="width: 2.5rem; height: 2.5rem;" aria-hidden="true">
     <span class="visually-hidden">Loading...</span>
   </div>
-  <p class="mt-3 text-center fw-semibold" style="color:#0d6efd;">Please wait...</p>
+  <p class="mt-3 text-center fw-semibold" style="color: #ec008c;">Please wait...</p>
 </div>
 
 <style>
   body {
     background-color: #f5f7fa;
-    font-family: 'Inter', 'Poppins', sans-serif;
+    font-family: 'Poppins', sans-serif; /* Changed to match proofreader */
   }
 
   .ck-card {
     background: #ffffff;
     border-radius: 14px;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06); /* Matches proofreader shadow */
     padding: 40px;
     border: none;
   }
@@ -26,13 +28,13 @@
   .ck-title {
     font-size: 1.9rem;
     font-weight: 600;
-    color: #EC298B; /* Replaces .text-highlight color */
+    color: #ec008c; /* Standardized to match proofreader .text-highlight */
     text-align: center;
     margin-bottom: 30px;
   }
 
   .ck-btn {
-    background-color: #EC298B; /* Replaces .btn-primary color */
+    background-color: #ec008c; /* Matches proofreader .btn-primary */
     color: white;
     border: none;
     padding: 12px 24px;
@@ -43,7 +45,7 @@
   }
 
   .ck-btn:hover {
-    background-color: #c30074; /* Darker shade for hover, similar to original .btn-primary:hover */
+    background-color: #c30074; /* Matches proofreader .btn-primary:hover */
   }
 
   .form-control {
@@ -52,8 +54,8 @@
   }
 
   .form-control:focus {
-    border-color: #EC298B; /* Replaces focus border color */
-    box-shadow: 0 0 0 0.2rem rgba(236, 41, 139, 0.2); /* Adjusted shadow color */
+    border-color: #ec008c; /* Matches proofreader focus border */
+    box-shadow: 0 0 0 0.2rem rgba(236, 41, 139, 0.2); /* Adjusted to match proofreader shadow color */
   }
 
   /* Specific styles for this page's content, maintaining the look */
@@ -77,7 +79,7 @@
   .alert-success .ck-title-small {
     font-size: 1.25rem; /* Adjusted size for sub-title */
     font-weight: 600;
-    color: #EC298B;
+    color: #ec008c; /* Matches proofreader .text-highlight */
   }
 
   .alert-success ol {
@@ -106,7 +108,7 @@
                 <label for="grade_level" class="form-label">Select Grade Level</label>
                 <select class="form-select" name="grade_level" id="grade_level" required>
                     <option value="">-- Choose --</option>
-                    <option value ="kindergarten" {{ old('grade_level') == 'kindergarten' ? 'selected' : '' }}>Kindergarten</option>
+                    <option value="kindergarten" {{ old('grade_level') == 'kindergarten' ? 'selected' : '' }}>Kindergarten</option>
                     <option value="elementary" {{ old('grade_level') == 'elementary' ? 'selected' : '' }}>Elementary</option>
                     <option value="junior_high" {{ old('grade_level') == 'junior_high' ? 'selected' : '' }}>Junior High</option>
                     <option value="senior_high" {{ old('grade_level') == 'senior_high' ? 'selected' : '' }}>Senior High</option>
@@ -160,16 +162,15 @@
         const submitBtn = document.getElementById('submitBtn');
         const btnText = document.getElementById('btnText');
         const btnSpinner = document.getElementById('btnSpinner');
-        const loadingOverlay = document.getElementById('loading-overlay'); // Changed ID to match step-tutor
+        const loadingOverlay = document.getElementById('loading-overlay');
 
         form.addEventListener('submit', function () {
-            loadingOverlay.style.display = 'flex'; // Show the loading overlay
+            loadingOverlay.style.display = 'flex';
             submitBtn.disabled = true;
             btnText.textContent = 'Generating...';
             btnSpinner.classList.remove('d-none');
         });
 
-        // Optional: If you want to hide the overlay on page load if it was somehow left visible
         window.addEventListener('load', function() {
             loadingOverlay.style.display = 'none';
         });

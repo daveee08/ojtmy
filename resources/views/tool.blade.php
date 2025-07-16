@@ -5,7 +5,7 @@
 @section('title', 'CK Tools ')
 
 @section('styles')
-<style>
+    <style>
         .container {
             margin-top: 100px;
             max-width: 1100px;
@@ -158,7 +158,7 @@
         }
 
         .tool-card-favorite:hover {
-            background-color: #f9f3f7;
+            background-color: #f4e4ef;
         }
 
         .tool-card-favorite.favorited {
@@ -204,20 +204,8 @@
                 grid-template-columns: 1fr;
             }
         }
-        .tool-card-favorite {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            color: #ccc;
-            font-size: 1.2rem;
-            cursor: pointer;
-            transition: color 0.2s ease;
-        }
-        .tool-card-favorite.favorited {
-            color: #FFD700; /* Gold color for favorited star */
-        }
 
-        /* New CSS for the favorites section */
+        /* CSS for the favorites section */
         .favorites-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -235,8 +223,31 @@
             margin-bottom: 20px;
             padding-bottom: 10px;
         }
-    </style>
 
+        /* Enhanced CSS for notification to ensure visibility */
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #e91e63;
+            color: #fff;
+            padding: 12px 24px; /* Slightly larger padding for better appearance */
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            z-index: 10000; /* Increased z-index to ensure it appears above all elements */
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .notification.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0)
+        }
+    </style>
 @endsection
 
 @section('content')
@@ -251,10 +262,12 @@
             <input type="text" id="toolSearch" placeholder="Search tools...">
         </div>
 
+        <div id="notification" class="notification"></div>
+
         <div class="favorites-section" id="favoritesSection" style="display: none;">
             <h2>⭐ Your Favorite Tools</h2>
             <div class="favorites-grid" id="favoritesGrid">
-                </div>
+            </div>
         </div>
 
         <div class="tool-grid" id="allToolsGrid">
@@ -758,8 +771,19 @@
             const favoritesSection = document.getElementById('favoritesSection');
             const toolCards = document.querySelectorAll('.tool-card-link');
             const favoriteButtons = document.querySelectorAll('.tool-card-favorite');
+            const notification = document.getElementById('notification');
 
             let favoritedTools = JSON.parse(localStorage.getItem('favoritedTools')) || [];
+
+            // Function to show notification
+            function showNotification(message) {
+                console.log('Showing notification:', message); // Added debug log
+                notification.textContent = message;
+                notification.classList.add('show');
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 2000); // Hide after 2 seconds
+            }
 
             // Function to render favorites
             function renderFavorites() {
@@ -772,7 +796,6 @@
                             const clonedCard = originalCard.cloneNode(true);
                             const favoriteButton = clonedCard.querySelector('.tool-card-favorite');
                             favoriteButton.classList.add('favorited');
-                            // Reattach event listener to the cloned favorite button
                             favoriteButton.addEventListener('click', handleFavoriteClick);
                             favoritesGrid.appendChild(clonedCard);
                         }
@@ -788,7 +811,6 @@
                     const toolId = button.dataset.toolId;
                     button.classList.toggle('favorited', favoritedTools.includes(toolId));
                 });
-                // Update favorite buttons in favorites grid as well
                 const favoriteGridButtons = favoritesGrid.querySelectorAll('.tool-card-favorite');
                 favoriteGridButtons.forEach(button => {
                     const toolId = button.dataset.toolId;
@@ -800,19 +822,21 @@
             function handleFavoriteClick(event) {
                 event.preventDefault();
                 event.stopPropagation();
-
+                console.log('Favorite button clicked'); // Added debug log
                 const button = event.currentTarget;
                 const toolId = button.dataset.toolId;
                 const isFavorited = favoritedTools.includes(toolId);
+                const toolCard = button.closest('.tool-card');
+                const toolName = toolCard.querySelector('h5').textContent;
 
                 if (isFavorited) {
-                    // Remove from favorites
                     favoritedTools = favoritedTools.filter(id => id !== toolId);
+                    showNotification(`${toolName} removed from favorites`);
                 } else {
-                    // Add to favorites
                     if (!favoritedTools.includes(toolId)) {
                         favoritedTools.unshift(toolId);
                     }
+                    showNotification(`${toolName} added to favorites`);
                 }
 
                 localStorage.setItem('favoritedTools', JSON.stringify(favoritedTools));

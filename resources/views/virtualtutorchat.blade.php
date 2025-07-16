@@ -1,5 +1,6 @@
 @extends('layouts.bootstrap')
-@extends('layouts.navbar')
+
+<!-- @extends('layouts.chatnavbar') -->
 @extends('layouts.header')
 
 @section('styles')

@@ -186,74 +186,83 @@
         <div class="search-wrapper mb-4">
             <select id="subjectSelect" class="form-select">
                 <option value="">Select Grade Level</option>
-                <option value="1">Grade 1</option>
-                <option value="2">Grade 2</option>
-                <option value="3">Grade 3</option>
+                <option value="Grade 1">Grade 1</option>
+                <option value="Grade 2">Grade 2</option>
+                <option value="Grade 3">Grade 3</option>
             </select>
         </div>
 
-        <div class="tool-grid">
-            <div class="tool-grid">
-                <a href="https://chatgpt.com" target="_blank" class="tool-card-link">
-                    <div class="tool-card">
-                        <div class="tool-card-content">
-                            <div class="tool-card-icon">
-                                <img src="{{ asset('icons/text leveler.png') }}" alt="Text Leveler Icon">
-                                {{-- Image src left blank for you to fill --}}
-                            </div>
-                            <div class="tool-card-text">
-                                <h5>Science</h5>
-                                <p>Adjust text difficulty to match your reading level and comprehension needs.</p>
-                            </div>
-                        </div>
-                    </div>
-                </a>
 
-                <a href="https://www.questionai.com/" target="_blank" class="tool-card-link">
-                    <div class="tool-card">
-                        <div class="tool-card-content">
-                            <div class="tool-card-icon">
-                                <img src="{{ asset('icons/summarizer.png') }}" alt="Text Summarizer Icon">
-                                {{-- Image src left blank for you to fill --}}
-                            </div>
-                            <div class="tool-card-text">
-                                <h5>English</h5>
-                                <p>Simplify long text into concise, easy-to-understand summaries.</p>
-                            </div>
-                        </div>
-                    </div>
-                </a>
-
-                <a href="https://math-gpt.org/"
-                    target="_blank" class="tool-card-link">
-                    <div class="tool-card">
-                        <div class="tool-card-content">
-                            <div class="tool-card-icon">
-                                <img src="{{ asset('icons/conceptual.png') }}" alt="Conceptual Understanding Icon">
-                                {{-- Image src left blank for you to fill --}}
-                            </div>
-                            <div class="tool-card-text">
-                                <h5>Math</h5>
-                                <p>Get writing feedback on grammar, structure, and clarity to build stronger writing skills.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </a>
-
-            </div>
-        </div>
     </div>
     </div>
 
     <script>
-        document.getElementById('toolSearch').addEventListener('input', function() {
-            const query = this.value.toLowerCase();
-            const cards = document.querySelectorAll('.tool-card-link');
-            cards.forEach(link => {
-                const text = link.innerText.toLowerCase();
-                link.style.display = text.includes(query) ? 'block' : 'none';
+        // document.getElementById('toolSearch').addEventListener('input', function() {
+        //     const query = this.value.toLowerCase();
+        //     const cards = document.querySelectorAll('.tool-card-link');
+        //     cards.forEach(link => {
+        //         const text = link.innerText.toLowerCase();
+        //         link.style.display = text.includes(query) ? 'block' : 'none';
+        //     });
+        // });
+
+        document.addEventListener('DOMContentLoaded', function () {
+    const subjectSelect = document.getElementById('subjectSelect');
+    const bookList = document.getElementById('bookList');
+
+    if (!subjectSelect) {
+        console.error("Dropdown with id 'subjectSelect' not found!");
+        return;
+    }
+
+    subjectSelect.addEventListener('change', function () {
+        const selectedGrade = this.value;
+        bookList.innerHTML = '';
+
+        if (!selectedGrade) return;
+
+        console.log("Fetching books for:", selectedGrade);
+
+        fetch("http://127.0.0.1:5001/books")  // Update to real IP if needed
+            .then(response => {
+                console.log("Response status:", response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log("Fetched data:", data);
+
+                if (data.status !== "success") {
+                    bookList.innerHTML = '<p>Failed to fetch books.</p>';
+                    return;
+                }
+
+                const filtered = data.books.filter(book => book.grade_level === selectedGrade);
+
+                if (filtered.length === 0) {
+                    bookList.innerHTML = '<p>No books found for this grade level.</p>';
+                    return;
+                }
+
+                filtered.forEach(book => {
+                    const cardLink = document.createElement('a');
+                    cardLink.href = `/virtual_tutor_chat/${book.book_id}`;
+                    cardLink.className = 'tool-card-link';
+                    cardLink.innerHTML = `
+                        <div class="tool-card">
+                            <h5>${book.title}</h5>
+                            <p>${book.description}</p>
+                            <small>${book.grade_level}</small>
+                        </div>
+                    `;
+                    bookList.appendChild(cardLink);
+
+                });
+            })
+            .catch(err => {
+                console.error("Fetch error:", err);
+                bookList.innerHTML = '<p>Error loading books.</p>';
             });
-        });
+    });
+});
     </script>
 @endsection

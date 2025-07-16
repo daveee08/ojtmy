@@ -5,7 +5,7 @@
 @section('title', 'CK Tools ')
 
 @section('styles')
-    <style>
+<style>
         .container {
             margin-top: 100px;
             max-width: 1100px;
@@ -151,8 +151,41 @@
             color: #ccc;
             font-size: 1.2rem;
             cursor: pointer;
-            transition: color 0.02s ease;
-            z-index: 10
+            transition: color 0.2s ease, background-color 0.2s ease;
+            z-index: 10;
+            padding: 5px;
+            border-radius: 50%;
+        }
+
+        .tool-card-favorite:hover {
+            background-color: #f9f3f7;
+        }
+
+        .tool-card-favorite.favorited {
+            color: #FFD700; /* Gold color for favorited star */
+        }
+
+        .tool-card-favorite:hover .tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .tooltip {
+            visibility: hidden;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background-color: #333;
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            width: 200px;
+            text-align: left;
+            z-index: 20;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            transform: translateY(5px);
         }
 
         .tool-card-link:hover .tool-card {
@@ -200,11 +233,8 @@
             font-size: 1.8rem;
             color: #333;
             margin-bottom: 20px;
-            /* border-bottom: 2px solid #e91e63; */
             padding-bottom: 10px;
         }
-        
-        
     </style>
 
 @endsection

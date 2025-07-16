@@ -39,17 +39,17 @@
         .search-wrapper {
             display: flex;
             justify-content: center;
+            gap: 10px;
             margin-bottom: 30px;
         }
 
         .search-wrapper select {
             max-width: 400px;
-            padding: 10px 16px 10px 16px;
+            padding: 10px 16px;
             font-size: 1rem;
             border: 1px solid #ccc;
             outline: none;
             background-color: #fff;
-            background-image: none;
             box-shadow: none;
             transition: 0.3s;
         }
@@ -57,6 +57,15 @@
         .search-wrapper input:focus {
             border-color: #e91e63;
             box-shadow: 0 0 0 0.1rem rgba(234, 114, 114, 0.1);
+        }
+
+        .search-wrapper button {
+            height: 42px;
+            width: 42px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .tool-grid {
@@ -153,18 +162,13 @@
             transition: color 0.02s ease;
         }
 
-        .tool-card-link:hover .tool-card {
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-            transform: translateY(-4px);
-        }
+        /* Modal styles... (same as yours) */
 
-        /* General modal dialog styling */
         .modal .modal-dialog {
             max-width: 600px;
             margin: 1.75rem auto;
         }
 
-        /* Modal content box */
         .modal .modal-content {
             border-radius: 16px;
             padding: 20px;
@@ -172,25 +176,21 @@
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
         }
 
-        /* Header of the modal */
         .modal .modal-header {
             border-bottom: none;
             padding-bottom: 0;
         }
 
-        /* Title inside modal */
         .modal .modal-title {
             font-weight: 600;
             font-size: 1.25rem;
         }
 
-        /* Labels for inputs */
         .modal .form-label {
             font-weight: 500;
             color: #333;
         }
 
-        /* Inputs, selects, and textareas inside modal */
         .modal .form-control,
         .modal .form-select {
             border-radius: 8px;
@@ -198,7 +198,6 @@
             font-size: 1rem;
         }
 
-        /* Footer section with buttons */
         .modal .modal-footer {
             border-top: none;
             justify-content: space-between;
@@ -222,28 +221,47 @@
             border-color: #d81b60;
         }
 
-        .btn.btn-primary:focus {
-            background-color: #d81b60;
-            border-color: #d81b60;
+        .upload-btn {
+            background-color: #fff;
+            border: 1px solid #ccc; 
+            width: 42px;
+            height: 42px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+            transition: all 0.2s ease-in-out;
         }
 
-
-        /* Primary button style with e91e63 */
-        .modal .btn.btn-primary {
-            background-color: #e91e63;
+        .upload-btn:hover {
             border-color: #e91e63;
         }
 
-        .modal .btn.btn-primary:hover {
-            background-color: #d81b60;
-            border-color: #d81b60;
+        .upload-icon {
+            color: #202020ff; 
+            font-size: 1rem;
         }
 
-        /* Input/select focus outline color */
         .modal .form-control:focus,
         .modal .form-select:focus {
             border-color: #e91e63;
             box-shadow: 0 0 0 0.15rem rgba(233, 30, 99, 0.25);
+        }
+
+        .btn.btn-primary:focus,
+        .btn.btn-primary:active,
+        .btn.btn-primary:focus-visible {
+            background-color: #e91e63 !important;
+            border-color: #e91e63 !important;
+            box-shadow: none !important;
+            outline: none !important;
+        }
+
+        /* Spinner style to match pink theme */
+        .spinner-border {
+            color: #fff; /* Spinner dots color */
+            border-color: #fff transparent #fff transparent !important;
+            background-color: transparent !important;
         }
 
         @media (max-width: 992px) {
@@ -258,29 +276,39 @@
             }
         }
     </style>
-
 @endsection
-
 
 @section('content')
     <div class="container">
         <div class="hero">
             <h1>Welcome to CK Virtual Tutor</h1>
-            <p>AI-powered tutor will utilize a local knowledge base sourced from CK Grade 7 books in Science, English, and
-                Math.</p>
+            <p>AI-powered tutor will utilize a local knowledge base sourced from CK Grade 7 books in Science, English, and Math.</p>
         </div>
 
-        <!-- 📌 Add Chapter/Subject Selector Here -->
-        <div class="search-wrapper mb-4 d-flex gap-3 align-items-center">
+        <div class="search-wrapper mb-4 d-flex align-items-center">
             <select id="subjectSelect" class="form-select">
                 <option value="">Select Grade Level</option>
                 <option value="Grade 1">Grade 1</option>
                 <option value="Grade 2">Grade 2</option>
                 <option value="Grade 3">Grade 3</option>
+                <option value="Grade 4">Grade 4</option>
+                <option value="Grade 5">Grade 5</option>
+                <option value="Grade 6">Grade 6</option>
+                <option value="Grade 7">Grade 7</option>
+                <option value="Grade 8">Grade 8</option>
+                <option value="Grade 9">Grade 9</option>
+                <option value="Grade 10">Grade 10</option>
+                <option value="Grade 11">Grade 11</option>
+                <option value="Grade 12">Grade 12</option>
             </select>
 
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadModal">
-                <i class="fas fa-upload me-1"></i> Upload PDF
+            <!-- Paperclip Icon Button -->
+            <button class="upload-btn" 
+                data-bs-toggle="modal" 
+                data-bs-target="#uploadModal" 
+                data-bs-placement="top" 
+                title="Upload PDF">
+                <i class="fas fa-paperclip upload-icon"></i>
             </button>
         </div>
 
@@ -293,13 +321,11 @@
                             <h5 class="modal-title" id="uploadModalLabel">Upload PDF Details</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
-
                         <div class="modal-body">
                             <div class="mb-3">
                                 <label for="subjectName" class="form-label">Subject Name</label>
                                 <input type="text" class="form-control" id="subjectName" name="subject_name" required>
                             </div>
-
                             <div class="mb-3">
                                 <label for="gradeLevel" class="form-label">Grade Level</label>
                                 <select class="form-select" id="gradeLevel" name="grade_level" required>
@@ -307,104 +333,108 @@
                                     <option value="Grade 1">Grade 1</option>
                                     <option value="Grade 2">Grade 2</option>
                                     <option value="Grade 3">Grade 3</option>
-                                    <!-- Add more as needed -->
+                                    <option value="Grade 4">Grade 4</option>
+                                    <option value="Grade 5">Grade 5</option>
+                                    <option value="Grade 6">Grade 6</option>
+                                    <option value="Grade 7">Grade 7</option>
+                                    <option value="Grade 8">Grade 8</option>
+                                    <option value="Grade 9">Grade 9</option>
+                                    <option value="Grade 10">Grade 10</option>
+                                    <option value="Grade 11">Grade 11</option>
+                                    <option value="Grade 12">Grade 12</option>
                                 </select>
                             </div>
-
                             <div class="mb-3">
                                 <label for="description" class="form-label">Description</label>
                                 <textarea class="form-control" id="description" name="description" rows="3" required></textarea>
                             </div>
-
                             <div class="mb-3">
                                 <label for="pdfFile" class="form-label">Upload PDF File</label>
-                                <input type="file" class="form-control" id="pdfFile" name="pdf_file"
-                                    accept="application/pdf" required>
+                                <input type="file" class="form-control" id="pdfFile" name="pdf_file" accept="application/pdf" required>
                             </div>
                         </div>
-
-                        <div class="modal-footer">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-upload me-1"></i> Submit
+                    
+                       <div class="modal-footer">
+                            <button type="submit" class="btn btn-primary" id="uploadBtn">
+                                <span id="uploadBtnText"><i class="fas fa-upload me-1"></i> Submit</span>
+                                <span id="uploadSpinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
                             </button>
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                                 Cancel
                             </button>
                         </div>
+                        <div id="uploadSuccess" class="text-success mt-2 text-center d-none">
+                            <i class="fas fa-check-circle me-1"></i> File uploaded successfully!
+                        </div>
+
                     </form>
                 </div>
             </div>
         </div>
 
-        <div id="bookList" class="tool-grid mt-4">
-            <!-- Filtered books will appear here -->
-        </div>
-
-    </div>
+        <div id="bookList" class="tool-grid mt-4"></div>
     </div>
 
     <script>
+        // Upload Form with Spinner and Success Message
         document.getElementById("uploadForm").addEventListener("submit", function(e) {
             e.preventDefault();
-
+            
             const formData = new FormData(this);
             const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-            // Example: Post to FastAPI or Laravel backend
+            const uploadBtn = document.getElementById('uploadBtn');
+            const uploadSpinner = document.getElementById('uploadSpinner');
+            const uploadBtnText = document.getElementById('uploadBtnText');
+            const uploadSuccess = document.getElementById('uploadSuccess');
+
+            uploadSpinner.classList.remove("d-none");
+            uploadBtnText.classList.add("d-none");
+            uploadSuccess.classList.add("d-none");
+
             fetch("/upload-endpoint", {
-                    method: "POST",
-                    headers: {
-                        "X-CSRF-TOKEN": csrfToken
-                    },
-                    body: formData,
-                })
-                .then((res) => res.json())
-                .then((data) => {
-                    alert("Upload successful!");
-                    // Close modal
+                method: "POST",
+                headers: { "X-CSRF-TOKEN": csrfToken },
+                body: formData,
+            })
+            .then((res) => res.json())
+            .then((data) => {
+                uploadSpinner.classList.add("d-none");
+                uploadBtnText.classList.remove("d-none");
+
+                uploadSuccess.classList.remove("d-none");
+
+                setTimeout(() => {
                     const modalEl = document.getElementById('uploadModal');
                     const modal = bootstrap.Modal.getInstance(modalEl);
                     modal.hide();
-                })
-                .catch((err) => {
-                    console.error(err);
-                    alert("Upload failed.");
-                });
+                    uploadSuccess.classList.add("d-none");
+                    document.getElementById("uploadForm").reset();
+                }, 1500);
+            })
+            .catch((err) => {
+                console.error(err);
+                uploadSpinner.classList.add("d-none");
+                uploadBtnText.classList.remove("d-none");
+                alert("Upload failed.");
+            });
         });
-        // document.getElementById('toolSearch').addEventListener('input', function() {
-        //     const query = this.value.toLowerCase();
-        //     const cards = document.querySelectorAll('.tool-card-link');
-        //     cards.forEach(link => {
-        //         const text = link.innerText.toLowerCase();
-        //         link.style.display = text.includes(query) ? 'block' : 'none';
-        //     });
-        // });
 
+
+        // Book List Fetch
         document.addEventListener('DOMContentLoaded', function() {
             const subjectSelect = document.getElementById('subjectSelect');
             const bookList = document.getElementById('bookList');
 
-            if (!subjectSelect) {
-                console.error("Dropdown with id 'subjectSelect' not found!");
-                return;
-            }
-
             subjectSelect.addEventListener('change', function() {
                 const selectedGrade = this.value;
-                bookList.innerHTML = ' ';
+                bookList.innerHTML = '';
 
                 if (!selectedGrade) return;
 
-                console.log("Fetching books for:", selectedGrade);
-
-                fetch("http://127.0.0.1:5001/books") // Update to real IP if needed
-                    .then(response => {
-                        console.log("Response status:", response.status);
-                        return response.json();
-                    })
+                fetch("http://127.0.0.1:5001/books")
+                    .then(response => response.json())
                     .then(data => {
-                        console.log("Fetched data:", data);
-
                         if (data.status !== "success") {
                             bookList.innerHTML = '<p>Failed to fetch books.</p>';
                             return;
@@ -422,14 +452,12 @@
                             cardLink.href = `/virtual_tutor_chat/${book.book_id}`;
                             cardLink.className = 'tool-card-link';
                             cardLink.innerHTML = `
-                        <div class="tool-card">
-                            <h5>${book.title}</h5>
-                            <p>${book.description}</p>
-                            <small>${book.grade_level}</small>
-                        </div>
-                    `;
+                                <div class="tool-card">
+                                    <h5>${book.title}</h5>
+                                    <p>${book.description}</p>
+                                    <small>${book.grade_level}</small>
+                                </div>`;
                             bookList.appendChild(cardLink);
-
                         });
                     })
                     .catch(err => {
@@ -437,6 +465,14 @@
                         bookList.innerHTML = '<p>Error loading books.</p>';
                     });
             });
+
+            // Bootstrap tooltip init
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
         });
     </script>
 @endsection
+
+//original

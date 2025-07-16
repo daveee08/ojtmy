@@ -2,7 +2,7 @@
 @extends('layouts.navbar')
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-@section('title', 'Home - CK AI Tools')
+@section('title', 'CK Virtual Tutor')
 
 @section('styles')
     <style>
@@ -42,16 +42,15 @@
             margin-bottom: 30px;
         }
 
-        .search-wrapper input {
-            width: 100%;
+        .search-wrapper select {
             max-width: 400px;
-            padding: 10px 16px 10px 40px;
+            padding: 10px 16px 10px 16px;
             font-size: 1rem;
             border: 1px solid #ccc;
-            border-radius: 30px;
             outline: none;
-            background: #fff url('data:image/svg+xml;utf8,<svg fill="gray" height="16" viewBox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C8.01 14 6 11.99 6 9.5S8.01 5 10.5 5 15 7.01 15 9.5 12.99 14 10.5 14z"/></svg>') no-repeat 12px center;
-            background-size: 18px 18px;
+            background-color: #fff;
+            background-image: none;
+            box-shadow: none;
             transition: 0.3s;
         }
 
@@ -159,6 +158,94 @@
             transform: translateY(-4px);
         }
 
+        /* General modal dialog styling */
+        .modal .modal-dialog {
+            max-width: 600px;
+            margin: 1.75rem auto;
+        }
+
+        /* Modal content box */
+        .modal .modal-content {
+            border-radius: 16px;
+            padding: 20px;
+            border: none;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Header of the modal */
+        .modal .modal-header {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        /* Title inside modal */
+        .modal .modal-title {
+            font-weight: 600;
+            font-size: 1.25rem;
+        }
+
+        /* Labels for inputs */
+        .modal .form-label {
+            font-weight: 500;
+            color: #333;
+        }
+
+        /* Inputs, selects, and textareas inside modal */
+        .modal .form-control,
+        .modal .form-select {
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 1rem;
+        }
+
+        /* Footer section with buttons */
+        .modal .modal-footer {
+            border-top: none;
+            justify-content: space-between;
+            padding-top: 0;
+        }
+
+        .btn.btn-primary {
+            background-color: #e91e63;
+            border-color: #d81b60;
+            color: white;
+            border: none;
+            font-weight: 500;
+            font-size: 1rem;
+            padding: 0.65rem 1.5rem;
+            border-radius: 10px;
+            letter-spacing: 0.05em;
+        }
+
+        .btn.btn-primary:hover {
+            background-color: #d81b60;
+            border-color: #d81b60;
+        }
+
+        .btn.btn-primary:focus {
+            background-color: #d81b60;
+            border-color: #d81b60;
+        }
+
+
+        /* Primary button style with e91e63 */
+        .modal .btn.btn-primary {
+            background-color: #e91e63;
+            border-color: #e91e63;
+        }
+
+        .modal .btn.btn-primary:hover {
+            background-color: #d81b60;
+            border-color: #d81b60;
+        }
+
+        /* Input/select focus outline color */
+        .modal .form-control:focus,
+        .modal .form-select:focus {
+            border-color: #e91e63;
+            box-shadow: 0 0 0 0.15rem rgba(233, 30, 99, 0.25);
+        }
+
         @media (max-width: 992px) {
             .tool-grid {
                 grid-template-columns: repeat(2, 1fr);
@@ -179,74 +266,169 @@
     <div class="container">
         <div class="hero">
             <h1>Welcome to CK Virtual Tutor</h1>
-            <p>AI-powered tutor will utilize a local knowledge base sourced from CK Grade 7 books in Science, English, and Math.</p>
+            <p>AI-powered tutor will utilize a local knowledge base sourced from CK Grade 7 books in Science, English, and
+                Math.</p>
         </div>
 
-        <div class="search-wrapper">
-            <input type="text" id="toolSearch" placeholder="Search tools...">
+        <!-- 📌 Add Chapter/Subject Selector Here -->
+        <div class="search-wrapper mb-4 d-flex gap-3 align-items-center">
+            <select id="subjectSelect" class="form-select">
+                <option value="">Select Grade Level</option>
+                <option value="Grade 1">Grade 1</option>
+                <option value="Grade 2">Grade 2</option>
+                <option value="Grade 3">Grade 3</option>
+            </select>
+
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadModal">
+                <i class="fas fa-upload me-1"></i> Upload PDF
+            </button>
         </div>
 
-        <div class="tool-grid">
-            <div class="tool-grid">
+        <!-- Upload Modal -->
+        <div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form id="uploadForm">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="uploadModalLabel">Upload PDF Details</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
 
-                <a href="http://127.0.0.1:5001/summarize" target="_blank" class="tool-card-link">
-                    <div class="tool-card">
-                        <div class="tool-card-content">
-                            <div class="tool-card-icon">
-                                <img src="{{ asset('icons/english.png') }}" alt="English Icon">
-                                {{-- Image src left blank for you to fill --}}
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label for="subjectName" class="form-label">Subject Name</label>
+                                <input type="text" class="form-control" id="subjectName" name="subject_name" required>
                             </div>
-                            <div class="tool-card-text">
-                                <h5>English</h5>
-                                <p>Improve reading, writing, and communication.</p>
+
+                            <div class="mb-3">
+                                <label for="gradeLevel" class="form-label">Grade Level</label>
+                                <select class="form-select" id="gradeLevel" name="grade_level" required>
+                                    <option value="">Select Grade</option>
+                                    <option value="1">Grade 1</option>
+                                    <option value="2">Grade 2</option>
+                                    <option value="3">Grade 3</option>
+                                    <!-- Add more as needed -->
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="description" class="form-label">Description</label>
+                                <textarea class="form-control" id="description" name="description" rows="3" required></textarea>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="pdfFile" class="form-label">Upload PDF File</label>
+                                <input type="file" class="form-control" id="pdfFile" name="pdf_file"
+                                    accept="application/pdf" required>
                             </div>
                         </div>
-                    </div>
-                </a>
 
-                <a href="http://192.168.50.144:8000/leveler" target="_blank" class="tool-card-link">
-                    <div class="tool-card">
-                        <div class="tool-card-content">
-                            <div class="tool-card-icon">
-                                <img src="{{ asset('icons/science.png') }}" alt="Science Icon">
-                                {{-- Image src left blank for you to fill --}}
-                            </div>
-                            <div class="tool-card-text">
-                                <h5>Science</h5>
-                                <p>Study how the world works through nature, energy, and life.</p>
-                            </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-upload me-1"></i> Submit
+                            </button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                Cancel
+                            </button>
                         </div>
-                    </div>
-                </a>
-
-                <a href="https://tse4.mm.bing.net/th/id/OIP.eEW3EGenj4Djze7zv31PKAHaLG?rs=1&pid=ImgDetMain&o=7&rm=3"
-                    target="_blank" class="tool-card-link">
-                    <div class="tool-card">
-                        <div class="tool-card-content">
-                            <div class="tool-card-icon">
-                                <img src="{{ asset('icons/mathematics.png') }}" alt="Mathematics Icon">
-                                {{-- Image src left blank for you to fill --}}
-                            </div>
-                            <div class="tool-card-text">
-                                <h5>Math</h5>
-                                <p>Learn numbers, patterns, and problem-solving skills.</p>
-                            </div>
-                        </div>
-                    </div>
-                </a>
-
+                    </form>
+                </div>
             </div>
         </div>
+
+
     </div>
     </div>
 
     <script>
-        document.getElementById('toolSearch').addEventListener('input', function() {
-            const query = this.value.toLowerCase();
-            const cards = document.querySelectorAll('.tool-card-link');
-            cards.forEach(link => {
-                const text = link.innerText.toLowerCase();
-                link.style.display = text.includes(query) ? 'block' : 'none';
+        document.getElementById("uploadForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+
+            // Example: Post to FastAPI or Laravel backend
+            fetch("/upload-endpoint", {
+                    method: "POST",
+                    body: formData,
+                })
+                .then((res) => res.json())
+                .then((data) => {
+                    alert("Upload successful!");
+                    // Close modal
+                    const modalEl = document.getElementById('uploadModal');
+                    const modal = bootstrap.Modal.getInstance(modalEl);
+                    modal.hide();
+                })
+                .catch((err) => {
+                    console.error(err);
+                    alert("Upload failed.");
+                });
+        });
+        // document.getElementById('toolSearch').addEventListener('input', function() {
+        //     const query = this.value.toLowerCase();
+        //     const cards = document.querySelectorAll('.tool-card-link');
+        //     cards.forEach(link => {
+        //         const text = link.innerText.toLowerCase();
+        //         link.style.display = text.includes(query) ? 'block' : 'none';
+        //     });
+        // });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const subjectSelect = document.getElementById('subjectSelect');
+            const bookList = document.getElementById('bookList');
+
+            if (!subjectSelect) {
+                console.error("Dropdown with id 'subjectSelect' not found!");
+                return;
+            }
+
+            subjectSelect.addEventListener('change', function() {
+                const selectedGrade = this.value;
+                bookList.innerHTML = '';
+
+                if (!selectedGrade) return;
+
+                console.log("Fetching books for:", selectedGrade);
+
+                fetch("http://127.0.0.1:5001/books") // Update to real IP if needed
+                    .then(response => {
+                        console.log("Response status:", response.status);
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log("Fetched data:", data);
+
+                        if (data.status !== "success") {
+                            bookList.innerHTML = '<p>Failed to fetch books.</p>';
+                            return;
+                        }
+
+                        const filtered = data.books.filter(book => book.grade_level === selectedGrade);
+
+                        if (filtered.length === 0) {
+                            bookList.innerHTML = '<p>No books found for this grade level.</p>';
+                            return;
+                        }
+
+                        filtered.forEach(book => {
+                            const cardLink = document.createElement('a');
+                            cardLink.href = `/virtual_tutor_chat/${book.book_id}`;
+                            cardLink.className = 'tool-card-link';
+                            cardLink.innerHTML = `
+                        <div class="tool-card">
+                            <h5>${book.title}</h5>
+                            <p>${book.description}</p>
+                            <small>${book.grade_level}</small>
+                        </div>
+                    `;
+                            bookList.appendChild(cardLink);
+
+                        });
+                    })
+                    .catch(err => {
+                        console.error("Fetch error:", err);
+                        bookList.innerHTML = '<p>Error loading books.</p>';
+                    });
             });
         });
     </script>

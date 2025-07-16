@@ -92,7 +92,7 @@ class ChatconversationController extends Controller
 
         try {
             // Forward DELETE request to FastAPI
-            $response = Http::delete("http://localhost:8002/sessions/{$userId}/{$session_id}");
+            $response = Http::delete("http://localhost:5001/sessions/{$userId}/{$session_id}");
 
             if ($response->successful()) {
                 return response()->json(['message' => 'Session deleted successfully.']);

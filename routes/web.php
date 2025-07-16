@@ -62,6 +62,13 @@ Route::get('virtual_tutor', function () {
     return view('virtualtutor');
 });
 
+Route::get('/virtual_tutor_chat/{book_id}', function ($book_id) {
+    return view('virtualtutorchat', ['book_id' => $book_id]);
+});
+
+Route::get('/books-by-grade', [RAGController::class, 'getBooksByGrade']);
+
+
 // Authentication Routes
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');

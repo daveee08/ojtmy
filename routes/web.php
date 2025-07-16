@@ -33,6 +33,7 @@ use App\Http\Controllers\MakeItRelevant\MakeItRelevantController;
 use App\Http\Controllers\ChatconversationController;
 use App\Http\Controllers\SocialStory\SocialStoryController;
 use App\Http\Controllers\CharacterChat\CharacterChatController;
+use App\Http\Controllers\RAGController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -67,6 +68,8 @@ Route::get('/virtual_tutor_chat/{book_id}', function ($book_id) {
 });
 
 Route::get('/books-by-grade', [RAGController::class, 'getBooksByGrade']);
+
+Route::post('/upload-endpoint', [RAGController::class, 'uploadToFastAPI']);
 
 
 // Authentication Routes

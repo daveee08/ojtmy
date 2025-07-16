@@ -162,6 +162,18 @@
             margin-bottom: 15px;
         }
 
+        .form-select:hover,
+        .form-select:focus,
+        .form-select:active {
+            border-color: #e91e63;
+            box-shadow: 0 0 0 0.15rem rgba(233, 30, 99, 0.25);
+        }
+
+        select option:checked {
+            background-color: #f8bbd0;
+            color: #000;
+        }
+
         .sidebar .form-label {
             font-size: 0.9rem;
             margin-bottom: 6px;

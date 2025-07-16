@@ -1,3 +1,6 @@
+@extends('layouts.bootstrap')
+@extends('layouts.header')
+@extends('layouts.navbaragent')
 <!DOCTYPE html>
 <html lang="en">
 <head>

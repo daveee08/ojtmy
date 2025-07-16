@@ -373,63 +373,63 @@
         //     });
         // });
 
-        document.addEventListener('DOMContentLoaded', function () {
-    const subjectSelect = document.getElementById('subjectSelect');
-    const bookList = document.getElementById('bookList');
+        document.addEventListener('DOMContentLoaded', function() {
+            const subjectSelect = document.getElementById('subjectSelect');
+            const bookList = document.getElementById('bookList');
 
-    if (!subjectSelect) {
-        console.error("Dropdown with id 'subjectSelect' not found!");
-        return;
-    }
+            if (!subjectSelect) {
+                console.error("Dropdown with id 'subjectSelect' not found!");
+                return;
+            }
 
-    subjectSelect.addEventListener('change', function () {
-        const selectedGrade = this.value;
-        bookList.innerHTML = '';
+            subjectSelect.addEventListener('change', function() {
+                const selectedGrade = this.value;
+                bookList.innerHTML = '';
 
-        if (!selectedGrade) return;
+                if (!selectedGrade) return;
 
-        console.log("Fetching books for:", selectedGrade);
+                console.log("Fetching books for:", selectedGrade);
 
-        fetch("http://127.0.0.1:5001/books")  // Update to real IP if needed
-            .then(response => {
-                console.log("Response status:", response.status);
-                return response.json();
-            })
-            .then(data => {
-                console.log("Fetched data:", data);
+                fetch("http://127.0.0.1:5001/books") // Update to real IP if needed
+                    .then(response => {
+                        console.log("Response status:", response.status);
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log("Fetched data:", data);
 
-                if (data.status !== "success") {
-                    bookList.innerHTML = '<p>Failed to fetch books.</p>';
-                    return;
-                }
+                        if (data.status !== "success") {
+                            bookList.innerHTML = '<p>Failed to fetch books.</p>';
+                            return;
+                        }
 
-                const filtered = data.books.filter(book => book.grade_level === selectedGrade);
+                        const filtered = data.books.filter(book => book.grade_level === selectedGrade);
 
-                if (filtered.length === 0) {
-                    bookList.innerHTML = '<p>No books found for this grade level.</p>';
-                    return;
-                }
+                        if (filtered.length === 0) {
+                            bookList.innerHTML = '<p>No books found for this grade level.</p>';
+                            return;
+                        }
 
-                filtered.forEach(book => {
-                    const cardLink = document.createElement('a');
-                    cardLink.href = `/virtual_tutor_chat/${book.book_id}`;
-                    cardLink.className = 'tool-card-link';
-                    cardLink.innerHTML = `
+                        filtered.forEach(book => {
+                            const cardLink = document.createElement('a');
+                            cardLink.href = `/virtual_tutor_chat/${book.book_id}`;
+                            cardLink.className = 'tool-card-link';
+                            cardLink.innerHTML = `
                         <div class="tool-card">
                             <h5>${book.title}</h5>
                             <p>${book.description}</p>
                             <small>${book.grade_level}</small>
                         </div>
                     `;
-                    bookList.appendChild(cardLink);
+                            bookList.appendChild(cardLink);
 
-                });
-            })
-            .catch(err => {
-                console.error("Fetch error:", err);
-                bookList.innerHTML = '<p>Error loading books.</p>';
+                        });
+                    })
+                    .catch(err => {
+                        console.error("Fetch error:", err);
+                        bookList.innerHTML = '<p>Error loading books.</p>';
+                    });
             });
-    });
-});
+        });
     </script>
 @endsection

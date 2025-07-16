@@ -21,7 +21,7 @@ app.include_router(chat_router)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # or Laravel origin like "http://localhost:8000"
+    allow_origins=["*"],  
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

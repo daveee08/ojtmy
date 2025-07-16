@@ -251,13 +251,23 @@
             new bootstrap.Tooltip(el);
         });
 
+        // function handleChapterChange(select) {
+        //     const chapter = select.value;
+        //     if (chapter) {
+        //         console.log("Chapter selected:", chapter);
+        //         // You can add logic here
+        //     }
+        // }
+
         function handleChapterChange(select) {
-            const chapter = select.value;
-            if (chapter) {
-                console.log("Chapter selected:", chapter);
-                // You can add logic here
-            }
+            const chapter_number = select.value;
+            if (!chapter_number) return;
+
+            const bookId = "{{ $book_id }}"; // Blade variable from backend
+            const url = `http://127.0.0.1:5001/view-chapter?book_id=${bookId}&chapter_number=${chapter_number}`;
+            window.open(url, "_blank");
         }
+
             document.addEventListener('DOMContentLoaded', () => {
         const chapterSelect = document.getElementById('tutorSelect');
         const bookId = "{{ $book_id }}"; // From Laravel route param
@@ -283,7 +293,7 @@
             chapterSelect.innerHTML = `<option value="">Select Chapter</option>`;
             data.chapters.forEach(chap => {
                 const option = document.createElement('option');
-                option.value = chap.chapter_id;
+                option.value = chap.chapter_number;
                 option.textContent = `Chapter ${chap.chapter_number}: ${chap.chapter_title}`;
                 chapterSelect.appendChild(option);
             });

@@ -188,31 +188,32 @@
 
         <div class="tool-grid">
             <div class="tool-grid">
-                <a href="http://192.168.50.144:8000/leveler" target="_blank" class="tool-card-link">
-                    <div class="tool-card">
-                        <div class="tool-card-content">
-                            <div class="tool-card-icon">
-                                <img src="{{ asset('icons/text leveler.png') }}" alt="Text Leveler Icon">
-                                {{-- Image src left blank for you to fill --}}
-                            </div>
-                            <div class="tool-card-text">
-                                <h5>Science</h5>
-                                <p>Adjust text difficulty to match your reading level and comprehension needs.</p>
-                            </div>
-                        </div>
-                    </div>
-                </a>
 
                 <a href="http://127.0.0.1:5001/summarize" target="_blank" class="tool-card-link">
                     <div class="tool-card">
                         <div class="tool-card-content">
                             <div class="tool-card-icon">
-                                <img src="{{ asset('icons/summarizer.png') }}" alt="Text Summarizer Icon">
+                                <img src="{{ asset('icons/english.png') }}" alt="English Icon">
                                 {{-- Image src left blank for you to fill --}}
                             </div>
                             <div class="tool-card-text">
                                 <h5>English</h5>
-                                <p>Simplify long text into concise, easy-to-understand summaries.</p>
+                                <p>Improve reading, writing, and communication.</p>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+
+                <a href="http://192.168.50.144:8000/leveler" target="_blank" class="tool-card-link">
+                    <div class="tool-card">
+                        <div class="tool-card-content">
+                            <div class="tool-card-icon">
+                                <img src="{{ asset('icons/science.png') }}" alt="Science Icon">
+                                {{-- Image src left blank for you to fill --}}
+                            </div>
+                            <div class="tool-card-text">
+                                <h5>Science</h5>
+                                <p>Study how the world works through nature, energy, and life.</p>
                             </div>
                         </div>
                     </div>
@@ -223,13 +224,12 @@
                     <div class="tool-card">
                         <div class="tool-card-content">
                             <div class="tool-card-icon">
-                                <img src="{{ asset('icons/conceptual.png') }}" alt="Conceptual Understanding Icon">
+                                <img src="{{ asset('icons/mathematics.png') }}" alt="Mathematics Icon">
                                 {{-- Image src left blank for you to fill --}}
                             </div>
                             <div class="tool-card-text">
                                 <h5>Math</h5>
-                                <p>Get writing feedback on grammar, structure, and clarity to build stronger writing skills.
-                                </p>
+                                <p>Learn numbers, patterns, and problem-solving skills.</p>
                             </div>
                         </div>
                     </div>

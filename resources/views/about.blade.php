@@ -81,20 +81,12 @@
 
         <div class="about-card">
             <p>
-                CK AI Tools is a growing collection of intelligent, web-based educational resources designed to support
-                reading, writing, and comprehension skills for students of all ages.
-                Each tool is crafted to make learning simpler, clearer, and more engaging.
+                CK Children's Publishing is a pioneering digital learning solutions provider dedicated to empowering the next generation through advanced Information and Communication Technology (ICT) education. 
+                With over two decades of specialized expertise in ICT and digital marketing, we partner with schools across the Philippines to integrate innovative platforms and foster essential digital literacy.
             </p>
             <p>
-                Whether it’s simplifying complex texts, summarizing key ideas, checking grammar, or helping young writers
-                understand what they read,
-                CK AI Tools brings the power of AI into the classroom and at home — in ways that are friendly, helpful, and
-                accessible..
-            </p>
-            <p>
-                We believe learning should be fun, inclusive, and supported by the best that technology can offer.
-                That’s why CK AI Tools continues to evolve — to meet the needs of curious minds and the educators who guide
-                them.
+                We offer a comprehensive suite of educational resources, including our popular "COMPUKIDS" ICT educational book series, cutting-edge robotics courseware, and robust school management systems. 
+                Committed to the principles of modern learning, our mission is to provide exceptional, relevant solutions and unwavering support, ensuring that every student is equipped with the skills needed to thrive in a technology-driven future.
             </p>
         </div>
 

@@ -68,15 +68,21 @@ async def chunk_pdf(
         chapters = re.split(r"(?=^## Chapter \d+:)", markdown, flags=re.MULTILINE)
         global_id = 0
 
+        seen_chapters = set()
+
         for chapter in chapters:
             parsed = parse_chapter(chapter)
             if not parsed:
                 continue
             chapter_number, chapter_title, content = parsed
 
+            if chapter_number in seen_chapters:
+                continue
+            seen_chapters.add(chapter_number)
+
             chapter_id = insert_chapter(
                 book_id, chapter_number, chapter_title,
-                *get_page_range(chapter_page_map.get(chapter_number, []))
+                *chapter_page_map.get(chapter_number, (None, None))
             )
 
             # Chunk and tokenize

@@ -48,10 +48,29 @@
         }
 
         .chat-body {
+            display: flex;
             flex: 1;
-            overflow-y: auto;
-            padding: 1.5rem 12rem;
+            overflow: hidden;
+            padding: 1.5rem 2rem;
             background-color: var(--chat-bg);
+            gap: 2rem;
+        }
+
+        .chat-chapter {
+            flex: 1;
+            max-width: 50%;
+            overflow-y: auto;
+            background-color: #fdfdfd;
+            padding: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            height: 100%;
+        }
+
+        .chat-messages {
+            flex: 1;
+            max-width: 50%;
+            overflow-y: auto;
             display: flex;
             flex-direction: column;
             gap: 1rem;
@@ -239,10 +258,13 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <div class="chat-container">
         <div class="chat-header">Chat</div>
-        <div class="chat-body" id="chatBody"></div>
-        <div class="chat-footer">
-            <textarea id="userInput" rows="1" placeholder="Type your message..."></textarea>
-            <button id="sendBtn">Send</button>
+        <div class="chat-body">
+            <div class="chat-messages" id="chatMessages">
+                <!-- Your chat messages will be appended here -->
+            </div>
+            <div class="chat-chapter" id="viewChapter">
+                <!-- Your chapter content goes here -->
+            </div>
         </div>
     </div>
 @endsection

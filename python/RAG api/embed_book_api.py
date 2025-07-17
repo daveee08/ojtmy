@@ -1,5 +1,5 @@
 from fastapi import FastAPI, UploadFile, File, Form, Query
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, HTMLResponse
 from docling.document_converter import DocumentConverter
 from transformers import AutoTokenizer
 from sentence_transformers import SentenceTransformer
@@ -163,42 +163,34 @@ def rag_initial(
 @app.get("/books")
 def get_books():
     try:
-        conn = get_connection()
-
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT id AS book_id, title, description, grade_level FROM books")
-        books = cursor.fetchall()
-
-        return {"status": "success", "books": books}
-
+        with get_connection() as conn:
+            with conn.cursor(dictionary=True) as cursor:
+                cursor.execute("SELECT id AS book_id, title, description, grade_level FROM books")
+                return {"status": "success", "books": cursor.fetchall()}
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
     
-
 @app.post("/chapters")
 def get_chapters(book_id: int = Form(...)):
     try:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("""
-            SELECT 
-                id AS chapter_id,
-                chapter_number,
-                chapter_title,
-                start_page,
-                end_page
-            FROM chapters
-            WHERE book_id = %s
-            ORDER BY chapter_number ASC
-        """, (book_id,))
-        chapters = cursor.fetchall()
-
-        return {
-            "status": "success",
-            "book_id": book_id,
-            "chapters": chapters
-        }
-
+        with get_connection() as conn:
+            with conn.cursor(dictionary=True) as cursor:
+                cursor.execute("""
+                    SELECT 
+                        id AS chapter_id,
+                        chapter_number,
+                        chapter_title,
+                        start_page,
+                        end_page
+                    FROM chapters
+                    WHERE book_id = %s
+                    ORDER BY chapter_number ASC
+                """, (book_id,))
+                return {
+                    "status": "success",
+                    "book_id": book_id,
+                    "chapters": cursor.fetchall()
+                }
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
     

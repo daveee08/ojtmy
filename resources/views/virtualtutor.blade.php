@@ -288,7 +288,8 @@
         <div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
-                    <form id="uploadForm" action="{{ url('/upload-endpoint') }}" method="POST" enctype="multipart/form-data">
+                    <form id="uploadForm" action="{{ url('/upload-endpoint') }}" method="POST"
+                        enctype="multipart/form-data">
                         <div class="modal-header">
                             <h5 class="modal-title" id="uploadModalLabel">Upload PDF Details</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>

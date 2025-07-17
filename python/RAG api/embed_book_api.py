@@ -1,5 +1,5 @@
 from fastapi import FastAPI, UploadFile, File, Form, Query
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, HTMLResponse
 from docling.document_converter import DocumentConverter
 from transformers import AutoTokenizer
 from sentence_transformers import SentenceTransformer
@@ -13,6 +13,7 @@ import re
 import tempfile
 from pydantic import BaseModel
 import fitz
+import base64
 
 app = FastAPI()
 
@@ -200,102 +201,85 @@ Answer:"""
 @app.get("/books")
 def get_books():
     try:
-        conn = get_connection()
-
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT id AS book_id, title, description, grade_level FROM books")
-        books = cursor.fetchall()
-
-        return {"status": "success", "books": books}
-
+        with get_connection() as conn:
+            with conn.cursor(dictionary=True) as cursor:
+                cursor.execute("SELECT id AS book_id, title, description, grade_level FROM books")
+                return {"status": "success", "books": cursor.fetchall()}
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
     
-
 @app.post("/chapters")
 def get_chapters(book_id: int = Form(...)):
     try:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("""
-            SELECT 
-                id AS chapter_id,
-                chapter_number,
-                chapter_title,
-                start_page,
-                end_page
-            FROM chapters
-            WHERE book_id = %s
-            ORDER BY chapter_number ASC
-        """, (book_id,))
-        chapters = cursor.fetchall()
-
-        return {
-            "status": "success",
-            "book_id": book_id,
-            "chapters": chapters
-        }
-
+        with get_connection() as conn:
+            with conn.cursor(dictionary=True) as cursor:
+                cursor.execute("""
+                    SELECT 
+                        id AS chapter_id,
+                        chapter_number,
+                        chapter_title,
+                        start_page,
+                        end_page
+                    FROM chapters
+                    WHERE book_id = %s
+                    ORDER BY chapter_number ASC
+                """, (book_id,))
+                return {
+                    "status": "success",
+                    "book_id": book_id,
+                    "chapters": cursor.fetchall()
+                }
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
-    
-@app.get("/view-chapter")
-def view_chapter(book_id: int = Query(...), chapter_number: int = Query(...)):
-    try:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
 
-        # 1. Get book source file
-        cursor.execute("SELECT source FROM books WHERE id = %s", (book_id,))
-        book = cursor.fetchone()
-        if not book:
-            return JSONResponse(status_code=404, content={"error": "Book not found"})
+# @app.get("/view-chapter")
+# def view_chapter(book_id: int = Query(...), chapter_number: int = Query(...)):
+#     try:
+#         with get_connection() as conn, conn.cursor(dictionary=True) as cursor:
+#             cursor.execute("SELECT source FROM books WHERE id = %s", (book_id,))
+#             book = cursor.fetchone()
+#             if not book:
+#                 return JSONResponse(status_code=404, content={"error": "Book not found"})
 
-        file_path = book["source"]
-        if not os.path.exists(file_path):
-            return JSONResponse(status_code=404, content={"error": "PDF file not found on disk."})
+#             file_path = book["source"]
+#             if not os.path.exists(file_path):
+#                 return JSONResponse(status_code=404, content={"error": "PDF file not found on disk."})
 
-        # 2. Get chapter start and end pages
-        cursor.execute("""
-            SELECT start_page, end_page, chapter_title
-            FROM chapters 
-            WHERE chapter_number = %s AND book_id = %s
-        """, (chapter_number, book_id))
-        chapter = cursor.fetchone()
-        cursor.close()
-        conn.close()
+#             cursor.execute("""
+#                 SELECT start_page, end_page, chapter_title
+#                 FROM chapters 
+#                 WHERE chapter_number = %s AND book_id = %s
+#             """, (chapter_number, book_id))
+#             chapter = cursor.fetchone()
 
-        if not chapter or chapter["start_page"] is None or chapter["end_page"] is None:
-            return JSONResponse(status_code=404, content={"error": "Chapter page range not found"})
+#         if not chapter or chapter["start_page"] is None or chapter["end_page"] is None:
+#             return JSONResponse(status_code=404, content={"error": "Chapter page range not found"})
 
-        # 3. Extract chapter pages
-        pdf_in = fitz.open(file_path)
-        pdf_out = fitz.open()
+#         pdf_in = fitz.open(file_path)
+#         pdf_out = fitz.open()
+#         for i in range(chapter["start_page"] - 1, chapter["end_page"]):
+#             pdf_out.insert_pdf(pdf_in, from_page=i, to_page=i)
 
-        for i in range(chapter["start_page"] - 1, chapter["end_page"]):
-            pdf_out.insert_pdf(pdf_in, from_page=i, to_page=i)
+#         tmp_path = f"temp_chapter_{book_id}_{chapter_number}.pdf"
+#         pdf_out.set_metadata({
+#             "title": f"Chapter {chapter_number} - {chapter['chapter_title']}"
+#         })
+#         pdf_out.save(tmp_path)
+#         pdf_in.close()
+#         pdf_out.close()
 
-        tmp_path = f"temp_chapter_{book_id}_{chapter_number}.pdf"
-        pdf_out.set_metadata({
-            "title": f"Chapter {chapter_number} - {chapter['chapter_title']}"
-        })
-        pdf_out.save(tmp_path)
-        pdf_out.close()
-        pdf_in.close()
+#         with open(tmp_path, "rb") as f:
+#             pdf_data = f.read()
+#         os.remove(tmp_path)
 
-        # 4. Read file and return inline
-        with open(tmp_path, "rb") as f:
-            pdf_data = f.read()
+#         return Response(
+#             content=pdf_data,
+#             media_type="application/pdf",
+#             headers={
+#                 "Content-Type": "application/pdf",
+#                 "Content-Disposition": f'inline; filename="chapter_{book_id}_{chapter_number}.pdf"'
+#             }
+#         )
 
-        headers = {
-            "Content-Type": "application/pdf",
-            "Content-Disposition": f'inline; filename="chapter_{book_id}_{chapter_number}.pdf"'
-        }
-
-        # Optional cleanup after read
-        os.remove(tmp_path)
-
-        return Response(content=pdf_data, media_type="application/pdf", headers=headers)
-
-    except Exception as e:
-        return JSONResponse(status_code=500, content={"error": str(e)})
+#     except Exception as e:
+#         return JSONResponse(status_code=500, content={"error": str(e)})

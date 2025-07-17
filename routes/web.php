@@ -51,10 +51,6 @@ Route::get('/tools', function () {
     return view('tool');
 });
 
-Route::get('/', function () {
-    return view('home');
-});
-
 Route::get('/about', function () {
     return view('about');
 });
@@ -67,10 +63,7 @@ Route::get('/virtual_tutor_chat/{book_id}', function ($book_id) {
     return view('virtualtutorchat', ['book_id' => $book_id]);
 });
 
-Route::get('/books-by-grade', [RAGController::class, 'getBooksByGrade']);
-
 Route::post('/upload-endpoint', [RAGController::class, 'uploadToFastAPI']);
-
 
 // Authentication Routes
 Route::middleware('guest')->group(function () {

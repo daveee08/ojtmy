@@ -11,58 +11,6 @@ use Illuminate\Support\Facades\Storage;
 
 class RAGController extends Controller
 {
-    
-public function getBooksByGrade(Request $request)
-{
-    $gradeLevel = $request->query('grade_level');
-
-    $books = DB::table('books')
-        ->select('id as book_id', 'title', 'description', 'grade_level')
-        ->where('grade_level', $gradeLevel)
-        ->get();
-
-    return response()->json($books);
-}
-
-// public function uploadToFastAPI(Request $request)
-// {
-
-//     set_time_limit(0);
-//     $validator = Validator::make($request->all(), [
-//         'subject_name' => 'required|string',
-//         'grade_level' => 'required|string',
-//         'description' => 'required|string',
-//         'pdf_file' => 'required|file|mimes:pdf', // 20MB max
-//     ]);
-
-//     if ($validator->fails()) {
-//         return response()->json(['status' => 'error', 'errors' => $validator->errors()], 422);
-//     }
-
-//     try {
-//         $file = $request->file('pdf_file');
-//         $tempPath = $file->getPathname();
-//         $filename = $file->getClientOriginalName();
-
-//         $response = Http::timeout(0) // ⏱️ timeout in seconds
-//         ->attach('file', file_get_contents($tempPath), $filename)
-//         ->asMultipart()
-//         ->post('http://127.0.0.1:5001/chunk-and-embed/', [
-//             'title' => $request->input('subject_name'),
-//             'desc' => $request->input('description'),
-//             'grade_lvl' => $request->input('grade_level'),
-//         ]);
-
-//         if (!$response->successful()) {
-//             return response()->json(['status' => 'error', 'message' => 'FastAPI Error', 'details' => $response->body()], 500);
-//         }
-
-//         return response()->json(['status' => 'success', 'message' => 'Book uploaded and chunked successfully!']);
-
-//     } catch (\Exception $e) {
-//         return response()->json(['status' => 'error', 'message' => 'Upload failed', 'details' => $e->getMessage()], 500);
-//     }
-// }
 
 public function uploadToFastAPI(Request $request)
 {

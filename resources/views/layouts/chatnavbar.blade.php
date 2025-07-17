@@ -189,13 +189,13 @@
             {{-- Show chapter select and sessions list only on /virtual_tutor --}}
             @if (request()->is('virtual_tutor_chat/*'))
                 <!-- 🔽 Chapter Selector (Hidden on Collapse) -->
-                 <div class="mb-4 hide-when-collapsed">
+                <div class="mb-4 hide-when-collapsed">
                     <label for="tutorSelect" class="form-label fw-semibold">Choose Chapter:</label>
                     <select class="form-select" id="tutorSelect" onchange="handleChapterChange(this)">
                         <option value="">Loading chapters...</option>
                     </select>
                 </div>
-    
+
                 <a href="{{ url('/virtual_tutor_chat/new') }}"
                     class="{{ request()->is('virtual_tutor_chat/new') ? 'active-link' : '' }}" data-bs-toggle="tooltip"
                     title="Start New Chat Session">
@@ -251,14 +251,6 @@
             new bootstrap.Tooltip(el);
         });
 
-        // function handleChapterChange(select) {
-        //     const chapter = select.value;
-        //     if (chapter) {
-        //         console.log("Chapter selected:", chapter);
-        //         // You can add logic here
-        //     }
-        // }
-
         function handleChapterChange(select) {
             const chapter_number = select.value;
             if (!chapter_number) return;
@@ -268,43 +260,41 @@
             window.open(url, "_blank");
         }
 
-            document.addEventListener('DOMContentLoaded', () => {
-        const chapterSelect = document.getElementById('tutorSelect');
-        const bookId = "{{ $book_id }}"; // From Laravel route param
+        document.addEventListener('DOMContentLoaded', () => {
+            const chapterSelect = document.getElementById('tutorSelect');
+            const bookId = "{{ $book_id }}"; // From Laravel route param
 
-        fetch("http://127.0.0.1:5001/chapters", {
-            method: "POST",
-            headers: {
-                "Accept": "application/json",
-            },
-            body: (() => {
-                const form = new FormData();
-                form.append("book_id", bookId);
-                return form;
-            })()
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.status !== 'success') {
-                chapterSelect.innerHTML = `<option value="">Failed to load chapters</option>`;
-                return;
-            }
+            fetch("http://127.0.0.1:5001/chapters", {
+                    method: "POST",
+                    headers: {
+                        "Accept": "application/json",
+                    },
+                    body: (() => {
+                        const form = new FormData();
+                        form.append("book_id", bookId);
+                        return form;
+                    })()
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status !== 'success') {
+                        chapterSelect.innerHTML = `<option value="">Failed to load chapters</option>`;
+                        return;
+                    }
 
-            chapterSelect.innerHTML = `<option value="">Select Chapter</option>`;
-            data.chapters.forEach(chap => {
-                const option = document.createElement('option');
-                option.value = chap.chapter_number;
-                option.textContent = `Chapter ${chap.chapter_number}: ${chap.chapter_title}`;
-                chapterSelect.appendChild(option);
-            });
-        })
-        .catch(err => {
-            console.error("Error loading chapters:", err);
-            chapterSelect.innerHTML = `<option value="">Error loading chapters</option>`;
+                    chapterSelect.innerHTML = `<option value="">Select Chapter</option>`;
+                    data.chapters.forEach(chap => {
+                        const option = document.createElement('option');
+                        option.value = chap.chapter_number;
+                        option.textContent = `Chapter ${chap.chapter_number}: ${chap.chapter_title}`;
+                        chapterSelect.appendChild(option);
+                    });
+                })
+                .catch(err => {
+                    console.error("Error loading chapters:", err);
+                    chapterSelect.innerHTML = `<option value="">Error loading chapters</option>`;
+                });
         });
-    });
-
-        
     </script>
 
 </body>

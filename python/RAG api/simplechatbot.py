@@ -10,8 +10,17 @@ import numpy as np
 import tempfile
 import mysql.connector
 import requests
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Or limit to ["http://localhost:8000"]
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # === Config ===
 EMBED_MODEL = SentenceTransformer("all-MiniLM-L6-v2")
@@ -30,8 +39,13 @@ DB_CONFIG = {
 # === Token-based chunking ===
 def chunk_text_token_based(text: str, max_tokens: int = 512) -> list:
     tokens = TOKENIZER.encode(text, add_special_tokens=False)
-    chunks = [tokens[i:i+max_tokens] for i in range(0, len(tokens), max_tokens)]
-    return [TOKENIZER.decode(chunk) for chunk in chunks]
+    chunks = []
+    for i in range(0, len(tokens), max_tokens):
+        chunk = tokens[i:i + max_tokens]
+        chunk_text = TOKENIZER.decode(chunk, skip_special_tokens=True)
+        chunks.append(chunk_text.strip())
+    return chunks
+
 
 # === Upload + Embed Endpoint ===
 @app.post("/upload-and-embed")
@@ -51,11 +65,15 @@ async def upload_pdf(
         # Extract text from PDF
         doc = fitz.open(pdf_path)
         full_text = "".join([page.get_text() for page in doc])
+
+        if not full_text.strip():
+            return JSONResponse(status_code=400, content={"error": "PDF contains no extractable text."})
+
         chunks = chunk_text_token_based(full_text, max_tokens=100)
         embeddings = EMBED_MODEL.encode(chunks)
 
-        # FAISS index logic
-        index_path = f"{book_id}-{chapter_number}.faiss"
+        # === FAISS index logic ===
+        index_path = f"bookid_{book_id}_chapter_{chapter_number}.faiss"
         if os.path.exists(index_path):
             index = faiss.read_index(index_path)
         else:
@@ -66,25 +84,42 @@ async def upload_pdf(
         index.add(vector_np)
         faiss.write_index(index, index_path)
 
-        # Insert chunks into DB
+        # === Insert chunks into DB in batches ===
         conn = mysql.connector.connect(**DB_CONFIG)
+        conn.autocommit = False  # Manual commit mode
+
         try:
             cursor = conn.cursor()
+            batch_size = 20
             for i, chunk in enumerate(chunks):
                 faiss_id = start_id + i
                 cursor.execute("""
                     INSERT INTO chunks (book_id, chapter_number, unit_id, lesson_id, global_faiss_id, text)
                     VALUES (%s, %s, %s, %s, %s, %s)
-                """, (book_id, chapter_number,unit_id, lesson_id, faiss_id, chunk))
+                """, (book_id, chapter_number, unit_id, lesson_id, faiss_id, chunk))
+
+                if (i + 1) % batch_size == 0:
+                    conn.commit()
+
             conn.commit()
+
+
+        except Exception as db_err:
+            conn.rollback()
+            raise db_err
         finally:
             cursor.close()
             conn.close()
 
-        return {"status": "success", "chunks_added": len(chunks), "index_path": index_path}
+        return {
+            "status": "success",
+            "chunks_added": len(chunks),
+            "index_path": index_path
+        }
 
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
+
 
 # === Chat History DB Functions ===
 def save_chat_to_db(session_id: int, role: str, message: str):

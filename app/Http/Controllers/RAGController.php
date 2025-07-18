@@ -212,20 +212,23 @@ public function getBooks(Request $request)
         return response()->json(['chapters' => $chapters]);
     }
 
-    // 📘 Add Lesson
-    public function addLesson(Request $request)
-    {
-        $validated = $request->validate([
+public function addLesson(Request $request)
+{
+    set_time_limit(0);
+
+    $validated = $request->validate([
         'chapter_id' => 'required|exists:chapter,id',
         'lesson_title' => 'required|string|max:255',
         'lesson_number' => 'required|integer',
-        'pdf_file' => 'required|file|mimes:pdf|max:10240', // max 10MB
+        'pdf_file' => 'required|file|mimes:pdf|max:10240',
     ]);
 
-        // Store the uploaded PDF in storage/app/public/lessons
-        $pdfPath = $request->file('pdf_file')->store('lessons', 'public');
+    $pdfPath = $request->file('pdf_file')->store('lessons', 'public');
+    $fullPath = storage_path('app/public/' . $pdfPath);
 
-        DB::table('lesson')->insert([
+    try {
+        // ✅ Phase 1: Insert lesson and commit immediately
+        $lessonId = DB::table('lesson')->insertGetId([
             'chapter_id' => $validated['chapter_id'],
             'lesson_title' => $validated['lesson_title'],
             'lesson_number' => $validated['lesson_number'],
@@ -234,8 +237,54 @@ public function getBooks(Request $request)
             'updated_at' => now(),
         ]);
 
-        return response()->json(['status' => 'success']);
+        // Gather foreign keys
+        $unitId = DB::table('chapter')->where('id', $validated['chapter_id'])->value('unit_id');
+        $bookId = DB::table('units')->where('id', $unitId)->value('book_id');
+        $chapterNumber = DB::table('chapter')->where('id', $validated['chapter_id'])->value('chapter_number');
+
+        // ✅ Phase 2: Call FastAPI
+        $response = Http::timeout(300)
+            ->attach('file', file_get_contents($fullPath), basename($pdfPath))
+            ->post('http://127.0.0.1:5001/upload-and-embed', [
+                'book_id' => $bookId,
+                'unit_id' => $unitId,
+                'chapter_number' => $chapterNumber,
+                'lesson_id' => $lessonId,
+            ]);
+
+        if ($response->failed()) {
+            // ❌ FastAPI failed — rollback manually
+            DB::table('lesson')->where('id', $lessonId)->delete();
+            if (Storage::disk('public')->exists($pdfPath)) {
+                Storage::disk('public')->delete($pdfPath);
+            }
+
+            return response()->json([
+                'status' => 'fail',
+                'error' => 'FastAPI embed failed',
+                'fastapi_error' => $response->body(),
+            ], 500);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'lesson_id' => $lessonId,
+            'embedding' => $response->json(),
+        ]);
+
+    } catch (\Exception $e) {
+        // Cleanup on unexpected Laravel error
+        Log::error('Add lesson failed: ' . $e->getMessage());
+
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Something went wrong while saving the lesson.',
+            'exception' => $e->getMessage(),
+        ], 500);
     }
+}
+
+
 
     // 📘 Get Lessons
     public function getLessons(Request $request)
@@ -251,26 +300,27 @@ public function getBooks(Request $request)
     }
 
     public function getFirstLesson(Request $request)
-    {
-        $bookId = $request->book_id;
+{
+    $bookId = $request->book_id;
 
-        $unit = DB::table('units')->where('book_id', $bookId)->orderBy('unit_number')->first();
-        if (!$unit) return response()->json(['status' => 'error', 'message' => 'No unit found']);
+    $unit = DB::table('units')->where('book_id', $bookId)->orderBy('unit_number')->first();
+    if (!$unit) return response()->json(['status' => 'error', 'message' => 'No unit found']);
 
-        $chapter = DB::table('chapter')->where('unit_id', $unit->id)->orderBy('chapter_number')->first();
-        if (!$chapter) return response()->json(['status' => 'error', 'message' => 'No chapter found']);
+    $chapter = DB::table('chapter')->where('unit_id', $unit->id)->orderBy('chapter_number')->first();
+    if (!$chapter) return response()->json(['status' => 'error', 'message' => 'No chapter found']);
 
-        $lesson = DB::table('lesson')->where('chapter_id', $chapter->id)->orderBy('lesson_number')->first();
-        if (!$lesson) return response()->json(['status' => 'error', 'message' => 'No lesson found']);
+    $lesson = DB::table('lesson')->where('chapter_id', $chapter->id)->orderBy('lesson_number')->first();
+    if (!$lesson) return response()->json(['status' => 'error', 'message' => 'No lesson found']);
 
-        return response()->json([
-            'status' => 'success',
-            'book_id' => $bookId,
-            'unit_id' => $unit->id,
-            'chapter_id' => $chapter->id,
-            'lesson_id' => $lesson->id
-        ]);
-    }
+    return response()->json([
+        'status' => 'success',
+        'book_id' => $bookId,
+        'unit_id' => $unit->id,
+        'chapter_id' => $chapter->id,
+        'lesson_id' => $lesson->id
+    ]);
+}
+
 
 public function showVirtualTutorChat(Request $request)
 {
@@ -292,4 +342,6 @@ public function showVirtualTutorChat(Request $request)
         'grade_level' => $gradeLevel
     ]);
 }
+
+
 }

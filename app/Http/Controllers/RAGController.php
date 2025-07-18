@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class RAGController extends Controller
 {
@@ -246,39 +247,39 @@ public function getBooks()
     }
 
     public function getFirstLesson(Request $request)
-{
-    $bookId = $request->book_id;
+    {
+        $bookId = $request->book_id;
 
-    $unit = DB::table('units')->where('book_id', $bookId)->orderBy('unit_number')->first();
-    if (!$unit) return response()->json(['status' => 'error', 'message' => 'No unit found']);
+        $unit = DB::table('units')->where('book_id', $bookId)->orderBy('unit_number')->first();
+        if (!$unit) return response()->json(['status' => 'error', 'message' => 'No unit found']);
 
-    $chapter = DB::table('chapter')->where('unit_id', $unit->id)->orderBy('chapter_number')->first();
-    if (!$chapter) return response()->json(['status' => 'error', 'message' => 'No chapter found']);
+        $chapter = DB::table('chapter')->where('unit_id', $unit->id)->orderBy('chapter_number')->first();
+        if (!$chapter) return response()->json(['status' => 'error', 'message' => 'No chapter found']);
 
-    $lesson = DB::table('lesson')->where('chapter_id', $chapter->id)->orderBy('lesson_number')->first();
-    if (!$lesson) return response()->json(['status' => 'error', 'message' => 'No lesson found']);
+        $lesson = DB::table('lesson')->where('chapter_id', $chapter->id)->orderBy('lesson_number')->first();
+        if (!$lesson) return response()->json(['status' => 'error', 'message' => 'No lesson found']);
 
-    return response()->json([
-        'status' => 'success',
-        'book_id' => $bookId,
-        'unit_id' => $unit->id,
-        'chapter_id' => $chapter->id,
-        'lesson_id' => $lesson->id
+        return response()->json([
+            'status' => 'success',
+            'book_id' => $bookId,
+            'unit_id' => $unit->id,
+            'chapter_id' => $chapter->id,
+            'lesson_id' => $lesson->id
+        ]);
+    }
+
+    public function showVirtualTutorChat(Request $request)
+    {
+        $lessonId = $request->query('lesson_id');
+
+        $lesson = DB::table('lesson')->find($lessonId);
+
+        return view('virtualtutorchat', [
+        'lesson' => $lesson,
+        'book_id' => $request->query('book_id'),
+        'unit_id' => $request->query('unit_id'),
+        'chapter_id' => $request->query('chapter_id'),
+        'lesson_id' => $lessonId
     ]);
-}
-
-public function showVirtualTutorChat(Request $request)
-{
-    $lessonId = $request->query('lesson_id');
-
-    $lesson = DB::table('lesson')->find($lessonId);
-
-    return view('virtualtutorchat', [
-    'lesson' => $lesson,
-    'book_id' => $request->query('book_id'),
-    'unit_id' => $request->query('unit_id'),
-    'chapter_id' => $request->query('chapter_id'),
-    'lesson_id' => $lessonId
-]);
-}
+    }
 }

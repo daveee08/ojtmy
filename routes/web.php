@@ -2,7 +2,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Summarizer\SummarizeController;
 use App\Http\Controllers\Proofreader\ProofreaderController;
-use App\Http\Controllers\QuizmeController;
+// use App\Http\Controllers\QuizmeController;
 use App\Http\Controllers\StepTutorController;
 use App\Http\Controllers\FiveQuestion\FiveQuestionsController;
 use App\Http\Controllers\EmailWriter\EmailWriterController;
@@ -12,7 +12,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\TutorController;
 use App\Http\Controllers\TextLeveler\LevelerController;
 use App\Http\Controllers\InformationalTexts\InformationalController;
-use App\Http\Controllers\QOTDController;
+// use App\Http\Controllers\QOTDController;
 use App\Http\Controllers\TongueTwistController;
 use App\Http\Controllers\TeacherJokesController;
 use App\Http\Controllers\CoachSportsPracController;
@@ -133,29 +133,29 @@ Route::get('/proofreader', [ProofreaderController::class, 'showForm'])->name('pr
 Route::post('/proofreader', [ProofreaderController::class, 'processForm'])->name('proofreader.process');
 
 // ✅ QuizMe Tool
-Route::get('/quizme', 'App\Http\Controllers\QuizmeController@showForm');
-Route::post('/quizme', 'App\Http\Controllers\QuizmeController@processForm');
-Route::post('/quizme/download', 'App\Http\Controllers\QuizmeController@downloadContent')->name('quizme.download');
-Route::post('/quizme/evaluate-answer', 'App\Http\Controllers\QuizmeController@evaluateAnswer');
-Route::post('/quizme/chat', 'App\Http\Controllers\QuizmeController@chat');
+// Route::get('/quizme', 'App\Http\Controllers\QuizmeController@showForm');
+// Route::post('/quizme', 'App\Http\Controllers\QuizmeController@processForm');
+// Route::post('/quizme/download', 'App\Http\Controllers\QuizmeController@downloadContent')->name('quizme.download');
+// Route::post('/quizme/evaluate-answer', 'App\Http\Controllers\QuizmeController@evaluateAnswer');
+// Route::post('/quizme/chat', 'App\Http\Controllers\QuizmeController@chat');
 
 // ✅ Qoutes of the Day
-Route::get('/qotd', [QOTDController::class, 'showForm']);
-Route::post('/qotd', [QOTDController::class, 'generateQuote']);
-Route::post('/qotd/download', [QOTDController::class, 'downloadQuote'])->name('qotd.download');
+// Route::get('/qotd', [QOTDController::class, 'showForm']);
+// Route::post('/qotd', [QOTDController::class, 'generateQuote']);
+// Route::post('/qotd/download', [QOTDController::class, 'downloadQuote'])->name('qotd.download');
 
 // ✅ Tongue Twister
-Route::get('/tonguetwister', [TongueTwistController::class, 'showForm']);
-Route::post('/tonguetwister', [TongueTwistController::class, 'generateTongueTwister']);
+// Route::get('/tonguetwister', [TongueTwistController::class, 'showForm']);
+// Route::post('/tonguetwister', [TongueTwistController::class, 'generateTongueTwister']);
 
 // ✅ Teacher Jokes
-Route::get('/teacherjokes', [TeacherJokesController::class, 'showForm']);
-Route::post('/teacherjokes', [TeacherJokesController::class, 'generateJoke']);
+// Route::get('/teacherjokes', [TeacherJokesController::class, 'showForm']);
+// Route::post('/teacherjokes', [TeacherJokesController::class, 'generateJoke']);
 
 // ✅ Coach Sports Practice
-Route::get('/coachsportprac', [CoachSportsPracController::class, 'showForm']);
-Route::post('/coachsportprac', [CoachSportsPracController::class, 'generatePracticePlan']);
-Route::post('/coachsportprac/download', [CoachSportsPracController::class, 'downloadPracticePlan'])->name('coachsportprac.download');
+// Route::get('/coachsportprac', [CoachSportsPracController::class, 'showForm']);
+// Route::post('/coachsportprac', [CoachSportsPracController::class, 'generatePracticePlan']);
+// Route::post('/coachsportprac/download', [CoachSportsPracController::class, 'downloadPracticePlan'])->name('coachsportprac.download');
 
 // ✅ 5 Questions Tool
 Route::get('/5questions', [FiveQuestionsController::class, 'showForm'])->name('fivequestions.form');

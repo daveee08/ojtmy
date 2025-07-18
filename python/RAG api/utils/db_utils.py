@@ -34,38 +34,3 @@ def insert_chunk(book_id, chapter_id, global_faiss_id, text):
         INSERT INTO chunks (book_id, chapter_id, global_faiss_id, text)
         VALUES (%s, %s, %s, %s)
     """, (book_id, chapter_id, global_faiss_id, text))
-
-
-def get_scope_vars_by_message_id(message_id: str):
-    conn = mysql.connector.connect(**DB)
-    cur = conn.cursor(dictionary=True)
-
-    cur.execute("""
-        SELECT parameter_inputs.key, parameter_inputs.value
-        FROM parameter_inputs
-        JOIN messages ON messages.session_id = parameter_inputs.session_id
-        WHERE messages.id = %s
-    """, (message_id,))
-
-    rows = cur.fetchall()
-    conn.close()
-
-    scope = {row["key"]: row["value"] for row in rows}
-    return scope.get("book_id"), scope.get("chapter_number")
-
-def get_agent_prompt_by_message_id(message_id: int) -> str:
-    db = get_connection()
-    try:
-        with db.cursor(dictionary=True) as cursor:
-            cursor.execute("""
-                SELECT ap.prompt
-                FROM messages m
-                JOIN agent_prompts ap ON m.agent_prompt_id = ap.id
-                WHERE m.message_id = %s AND m.agent_prompt_id IS NOT NULL
-                ORDER BY m.id ASC
-                LIMIT 1
-            """, (message_id,))
-            result = cursor.fetchone()
-            return result["prompt"] if result else "You are a helpful assistant."  # fallback
-    finally:
-        db.close()

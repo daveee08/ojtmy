@@ -27,7 +27,7 @@ class AuthController extends Controller
             // ✅ Store grade_level in session
             session(['grade_level' => Auth::user()->grade_level]);
 
-            return redirect()->intended('/');
+            return redirect()->intended('/landing');
         }
 
         return back()->withErrors([
@@ -58,7 +58,7 @@ class AuthController extends Controller
 
         Auth::login($user);
 
-        return redirect('/');
+        return redirect('/landing');
     }
 
 

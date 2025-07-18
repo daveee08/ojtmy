@@ -47,8 +47,8 @@ Route::get('/', function () {
     return view('home');
 });
 
-Route::get('/landing', function () {
-    return view('landing');
+Route::get('/tools', function () {
+    return view('tools');
 })->middleware('auth');
 
 

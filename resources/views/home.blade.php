@@ -224,30 +224,72 @@
         <h2 class="subheading">Your supportive suite of AI-powered tools to help young learners build confidence in reading and writing.</h2>
     </div>
 
-    <!-- Auth Forms -->
-    <div class="auth-container">
-        <div class="form-toggle">
-            <button id="loginTab" class="active" onclick="showForm('login')">Log In</button>
-            <button id="registerTab" onclick="showForm('register')">Sign Up</button>
-        </div>
+        <!-- Auth Forms -->
+        <div class="auth-container">
+            @if (session('status'))
+                <div style="background-color: #e6f7f1; color: #1b5e20; padding: 10px; margin-bottom: 15px; border-radius: 5px;">
+                    {{ session('status') }}
+                </div>
+            @endif
+
+            <div class="form-toggle">
+                <button id="loginTab" class="active" onclick="showForm('login')">Log In</button>
+                <button id="registerTab" onclick="showForm('register')">Sign Up</button>
+            </div>
+
 
         <!-- Login Form -->
         <div id="loginForm" class="form-section active">
+            @if ($errors->any())
+                <div style="background-color: #fdecea; color: #b00020; padding: 10px; margin-bottom: 15px; border-radius: 5px;">
+                    {{ $errors->first() }}
+                </div>
+            @endif
+
             <form method="POST" action="{{ url('/login') }}">
                 @csrf
                 <div class="form-group">
                     <label for="login_email">Email</label>
-                    <input type="email" id="login_email" name="email" required>
+                    <input type="email" id="login_email" name="email" value="{{ old('email') }}" required>
                 </div>
 
                 <div class="form-group">
                     <label for="login_password">Password</label>
                     <input type="password" id="login_password" name="password" required>
+                    <a href="javascript:void(0)" onclick="showForm('forgot')" style="display: inline-block; margin-top: 5px; font-size: 0.9rem; color: #e91e63; text-decoration: underline;">Forgot Password?</a>
                 </div>
 
                 <button type="submit" class="btn-submit">Log In</button>
             </form>
         </div>
+
+    <!-- Forgot Password Form -->
+    <div id="forgotForm" class="form-section">
+        <form method="POST" action="{{ url('/password/manual-reset') }}">
+            @csrf
+            <div class="form-group">
+                <label for="forgot_email">Email</label>
+                <input type="email" id="forgot_email" name="email" required>
+            </div>
+
+            <div class="form-group">
+                <label for="new_password">New Password</label>
+                <input type="password" id="new_password" name="password" required>
+            </div>
+
+            <div class="form-group">
+                <label for="confirm_new_password">Confirm New Password</label>
+                <input type="password" id="confirm_new_password" name="password_confirmation" required>
+            </div>
+
+            <button type="submit" class="btn-submit">Reset Password</button>
+
+            <div style="margin-top: 10px;">
+                <a href="javascript:void(0)" onclick="showForm('login')" style="font-size: 0.9rem; color: #e91e63; text-decoration: underline;">Back to Login</a>
+            </div>
+        </form>
+    </div>
+
 
         <!-- Register Form -->
         <div id="registerForm" class="form-section">
@@ -286,37 +328,54 @@
 
 <script>
     function showForm(form) {
+        // Hide all forms
         document.getElementById('loginForm').classList.remove('active');
         document.getElementById('registerForm').classList.remove('active');
+        document.getElementById('forgotForm').classList.remove('active');
+
+        // Reset tab styles
         document.getElementById('loginTab').classList.remove('active');
         document.getElementById('registerTab').classList.remove('active');
 
+        // Show selected form
         if (form === 'login') {
             document.getElementById('loginForm').classList.add('active');
             document.getElementById('loginTab').classList.add('active');
-        } else {
+        } else if (form === 'register') {
             document.getElementById('registerForm').classList.add('active');
             document.getElementById('registerTab').classList.add('active');
+        } else if (form === 'forgot') {
+            document.getElementById('forgotForm').classList.add('active');
         }
     }
 
-    const text = "Meet Your New AI Learning Buddy!";
-    let index = 0;
 
-    function type() {
-        if (index < text.length) {
-            document.getElementById("typed-text").textContent += text.charAt(index);
-            index++;
-            setTimeout(type, 80);
-        } else {
-            setTimeout(() => {
-                document.getElementById("typed-text").textContent = '';
-                index = 0;
-                type();
-            }, 10000);
+        // Typewriter animation
+        const text = "Meet Your New AI Learning Buddy!";
+        let index = 0;
+
+        function type() {
+            if (index < text.length) {
+                document.getElementById("typed-text").textContent += text.charAt(index);
+                index++;
+                setTimeout(type, 80);
+            } else {
+                setTimeout(() => {
+                    document.getElementById("typed-text").textContent = '';
+                    index = 0;
+                    type();
+                }, 10000);
+            }
         }
-    }
 
-    window.onload = type;
+        window.onload = function () {
+            type();
+
+            @if (session('status'))
+                showForm('login');
+            @endif
+        };
+
 </script>
 @endsection
+

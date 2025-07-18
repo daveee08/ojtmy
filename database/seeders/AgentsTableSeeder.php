@@ -34,6 +34,8 @@ class AgentsTableSeeder extends Seeder
             ['agent' => 'mathreview', 'created_at' => now(), 'updated_at' => now()],
             ['agent' => 'makeitrelevant', 'created_at' => now(), 'updated_at' => now()],
             ['agent' => 'characterbot', 'created_at' => now(), 'updated_at' => now()],
+            ['agent' => 'ragchatbot', 'created_at' => now(), 'updated_at' => now()],
+
         ]);
     }
 }

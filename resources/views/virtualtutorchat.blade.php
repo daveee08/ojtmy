@@ -32,6 +32,7 @@
             border-left: 1px solid #e5e7eb;
             height: 100vh;
             transition: left 0.3s;
+            margin-top: 4%;
         }
 
         body.sidebar-collapsed .chat-container {
@@ -59,23 +60,13 @@
 
         .chat-chapter {
             flex: 1;
-            max-width: 50%;
+            max-width: 100%;
             overflow-y: auto;
             background-color: #fdfdfd;
             padding: 1rem;
             border: 1px solid #ddd;
             border-radius: 8px;
-            height: 100%;
-        }
-
-        .chat-messages {
-            flex: 1;
-            max-width: 50%;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            scroll-behavior: smooth;
+            height: 90%;
         }
 
         .message {

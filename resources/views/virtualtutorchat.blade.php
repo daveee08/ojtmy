@@ -1,5 +1,5 @@
-<!-- @extends('layouts.chatnavbar') -->
-<!-- @extends('layouts.header') -->
+@extends('layouts.chatnavbar')
+@extends('layouts.header')
 @extends('chatbot')
 
 @section('styles')

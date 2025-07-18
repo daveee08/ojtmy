@@ -51,10 +51,6 @@ Route::get('/tools', function () {
     return view('tool');
 });
 
-Route::get('/', function () {
-    return view('home');
-});
-
 Route::get('/about', function () {
     return view('about');
 });
@@ -67,10 +63,7 @@ Route::get('/virtual_tutor_chat/{book_id}', function ($book_id) {
     return view('virtualtutorchat', ['book_id' => $book_id]);
 });
 
-Route::get('/books-by-grade', [RAGController::class, 'getBooksByGrade']);
-
 Route::post('/upload-endpoint', [RAGController::class, 'uploadToFastAPI']);
-
 
 // Authentication Routes
 Route::middleware('guest')->group(function () {
@@ -237,3 +230,22 @@ Route::post('/socialstory', [SocialStoryController::class, 'generate'])->name('s
 // Character Chat Tool
 Route::get('/characterchat', [CharacterChatController::class, 'showForm'])->name('characterchat.form');
 Route::post('/characterchat', [CharacterChatController::class, 'generate'])->name('characterchat.generate');
+
+Route::post('/books', [RAGController::class, 'addBook']);
+Route::get('/books', [RAGController::class, 'getBooks']);
+
+// 📘 Units
+Route::post('/units', [RAGController::class, 'addUnit']);
+Route::get('/units', [RAGController::class, 'getUnits']);
+
+// 📘 Chapters
+Route::post('/chapters', [RAGController::class, 'addChapter']);
+Route::get('/chapters', [RAGController::class, 'getChapters']);
+
+// 📘 Lessons
+Route::post('/lessons', [RAGController::class, 'addLesson']);
+Route::get('/lessons', [RAGController::class, 'getLessons']);
+
+Route::get('/get-first-lesson', [RAGController::class, 'getFirstLesson']);
+
+Route::get('/virtual-tutor-chat', [RAGController::class, 'showVirtualTutorChat']);

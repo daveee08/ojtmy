@@ -47,14 +47,13 @@ Route::get('/', function () {
     return view('home');
 });
 
+Route::get('/landing', function () {
+    return view('landing');
+})->middleware('auth');
+
 Route::get('/tools', function () {
     return view('tools');
 })->middleware('auth');
-
-
-Route::get('/tools', function () {
-    return view('tool');
-});
 
 Route::get('/about', function () {
     return view('about');

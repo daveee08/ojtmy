@@ -1,158 +1,215 @@
 @extends('layouts.header')
 @extends('layouts.navbar')
-
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<meta name="csrf-token" content="{{ csrf_token() }}">
 @section('title', 'CK Virtual Tutor')
-@section('styles')
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <style>
-        body {
-            background: #fdfdfd;
-        }
 
+@section('styles')
+    <style>
         .container {
             margin-top: 100px;
-            max-width: 1200px;
+            max-width: 1100px;
             margin-left: auto;
             margin-right: auto;
-            padding: 0 24px;
+            padding: 0 20px;
         }
 
         .hero {
-            background-color: #fff0f5;
-            border: 1px solid #ffe4ec;
-            padding: 60px 30px;
-            border-radius: 16px;
-            margin-bottom: 50px;
+            background-color: #F5F5F5;
+            border: 1px solid #F5F5F5;
+            padding: 50px;
+            border-radius: 12px;
+            margin-bottom: 40px;
             text-align: center;
         }
 
         .hero h1 {
-            font-size: 3.5rem;
-            color: #d81b60;
-            font-weight: 800;
+            font-size: 3rem;
+            color: #e91e63;
+            font-weight: 700;
         }
 
         .hero p {
-            font-size: 1.2rem;
-            color: #666;
-            max-width: 650px;
-            margin: 24px auto 0;
+            font-size: 1rem;
+            color: #555;
+            max-width: 600px;
+            margin: 15px auto 0;
         }
 
-        .btn-container {
-            position: fixed;
-            top: 100px;
-            right: 40px;
-            z-index: 1050;
+        .search-wrapper {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .search-wrapper select {
+            max-width: 400px;
+            padding: 10px 16px 10px 16px;
+            font-size: 1rem;
+            border: 1px solid #ccc;
+            outline: none;
+            background-color: #fff;
+            background-image: none;
+            box-shadow: none;
+            transition: 0.3s;
+        }
+
+        .search-wrapper input:focus {
+            border-color: #e91e63;
+            box-shadow: 0 0 0 0.1rem rgba(234, 114, 114, 0.1);
         }
 
         .tool-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 24px;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .tool-card-link {
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            height: 100%;
         }
 
         .tool-card {
-            background: white;
-            border-radius: 20px;
-            padding: 30px 24px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-            border: 1px solid #f0f0f0;
-            transition: all 0.3s ease;
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 20px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: stretch;
+            position: relative;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            width: 100%;
+            height: 120px;
         }
 
         .tool-card:hover {
-            transform: translateY(-6px);
-            border-color: #d81b60;
-            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+            border-color: #e91e63;
         }
 
         .tool-card h5 {
-            font-size: 1.4rem;
-            font-weight: 700;
-            color: #2c2c2c;
+            font-size: 1.1rem;
+            color: #333333;
+            font-weight: 600;
+            margin-top: 0;
+            margin-bottom: 5px;
         }
 
-        .tool-card small {
-            font-size: 0.9rem;
-            color: #999;
+        .tool-card h5 a {
+            color: inherit;
+            text-decoration: none;
+            pointer-events: none;
+            cursor: default;
         }
 
         .tool-card p {
-            font-size: 1rem;
-            color: #666;
-            margin-top: 8px;
-            margin-bottom: 16px;
-            line-height: 1.6;
-        }
-
-        .toggle-units {
-            margin-top: 10px;
-            padding: 6px 14px;
             font-size: 0.9rem;
-            border-radius: 8px;
-            border: 1px solid #d81b60;
-            background: #fff;
-            color: #d81b60;
-            transition: background 0.2s, color 0.2s;
-        }
-
-        .toggle-units:hover {
-            background-color: #d81b60;
-            color: white;
-        }
-
-        .unit-list,
-        .chapter-list,
-        .lesson-list {
-            transition: all 0.3s ease;
-            overflow: hidden;
-            padding-left: 1rem;
-            border-left: 3px solid #eee;
-        }
-
-        .unit-item,
-        .chapter-item,
-        .lesson-item {
-            position: relative;
-            cursor: pointer;
-            padding-left: 24px;
-            margin: 6px 0;
-            font-weight: 500;
-            color: #444;
-        }
-
-        .unit-item::before,
-        .chapter-item::before {
-            content: "\f078";
-            font-family: "Font Awesome 6 Free";
-            font-weight: 900;
-            position: absolute;
-            left: 0;
-            transition: transform 0.2s ease;
-        }
-
-        .unit-item.expanded::before,
-        .chapter-item.expanded::before {
-            transform: rotate(90deg);
-        }
-
-        .lesson-item {
-            font-size: 0.95rem;
             color: #666;
-            padding-left: 32px;
+            margin: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
         }
 
+        .tool-card-content {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            flex-grow: 1;
+        }
+
+        .tool-card-icon {
+            width: 48px;
+            height: 48px;
+            flex-shrink: 0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .tool-card-icon img {
+            width: 120%;
+            height: 120%;
+            object-fit: contain;
+        }
+
+        .tool-card-favorite {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            color: #ccc;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: color 0.02s ease;
+        }
+
+        .tool-card-link:hover .tool-card {
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            transform: translateY(-4px);
+        }
+
+        /* General modal dialog styling */
+        .modal .modal-dialog {
+            max-width: 600px;
+            margin: 1.75rem auto;
+        }
+
+        /* Modal content box */
         .modal .modal-content {
             border-radius: 16px;
-            padding: 24px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            border: none;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Header of the modal */
+        .modal .modal-header {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        /* Title inside modal */
+        .modal .modal-title {
+            font-weight: 600;
+            font-size: 1.25rem;
+        }
+
+        /* Labels for inputs */
+        .modal .form-label {
+            font-weight: 500;
+            color: #333;
+        }
+
+        /* Inputs, selects, and textareas inside modal */
+        .modal .form-control,
+        .modal .form-select {
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 1rem;
+        }
+
+        /* Footer section with buttons */
+        .modal .modal-footer {
+            border-top: none;
+            justify-content: space-between;
+            padding-top: 0;
         }
 
         .btn.btn-primary {
             background-color: #e91e63;
             border-color: #d81b60;
             color: white;
+            border: none;
             font-weight: 500;
             font-size: 1rem;
             padding: 0.65rem 1.5rem;
@@ -160,21 +217,52 @@
             letter-spacing: 0.05em;
         }
 
-        .btn.btn-primary:hover,
+        .btn.btn-primary:hover {
+            background-color: #d81b60;
+            border-color: #d81b60;
+        }
+
         .btn.btn-primary:focus {
             background-color: #d81b60;
             border-color: #d81b60;
         }
+
+
+        /* Primary button style with e91e63 */
+        .modal .btn.btn-primary {
+            background-color: #e91e63;
+            border-color: #e91e63;
+        }
+
+        .modal .btn.btn-primary:hover {
+            background-color: #d81b60;
+            border-color: #d81b60;
+        }
+
+        /* Input/select focus outline color */
+        .modal .form-control:focus,
+        .modal .form-select:focus {
+            border-color: #e91e63;
+            box-shadow: 0 0 0 0.15rem rgba(233, 30, 99, 0.25);
+        }
+
+        @media (max-width: 992px) {
+            .tool-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 576px) {
+            .tool-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
+
 @endsection
 
-@section('content')
-    <div class="btn-container">
-        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadModal">
-            <i class="fas fa-upload me-1"></i> Add Subject
-        </button>
-    </div>
 
+@section('content')
     <div class="container">
         <div class="hero">
             <h1>Welcome to CK Virtual Tutor</h1>
@@ -246,19 +334,6 @@
                         </div>
                     </form>
                 </div>
-                <p>Addition and Multiplications Lessons</p>
-                <button class="toggle-units">Show Units</button>
-                <ul class="list-group mt-2 unit-list d-none">
-                    <li class="list-group-item unit-item" data-unit="Unit 1">Unit 1: Numbers
-                        <ul class="list-group mt-2 chapter-list d-none">
-                            <li class="list-group-item chapter-item" data-chapter="Chapter 1">Chapter 1: Counting
-                                <ul class="list-group mt-2 lesson-list d-none">
-                                    <li class="list-group-item lesson-item">Lesson 1: Counting up to 10</li>
-                                </ul>
-                            </li>
-                        </ul>
-                    </li>
-                </ul>
             </div>
         </div>
 

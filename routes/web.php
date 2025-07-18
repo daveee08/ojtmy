@@ -60,7 +60,7 @@ Route::get('virtual_tutor', function () {
 });
 
 Route::get('/virtual_tutor_chat/{book_id}', function ($book_id) {
-    return view('virtualtutorchat', ['book_id' => $book_id, ], );
+    return view('virtualtutorchat', ['book_id' => $book_id]);
 });
 
 Route::post('/upload-endpoint', [RAGController::class, 'uploadToFastAPI']);

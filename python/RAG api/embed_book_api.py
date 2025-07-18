@@ -246,7 +246,7 @@ def get_chapters(book_id: int = Form(...)):
         return JSONResponse(status_code=500, content={"error": str(e)})
     
 @app.get("/view-chapter")
-def view_chapter(book_id: int = Query(...), chapter_number: int = Query(...)):
+async def view_chapter(book_id: int = Query(...), chapter_number: int = Query(...)):
     try:
         conn = get_connection()
         cursor = conn.cursor(dictionary=True)
@@ -289,19 +289,20 @@ def view_chapter(book_id: int = Query(...), chapter_number: int = Query(...)):
         pdf_out.close()
         pdf_in.close()
 
-        # 4. Read file and return inline
-        with open(tmp_path, "rb") as f:
-            pdf_data = f.read()
-
+        # 4. Return file response
         headers = {
             "Content-Type": "application/pdf",
-            "Content-Disposition": f'inline; filename="chapter_{book_id}_{chapter_number}.pdf"'
+            "Content-Disposition": "inline; filename=chapter.pdf"
         }
 
-        # Optional cleanup after read
-        os.remove(tmp_path)
+        def cleanup():
+            if os.path.exists(tmp_path):
+                os.remove(tmp_path)
 
-        return Response(content=pdf_data, media_type="application/pdf", headers=headers)
+        import atexit
+        atexit.register(cleanup)
+
+        return FileResponse(path=tmp_path, headers=headers, media_type="application/pdf")
 
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})

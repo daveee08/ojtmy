@@ -1,6 +1,9 @@
-@extends('layouts.header')
-@extends('layouts.navbar')
-
+@guest
+    @extends('layouts.headerlogin')
+@else
+    @extends('layouts.header')
+    @extends('layouts.navbar')
+@endguest
 
 @section('title', 'Home')
 
@@ -88,6 +91,6 @@
     <div class="hero">
         <h1>Welcome to CK AI Tools</h1>
         <p>Your supportive suite of AI-powered tools to help young learners build confidence in reading and writing.</p>
-        <a href="/tools" class="btn-start">Get Started</a>
+        <a href="{{ Auth::check() ? route('tools') : route('login') }}" class="btn-start">Get Started</a>
     </div>
 @endsection

@@ -1,4 +1,5 @@
 @extends('layouts.bootstrap')
+@include('chatbot')
 
 <!-- @extends('layouts.chatnavbar') -->
 @extends('layouts.header')
@@ -17,6 +18,7 @@
             background-color: var(--chat-bg);
             margin: 0;
             padding: 0;
+            overflow-y: hidden;
         }
 
         .chat-container {
@@ -49,7 +51,7 @@
 
         .chat-body {
             flex: 1;
-            overflow-y: auto;
+            overflow-y: auto; /* Changed from hidden to allow scrolling if needed */
             padding: 1.5rem 12rem;
             background-color: var(--chat-bg);
             display: flex;
@@ -209,6 +211,20 @@
             background-color: #a0aec0;
             cursor: not-allowed;
         }
+        #pdfEmbedContainer {
+            width: 100%;
+            height: calc(100vh - 80px); /* Adjusted height with proper unit */
+            overflow: auto; /* Keeps PDF scrollable */
+            margin-top: 20px; /* Added px unit */
+        }
+        #pdfEmbed {
+            min-height: 600px;
+            height: 100%;
+            width: 100%;
+            object-fit: contain;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
 
         @media (max-width: 768px) {
             :root {
@@ -231,18 +247,36 @@
             .chat-footer button {
                 width: 100%;
             }
+
         }
     </style>
 @endsection
 
 @section('content')
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <div class="chat-container">
-        <div class="chat-header">Chat</div>
-        <div class="chat-body" id="chatBody"></div>
-        <div class="chat-footer">
-            <textarea id="userInput" rows="1" placeholder="Type your message..."></textarea>
-            <button id="sendBtn">Send</button>
-        </div>
-    </div>
+    <div class="chat-body" id="chatBody">
+    <div id="pdfEmbedContainer" style="display: none;">
+    <embed id="pdfEmbed" src="" height="100%" width="100%" type="application/pdf" style="border: 1px solid #ddd; border-radius: 8px; min-height: 600px;">    </div>
+    <div id="chatMessages"></div> <!-- Placeholder for chat messages if needed -->
+</div>
+<script>
+   document.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const pdfUrl = urlParams.get('pdf_url');
+    const pdfEmbed = document.getElementById('pdfEmbed');
+    const pdfEmbedContainer = document.getElementById('pdfEmbedContainer');
+    if (pdfUrl) {
+        try {
+            pdfEmbed.src = decodeURIComponent(pdfUrl) + '#toolbar=0'; // Hides toolbar
+            pdfEmbedContainer.style.display = 'block';
+        } catch (e) {
+            console.error('Failed to set PDF src:', e);
+        }
+    } else {
+        console.log('No pdf_url parameter found');
+        pdfEmbedContainer.style.display = 'none'; // Hide if no URL
+    }
+});
+</script>
 @endsection
+    

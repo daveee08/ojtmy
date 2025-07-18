@@ -1,7 +1,7 @@
 <div class="chatbot-container">
     <button class="chatbot-toggle">💬</button>
     <div class="chatbot-window">
-        <div class="chatbot-header">Ask CK Virtual Tutor</div>
+        <div class="chatbot-header">Ask CK Virtual Tutors</div>
         <div class="chatbot-body">
             <p>Welcome! How can I assist you today?</p>
         </div>

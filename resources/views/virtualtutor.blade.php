@@ -318,10 +318,10 @@
                             </div>
 
                             <!-- <div class="mb-3">
-                                        <label for="pdfFile" class="form-label">Upload PDF File</label>
-                                        <input type="file" class="form-control" id="pdfFile" name="pdf_file"
-                                            accept="application/pdf" required>
-                                    </div> -->
+                                                            <label for="pdfFile" class="form-label">Upload PDF File</label>
+                                                            <input type="file" class="form-control" id="pdfFile" name="pdf_file"
+                                                                accept="application/pdf" required>
+                                                        </div> -->
                         </div>
 
                         <div class="modal-footer">
@@ -509,9 +509,6 @@
                     }
                 });
         }
-
-
-
 
         function openUnitModal(bookId) {
             document.getElementById("unitBookId").value = bookId;

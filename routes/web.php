@@ -2,7 +2,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Summarizer\SummarizeController;
 use App\Http\Controllers\Proofreader\ProofreaderController;
-use App\Http\Controllers\QuizmeController;
+// use App\Http\Controllers\QuizmeController;
 use App\Http\Controllers\StepTutorController;
 use App\Http\Controllers\FiveQuestion\FiveQuestionsController;
 use App\Http\Controllers\EmailWriter\EmailWriterController;
@@ -12,7 +12,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\TutorController;
 use App\Http\Controllers\TextLeveler\LevelerController;
 use App\Http\Controllers\InformationalTexts\InformationalController;
-use App\Http\Controllers\QOTDController;
+// use App\Http\Controllers\QOTDController;
 use App\Http\Controllers\TongueTwistController;
 use App\Http\Controllers\TeacherJokesController;
 use App\Http\Controllers\CoachSportsPracController;
@@ -33,6 +33,7 @@ use App\Http\Controllers\MakeItRelevant\MakeItRelevantController;
 use App\Http\Controllers\ChatconversationController;
 use App\Http\Controllers\SocialStory\SocialStoryController;
 use App\Http\Controllers\CharacterChat\CharacterChatController;
+use App\Http\Controllers\RAGController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -44,19 +45,32 @@ use App\Http\Controllers\CharacterChat\CharacterChatController;
 // Landing Page
 Route::get('/', function () {
     return view('home');
-});
+})->name('home');
 
+// Protected tools route
 Route::get('/tools', function () {
     return view('tool');
-});
-
-Route::get('/', function () {
-    return view('home');
-});
+})->middleware('auth')->name('tools');
 
 Route::get('/about', function () {
     return view('about');
 });
+
+// Protected Virtual Tutor routes
+Route::get('virtual_tutor', function () {
+    return view('virtualtutor');
+})->middleware('auth')->name('virtual-tutor');
+
+Route::get('/virtual_tutor_chat/{book_id}', function ($book_id) {
+    $book_id = (int)$book_id;
+    $chapter = request()->input('chapter');
+    $pdfUrl = request()->input('pdf_url');
+    return view('virtualtutorchat', ['book_id' => $book_id, 'chapter' => $chapter, 'pdf_url' => $pdfUrl]);
+})->middleware('auth')->name('virtual-tutor-chat');
+
+Route::get('/books-by-grade', [RAGController::class, 'getBooksByGrade']);
+
+Route::post('/upload-endpoint', [RAGController::class, 'uploadToFastAPI']);
 
 // Authentication Routes
 Route::middleware('guest')->group(function () {
@@ -121,29 +135,29 @@ Route::get('/proofreader', [ProofreaderController::class, 'showForm'])->name('pr
 Route::post('/proofreader', [ProofreaderController::class, 'processForm'])->name('proofreader.process');
 
 // ✅ QuizMe Tool
-Route::get('/quizme', 'App\Http\Controllers\QuizmeController@showForm');
-Route::post('/quizme', 'App\Http\Controllers\QuizmeController@processForm');
-Route::post('/quizme/download', 'App\Http\Controllers\QuizmeController@downloadContent')->name('quizme.download');
-Route::post('/quizme/evaluate-answer', 'App\Http\Controllers\QuizmeController@evaluateAnswer');
-Route::post('/quizme/chat', 'App\Http\Controllers\QuizmeController@chat');
+// Route::get('/quizme', 'App\Http\Controllers\QuizmeController@showForm');
+// Route::post('/quizme', 'App\Http\Controllers\QuizmeController@processForm');
+// Route::post('/quizme/download', 'App\Http\Controllers\QuizmeController@downloadContent')->name('quizme.download');
+// Route::post('/quizme/evaluate-answer', 'App\Http\Controllers\QuizmeController@evaluateAnswer');
+// Route::post('/quizme/chat', 'App\Http\Controllers\QuizmeController@chat');
 
 // ✅ Qoutes of the Day
-Route::get('/qotd', [QOTDController::class, 'showForm']);
-Route::post('/qotd', [QOTDController::class, 'generateQuote']);
-Route::post('/qotd/download', [QOTDController::class, 'downloadQuote'])->name('qotd.download');
+// Route::get('/qotd', [QOTDController::class, 'showForm']);
+// Route::post('/qotd', [QOTDController::class, 'generateQuote']);
+// Route::post('/qotd/download', [QOTDController::class, 'downloadQuote'])->name('qotd.download');
 
 // ✅ Tongue Twister
-Route::get('/tonguetwister', [TongueTwistController::class, 'showForm']);
-Route::post('/tonguetwister', [TongueTwistController::class, 'generateTongueTwister']);
+// Route::get('/tonguetwister', [TongueTwistController::class, 'showForm']);
+// Route::post('/tonguetwister', [TongueTwistController::class, 'generateTongueTwister']);
 
 // ✅ Teacher Jokes
-Route::get('/teacherjokes', [TeacherJokesController::class, 'showForm']);
-Route::post('/teacherjokes', [TeacherJokesController::class, 'generateJoke']);
+// Route::get('/teacherjokes', [TeacherJokesController::class, 'showForm']);
+// Route::post('/teacherjokes', [TeacherJokesController::class, 'generateJoke']);
 
 // ✅ Coach Sports Practice
-Route::get('/coachsportprac', [CoachSportsPracController::class, 'showForm']);
-Route::post('/coachsportprac', [CoachSportsPracController::class, 'generatePracticePlan']);
-Route::post('/coachsportprac/download', [CoachSportsPracController::class, 'downloadPracticePlan'])->name('coachsportprac.download');
+// Route::get('/coachsportprac', [CoachSportsPracController::class, 'showForm']);
+// Route::post('/coachsportprac', [CoachSportsPracController::class, 'generatePracticePlan']);
+// Route::post('/coachsportprac/download', [CoachSportsPracController::class, 'downloadPracticePlan'])->name('coachsportprac.download');
 
 // ✅ 5 Questions Tool
 Route::get('/5questions', [FiveQuestionsController::class, 'showForm'])->name('fivequestions.form');
@@ -223,3 +237,22 @@ Route::post('/socialstory', [SocialStoryController::class, 'generate'])->name('s
 // Character Chat Tool
 Route::get('/characterchat', [CharacterChatController::class, 'showForm'])->name('characterchat.form');
 Route::post('/characterchat', [CharacterChatController::class, 'generate'])->name('characterchat.generate');
+
+Route::post('/books', [RAGController::class, 'addBook']);
+Route::get('/books', [RAGController::class, 'getBooks']);
+
+// 📘 Units
+Route::post('/units', [RAGController::class, 'addUnit']);
+Route::get('/units', [RAGController::class, 'getUnits']);
+
+// 📘 Chapters
+Route::post('/chapters', [RAGController::class, 'addChapter']);
+Route::get('/chapters', [RAGController::class, 'getChapters']);
+
+// 📘 Lessons
+Route::post('/lessons', [RAGController::class, 'addLesson']);
+Route::get('/lessons', [RAGController::class, 'getLessons']);
+
+Route::get('/get-first-lesson', [RAGController::class, 'getFirstLesson']);
+
+Route::get('/virtual-tutor-chat', [RAGController::class, 'showVirtualTutorChat']);

@@ -1,4 +1,4 @@
-@extends('layouts.header')
+<!-- @extends('layouts.headerlogin') -->
 @extends('layouts.navbar')
 
 @section('title', 'Register - CK Tools')

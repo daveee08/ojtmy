@@ -1,7 +1,6 @@
-@extends('layouts.bootstrap')
-
 <!-- @extends('layouts.chatnavbar') -->
-@extends('layouts.header')
+<!-- @extends('layouts.header') -->
+@extends('chatbot')
 
 @section('styles')
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
@@ -48,10 +47,29 @@
         }
 
         .chat-body {
+            display: flex;
             flex: 1;
-            overflow-y: auto;
-            padding: 1.5rem 12rem;
+            overflow: hidden;
+            padding: 1.5rem 2rem;
             background-color: var(--chat-bg);
+            gap: 2rem;
+        }
+
+        .chat-chapter {
+            flex: 1;
+            max-width: 50%;
+            overflow-y: auto;
+            background-color: #fdfdfd;
+            padding: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            height: 100%;
+        }
+
+        .chat-messages {
+            flex: 1;
+            max-width: 50%;
+            overflow-y: auto;
             display: flex;
             flex-direction: column;
             gap: 1rem;
@@ -234,15 +252,36 @@
         }
     </style>
 @endsection
+@section('pdf')
+    <style>
+        .pdf-container {
+            height: 100vh;
+            width: 100%;
+            overflow: hidden;
+            background-color: #fff;
+            /* White background to match page */
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding-top: 1rem;
+        }
 
-@section('content')
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <div class="chat-container">
-        <div class="chat-header">Chat</div>
-        <div class="chat-body" id="chatBody"></div>
-        <div class="chat-footer">
-            <textarea id="userInput" rows="1" placeholder="Type your message..."></textarea>
-            <button id="sendBtn">Send</button>
-        </div>
+        .pdf-embed {
+            width: 794px;
+            /* A4 width in pixels at 96dpi */
+            height: 1123px;
+            /* A4 height in pixels at 96dpi */
+            border: none;
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+
+    <div class="pdf-container">
+        @if ($lesson && $lesson->pdf_path)
+            <embed src="{{ asset('storage/' . $lesson->pdf_path) }}#toolbar=0&navpanes=0&scrollbar=0" type="application/pdf"
+                class="pdf-embed" />
+        @else
+            <p>No lesson PDF available.</p>
+        @endif
     </div>
 @endsection

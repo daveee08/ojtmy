@@ -118,7 +118,7 @@ public function getBooks()
     public function addUnit(Request $request)
 {
     $validated = $request->validate([
-        'book_id' => 'required|exists:books,id',
+        'book_id' => 'required|exists:book,id',
         'title' => 'required|string|max:255',
         'unit_number' => 'required|integer'
     ]);
@@ -184,7 +184,7 @@ public function getBooks()
     public function addLesson(Request $request)
     {
         $validated = $request->validate([
-        'chapter_id' => 'required|exists:chapters,id',
+        'chapter_id' => 'required|exists:chapter,id',
         'lesson_title' => 'required|string|max:255',
         'lesson_number' => 'required|integer',
         'pdf_file' => 'required|file|mimes:pdf|max:10240', // max 10MB

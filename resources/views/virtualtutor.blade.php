@@ -1,215 +1,158 @@
 @extends('layouts.header')
 @extends('layouts.navbar')
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-<meta name="csrf-token" content="{{ csrf_token() }}">
-@section('title', 'CK Virtual Tutor')
 
+@section('title', 'CK Virtual Tutor')
 @section('styles')
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
+        body {
+            background: #fdfdfd;
+        }
+
         .container {
             margin-top: 100px;
-            max-width: 1100px;
+            max-width: 1200px;
             margin-left: auto;
             margin-right: auto;
-            padding: 0 20px;
+            padding: 0 24px;
         }
 
         .hero {
-            background-color: #F5F5F5;
-            border: 1px solid #F5F5F5;
-            padding: 50px;
-            border-radius: 12px;
-            margin-bottom: 40px;
+            background-color: #fff0f5;
+            border: 1px solid #ffe4ec;
+            padding: 60px 30px;
+            border-radius: 16px;
+            margin-bottom: 50px;
             text-align: center;
         }
 
         .hero h1 {
-            font-size: 3rem;
-            color: #e91e63;
-            font-weight: 700;
+            font-size: 3.5rem;
+            color: #d81b60;
+            font-weight: 800;
         }
 
         .hero p {
-            font-size: 1rem;
-            color: #555;
-            max-width: 600px;
-            margin: 15px auto 0;
+            font-size: 1.2rem;
+            color: #666;
+            max-width: 650px;
+            margin: 24px auto 0;
         }
 
-        .search-wrapper {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 30px;
-        }
-
-        .search-wrapper select {
-            max-width: 400px;
-            padding: 10px 16px 10px 16px;
-            font-size: 1rem;
-            border: 1px solid #ccc;
-            outline: none;
-            background-color: #fff;
-            background-image: none;
-            box-shadow: none;
-            transition: 0.3s;
-        }
-
-        .search-wrapper input:focus {
-            border-color: #e91e63;
-            box-shadow: 0 0 0 0.1rem rgba(234, 114, 114, 0.1);
+        .btn-container {
+            position: fixed;
+            top: 100px;
+            right: 40px;
+            z-index: 1050;
         }
 
         .tool-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-        }
-
-        .tool-card-link {
-            text-decoration: none;
-            color: inherit;
-            display: flex;
-            height: 100%;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
         }
 
         .tool-card {
-            background-color: #ffffff;
-            border: 1px solid #e0e0e0;
-            border-radius: 12px;
-            padding: 20px;
-            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            align-items: stretch;
-            position: relative;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-            width: 100%;
-            height: 120px;
+            background: white;
+            border-radius: 20px;
+            padding: 30px 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            border: 1px solid #f0f0f0;
+            transition: all 0.3s ease;
         }
 
         .tool-card:hover {
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-            transform: translateY(-2px);
-            border-color: #e91e63;
+            transform: translateY(-6px);
+            border-color: #d81b60;
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.08);
         }
 
         .tool-card h5 {
-            font-size: 1.1rem;
-            color: #333333;
-            font-weight: 600;
-            margin-top: 0;
-            margin-bottom: 5px;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #2c2c2c;
         }
 
-        .tool-card h5 a {
-            color: inherit;
-            text-decoration: none;
-            pointer-events: none;
-            cursor: default;
+        .tool-card small {
+            font-size: 0.9rem;
+            color: #999;
         }
 
         .tool-card p {
-            font-size: 0.9rem;
+            font-size: 1rem;
             color: #666;
-            margin: 0;
+            margin-top: 8px;
+            margin-bottom: 16px;
+            line-height: 1.6;
+        }
+
+        .toggle-units {
+            margin-top: 10px;
+            padding: 6px 14px;
+            font-size: 0.9rem;
+            border-radius: 8px;
+            border: 1px solid #d81b60;
+            background: #fff;
+            color: #d81b60;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .toggle-units:hover {
+            background-color: #d81b60;
+            color: white;
+        }
+
+        .unit-list,
+        .chapter-list,
+        .lesson-list {
+            transition: all 0.3s ease;
             overflow: hidden;
-            text-overflow: ellipsis;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
+            padding-left: 1rem;
+            border-left: 3px solid #eee;
         }
 
-        .tool-card-content {
-            display: flex;
-            align-items: flex-start;
-            gap: 15px;
-            flex-grow: 1;
-        }
-
-        .tool-card-icon {
-            width: 48px;
-            height: 48px;
-            flex-shrink: 0;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .tool-card-icon img {
-            width: 120%;
-            height: 120%;
-            object-fit: contain;
-        }
-
-        .tool-card-favorite {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            color: #ccc;
-            font-size: 1.2rem;
+        .unit-item,
+        .chapter-item,
+        .lesson-item {
+            position: relative;
             cursor: pointer;
-            transition: color 0.02s ease;
+            padding-left: 24px;
+            margin: 6px 0;
+            font-weight: 500;
+            color: #444;
         }
 
-        .tool-card-link:hover .tool-card {
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-            transform: translateY(-4px);
+        .unit-item::before,
+        .chapter-item::before {
+            content: "\f078";
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            position: absolute;
+            left: 0;
+            transition: transform 0.2s ease;
         }
 
-        /* General modal dialog styling */
-        .modal .modal-dialog {
-            max-width: 600px;
-            margin: 1.75rem auto;
+        .unit-item.expanded::before,
+        .chapter-item.expanded::before {
+            transform: rotate(90deg);
         }
 
-        /* Modal content box */
+        .lesson-item {
+            font-size: 0.95rem;
+            color: #666;
+            padding-left: 32px;
+        }
+
         .modal .modal-content {
             border-radius: 16px;
-            padding: 20px;
-            border: none;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-        }
-
-        /* Header of the modal */
-        .modal .modal-header {
-            border-bottom: none;
-            padding-bottom: 0;
-        }
-
-        /* Title inside modal */
-        .modal .modal-title {
-            font-weight: 600;
-            font-size: 1.25rem;
-        }
-
-        /* Labels for inputs */
-        .modal .form-label {
-            font-weight: 500;
-            color: #333;
-        }
-
-        /* Inputs, selects, and textareas inside modal */
-        .modal .form-control,
-        .modal .form-select {
-            border-radius: 8px;
-            padding: 10px 14px;
-            font-size: 1rem;
-        }
-
-        /* Footer section with buttons */
-        .modal .modal-footer {
-            border-top: none;
-            justify-content: space-between;
-            padding-top: 0;
+            padding: 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
         }
 
         .btn.btn-primary {
             background-color: #e91e63;
             border-color: #d81b60;
             color: white;
-            border: none;
             font-weight: 500;
             font-size: 1rem;
             padding: 0.65rem 1.5rem;
@@ -217,226 +160,76 @@
             letter-spacing: 0.05em;
         }
 
-        .btn.btn-primary:hover {
-            background-color: #d81b60;
-            border-color: #d81b60;
-        }
-
+        .btn.btn-primary:hover,
         .btn.btn-primary:focus {
             background-color: #d81b60;
             border-color: #d81b60;
         }
-
-
-        /* Primary button style with e91e63 */
-        .modal .btn.btn-primary {
-            background-color: #e91e63;
-            border-color: #e91e63;
-        }
-
-        .modal .btn.btn-primary:hover {
-            background-color: #d81b60;
-            border-color: #d81b60;
-        }
-
-        /* Input/select focus outline color */
-        .modal .form-control:focus,
-        .modal .form-select:focus {
-            border-color: #e91e63;
-            box-shadow: 0 0 0 0.15rem rgba(233, 30, 99, 0.25);
-        }
-
-        @media (max-width: 992px) {
-            .tool-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        @media (max-width: 576px) {
-            .tool-grid {
-                grid-template-columns: 1fr;
-            }
-        }
     </style>
-
 @endsection
 
-
 @section('content')
+    <div class="btn-container">
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadModal">
+            <i class="fas fa-upload me-1"></i> Add Subject
+        </button>
+    </div>
+
     <div class="container">
-        <div class="hero">
-            <h1>Welcome to CK Virtual Tutor</h1>
-            <p>AI-powered tutor will utilize a local knowledge base sourced from CK Grade 7 books in Science, English, and
-                Math.</p>
-        </div>
-
-        <!-- 📌 Add Chapter/Subject Selector Here -->
-        <div class="search-wrapper mb-4 d-flex gap-3 align-items-center">
-            <select id="subjectSelect" class="form-select">
-                <option value="">Select Grade Level</option>
-                <option value="Grade 1">Grade 1</option>
-                <option value="Grade 2">Grade 2</option>
-                <option value="Grade 3">Grade 3</option>
-            </select>
-
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadModal">
-                <i class="fas fa-upload me-1"></i> Upload PDF
-            </button>
-        </div>
-
-        <!-- Upload Modal -->
-        <div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <form id="uploadForm" action="{{ url('/upload-endpoint') }}" method="POST"
-                        enctype="multipart/form-data">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="uploadModalLabel">Upload PDF Details</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-
-                        <div class="modal-body">
-                            <div class="mb-3">
-                                <label for="subjectName" class="form-label">Subject Name</label>
-                                <input type="text" class="form-control" id="subjectName" name="subject_name" required>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="gradeLevel" class="form-label">Grade Level</label>
-                                <select class="form-select" id="gradeLevel" name="grade_level" required>
-                                    <option value="">Select Grade</option>
-                                    <option value="Grade 1">Grade 1</option>
-                                    <option value="Grade 2">Grade 2</option>
-                                    <option value="Grade 3">Grade 3</option>
-                                    <!-- Add more as needed -->
-                                </select>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="description" class="form-label">Description</label>
-                                <textarea class="form-control" id="description" name="description" rows="3" required></textarea>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="pdfFile" class="form-label">Upload PDF File</label>
-                                <input type="file" class="form-control" id="pdfFile" name="pdf_file"
-                                    accept="application/pdf" required>
-                            </div>
-                        </div>
-
-                        <div class="modal-footer">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-upload me-1"></i> Submit
-                            </button>
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                Cancel
-                            </button>
-                        </div>
-                    </form>
+        <div class="tool-grid" id="bookList">
+            <div class="tool-card">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <h5 class="mb-0">Math</h5>
+                    <small class="text-muted mb-0">Grade 1</small>
                 </div>
+                <p>Addition and Multiplications Lessons</p>
+                <button class="toggle-units">Show Units</button>
+                <ul class="list-group mt-2 unit-list d-none">
+                    <li class="list-group-item unit-item" data-unit="Unit 1">Unit 1: Numbers
+                        <ul class="list-group mt-2 chapter-list d-none">
+                            <li class="list-group-item chapter-item" data-chapter="Chapter 1">Chapter 1: Counting
+                                <ul class="list-group mt-2 lesson-list d-none">
+                                    <li class="list-group-item lesson-item">Lesson 1: Counting up to 10</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
             </div>
         </div>
-
-        <div id="bookList" class="tool-grid mt-4">
-            <!-- Filtered books will appear here -->
-        </div>
-
-    </div>
     </div>
 
     <script>
-        document.getElementById("uploadForm").addEventListener("submit", function(e) {
-            e.preventDefault();
-
-            const formData = new FormData(this);
-            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
-            // Example: Post to FastAPI or Laravel backend
-            fetch("/upload-endpoint", {
-                    method: "POST",
-                    headers: {
-                        "X-CSRF-TOKEN": csrfToken
-                    },
-                    body: formData,
-                })
-                .then((res) => res.json())
-                .then((data) => {
-                    alert("Upload successful!");
-                    // Close modal
-                    const modalEl = document.getElementById('uploadModal');
-                    const modal = bootstrap.Modal.getInstance(modalEl);
-                    modal.hide();
-                })
-                .catch((err) => {
-                    console.error(err);
-                    alert("Upload failed.");
+        document.addEventListener("DOMContentLoaded", function() {
+            document.querySelectorAll(".toggle-units").forEach(button => {
+                button.addEventListener("click", function() {
+                    const unitList = this.closest(".tool-card").querySelector(".unit-list");
+                    unitList.classList.toggle("d-none");
+                    this.textContent = unitList.classList.contains("d-none") ? "Show Units" :
+                        "Hide Units";
                 });
-        });
-        // document.getElementById('toolSearch').addEventListener('input', function() {
-        //     const query = this.value.toLowerCase();
-        //     const cards = document.querySelectorAll('.tool-card-link');
-        //     cards.forEach(link => {
-        //         const text = link.innerText.toLowerCase();
-        //         link.style.display = text.includes(query) ? 'block' : 'none';
-        //     });
-        // });
+            });
 
-        document.addEventListener('DOMContentLoaded', function() {
-            const subjectSelect = document.getElementById('subjectSelect');
-            const bookList = document.getElementById('bookList');
+            document.querySelectorAll(".unit-item").forEach(unitItem => {
+                unitItem.addEventListener("click", function(e) {
+                    e.stopPropagation();
+                    const chapterList = this.querySelector(".chapter-list");
+                    if (chapterList) {
+                        chapterList.classList.toggle("d-none");
+                        this.classList.toggle("expanded");
+                    }
+                });
+            });
 
-            if (!subjectSelect) {
-                console.error("Dropdown with id 'subjectSelect' not found!");
-                return;
-            }
-
-            subjectSelect.addEventListener('change', function() {
-                const selectedGrade = this.value;
-                bookList.innerHTML = ' ';
-
-                if (!selectedGrade) return;
-
-                console.log("Fetching books for:", selectedGrade);
-
-                fetch("http://127.0.0.1:5001/books") // Update to real IP if needed
-                    .then(response => {
-                        console.log("Response status:", response.status);
-                        return response.json();
-                    })
-                    .then(data => {
-                        console.log("Fetched data:", data);
-
-                        if (data.status !== "success") {
-                            bookList.innerHTML = '<p>Failed to fetch books.</p>';
-                            return;
-                        }
-
-                        const filtered = data.books.filter(book => book.grade_level === selectedGrade);
-
-                        if (filtered.length === 0) {
-                            bookList.innerHTML = '<p>No books found for this grade level.</p>';
-                            return;
-                        }
-
-                        filtered.forEach(book => {
-                            const cardLink = document.createElement('a');
-                            cardLink.href = `/virtual_tutor_chat/${book.book_id}`;
-                            cardLink.className = 'tool-card-link';
-                            cardLink.innerHTML = `
-                        <div class="tool-card">
-                            <h5>${book.title}</h5>
-                            <p>${book.description}</p>
-                            <small>${book.grade_level}</small>
-                        </div>
-                    `;
-                            bookList.appendChild(cardLink);
-
-                        });
-                    })
-                    .catch(err => {
-                        console.error("Fetch error:", err);
-                        bookList.innerHTML = '<p>Error loading books.</p>';
-                    });
+            document.querySelectorAll(".chapter-item").forEach(chapterItem => {
+                chapterItem.addEventListener("click", function(e) {
+                    e.stopPropagation();
+                    const lessonList = this.querySelector(".lesson-list");
+                    if (lessonList) {
+                        lessonList.classList.toggle("d-none");
+                        this.classList.toggle("expanded");
+                    }
+                });
             });
         });
     </script>

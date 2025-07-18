@@ -135,7 +135,8 @@
         }
 
         .sidebar a:hover {
-            background-color: rgba(221, 175, 198, 0.15);
+               background-color: rgba(221, 175, 198, 0.15);
+               color: var(--dark); /* override default blue text */
         }
 
         #toggleSidebar {
@@ -195,6 +196,14 @@
                         <option value="">Loading chapters...</option>
                     </select>
                 </div>
+
+                <!-- Generate Quiz Button -->
+                <a href="{{ url('/generate-quiz') }}"
+                    class="{{ request()->is('generate-quiz') ? 'active-link' : '' }}"
+                    data-bs-toggle="tooltip" title="Generate Quiz">
+                    <i class="bi bi-ui-checks-grid"></i>
+                    <span class="link-text">Generate Quiz</span>
+                </a>
     
                 <a href="{{ url('/virtual_tutor_chat/new') }}"
                     class="{{ request()->is('virtual_tutor_chat/new') ? 'active-link' : '' }}" data-bs-toggle="tooltip"
@@ -229,7 +238,6 @@
         </div>
 
         <!-- Content -->
-        <div class="content" id="mainContent">
             @yield('content')
         </div>
     </div>

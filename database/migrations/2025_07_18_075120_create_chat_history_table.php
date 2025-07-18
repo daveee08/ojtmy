@@ -10,11 +10,12 @@ class CreateChatHistoryTable extends Migration
     {
         Schema::create('chat_rag_history', function (Blueprint $table) {
             $table->id();
-            $table->string('session_id', 100);
+            $table->integer('session_id')->constrained('sessions')->onDelete('cascade');
             $table->integer('turn');
             $table->enum('role', ['user', 'ai']);
             $table->longText('message');
             $table->timestamps(); // Includes created_at and updated_at
+
             $table->index('session_id');
 
         });

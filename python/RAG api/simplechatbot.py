@@ -28,7 +28,7 @@ DB_CONFIG = {
 }
 
 # === Token-based chunking ===
-def chunk_text_token_based(text: str, max_tokens: int = 100) -> list:
+def chunk_text_token_based(text: str, max_tokens: int = 512) -> list:
     tokens = TOKENIZER.encode(text, add_special_tokens=False)
     chunks = [tokens[i:i+max_tokens] for i in range(0, len(tokens), max_tokens)]
     return [TOKENIZER.decode(chunk) for chunk in chunks]
@@ -37,6 +37,7 @@ def chunk_text_token_based(text: str, max_tokens: int = 100) -> list:
 @app.post("/upload-and-embed")
 async def upload_pdf(
     book_id: int = Form(...),
+    unit_id: int = Form(...),
     chapter_number: int = Form(...),
     lesson_id: int = Form(...),
     file: UploadFile = File(...)
@@ -72,9 +73,9 @@ async def upload_pdf(
             for i, chunk in enumerate(chunks):
                 faiss_id = start_id + i
                 cursor.execute("""
-                    INSERT INTO chunks (book_id, chapter_number, global_faiss_id, text)
-                    VALUES (%s, %s, %s, %s)
-                """, (book_id, chapter_number, faiss_id, chunk))
+                    INSERT INTO chunks (book_id, chapter_number, unit_id, lesson_id, global_faiss_id, text)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                """, (book_id, chapter_number,unit_id, lesson_id, faiss_id, chunk))
             conn.commit()
         finally:
             cursor.close()
@@ -86,7 +87,7 @@ async def upload_pdf(
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 # === Chat History DB Functions ===
-def save_chat_to_db(session_id: str, role: str, message: str):
+def save_chat_to_db(session_id: int, role: str, message: str):
     conn = mysql.connector.connect(**DB_CONFIG)
     try:
         cursor = conn.cursor()
@@ -120,7 +121,7 @@ def get_recent_chat_context(session_id: str, limit: int = 10):
 
 # === Chat Endpoint ===
 class ChatInput(BaseModel):
-    session_id: str
+    session_id: int
     prompt: str
     book_id: int
     chapter_number: int

@@ -5,17 +5,32 @@ from transformers import AutoTokenizer
 from sentence_transformers import SentenceTransformer
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, Response
+from fastapi.staticfiles import StaticFiles
+
 from utils.pdf_utils import extract_chapter_page_map, parse_chapter, get_page_range, chunk_texts, build_faiss_index
-from utils.db_utils import insert_book, insert_chapter, insert_chunk, get_connection
+from utils.db_utils import insert_book, insert_chapter, insert_chunk, get_connection, get_agent_prompt_by_message_id, get_scope_vars_by_message_id
 import faiss, os, mysql.connector, requests
 import numpy as np
 import re
 import tempfile
 from pydantic import BaseModel
 import fitz
-import base64
+import os, sys
+
+current_script_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.join(current_script_dir, '..', '..')
+sys.path.insert(0, project_root)
+
+
+print(f"Adding to sys.path: {project_root}") 
+
+from python.db_utils_final import create_session_and_parameter_inputs, insert_message
+from python.chat_router_final import chat_router
+from utils.rag_utils import call_llm_with_context, retrieve_book_chapter_and_context
 
 app = FastAPI()
+
+app.include_router(chat_router)
 
 app.add_middleware(
     CORSMiddleware,
@@ -108,100 +123,41 @@ async def chunk_pdf(
 
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
-
-@app.post("/ask-question")
-def ask_question(
+    
+@app.post("/rag-initial")
+def rag_initial(
     book_id: int = Form(...),
     chapter_number: int = Form(...),
     question: str = Form(...)
 ):
-    # --- Connect to DB ---
     conn = mysql.connector.connect(**DB)
     cur = conn.cursor(dictionary=True)
 
-    # --- Step 1: Get Book Info by ID ---
-    cur.execute("SELECT id, title, faiss_index_path FROM books WHERE id = %s", (book_id,))
-    book = cur.fetchone()
-    if not book:
-        conn.close()
-        return {"error": f"No book found with ID {book_id}."}
-
-    book_title = book["title"]
-    faiss_file = book["faiss_index_path"]
-
-    if not os.path.exists(faiss_file):
-        conn.close()
-        return {"error": f"FAISS file not found at path: {faiss_file}"}
-
-    # --- Step 2: Get Chapter ID ---
-    cur.execute("""
-        SELECT id, chapter_title FROM chapters 
-        WHERE book_id = %s AND chapter_number = %s
-    """, (book_id, chapter_number))
-    chapter = cur.fetchone()
-    if not chapter:
-        conn.close()
-        return {"error": f"No Chapter {chapter_number} found for book ID {book_id}."}
-
-    chapter_id = chapter["id"]
-    chapter_title = chapter["chapter_title"]
-
-    # --- Step 3: Load FAISS and Search ---
-    index = faiss.read_index(faiss_file)
-    query_vec = embedder.encode([question]).astype("float32")
-    distances, indices = index.search(query_vec, k=10)
-
-    # --- Step 4: Fetch Matching Chunks ---
-    faiss_ids = [int(i) for i in indices[0]]
-    placeholders = ",".join(["%s"] * len(faiss_ids))
-
-    cur.execute(f"""
-        SELECT text FROM chunks
-        WHERE book_id = %s AND chapter_id = %s AND global_faiss_id IN ({placeholders})
-    """, (book_id, chapter_id, *faiss_ids))
-    results = cur.fetchall()
+    book, chapter, context, error = retrieve_book_chapter_and_context(cur, book_id, chapter_number, question)
     conn.close()
 
-    if not results:
-        return {"message": f"No chunks found for Chapter {chapter_number} in book ID {book_id}."}
+    if error:
+        return {"error": error}
 
-    # --- Step 5: Build Prompt ---
-    context = "\n\n".join([r["text"] for r in results])
-    prompt = f"""You are a helpful and concise tutor.
+    answer, prompt = call_llm_with_context(context, question)
 
-Use the following context to answer the question. If the answer is not in the context, say "The answer is not available in the provided material."
-
----
-
-Context:
-{context}
-
----
-
-Question:
-{question}
-
-Answer:"""
-
-    # --- Step 6: Query Ollama ---
-    response = requests.post(OLLAMA_URL, json={
-        "model": OLLAMA_MODEL,
-        "prompt": prompt,
-        "stream": False
-    })
-
-    if response.status_code != 200:
-        return {"error": f"Ollama failed: {response.text}"}
-
-    answer = response.json().get("response")
+    session_id = create_session_and_parameter_inputs(
+        user_id=1,
+        agent_id=25,
+        scope_vars={"book_id": book_id, "chapter_number": chapter_number},
+        human_topic=question,
+        ai_output=answer.strip(),
+        agent_prompt=prompt
+    )
 
     return {
         "book_id": book_id,
-        "book_title": book_title,
+        "book_title": book["title"],
         "chapter_number": chapter_number,
-        "chapter_title": chapter_title,
+        "chapter_title": chapter["chapter_title"],
         "question": question,
-        "answer": answer
+        "answer": answer.strip(),
+        "message_id": session_id
     }
 
 @app.get("/books")
@@ -296,28 +252,36 @@ def get_book_source(book_id: int = Form(...)):
 # @app.get("/view-chapter")
 # def view_chapter(book_id: int = Query(...), chapter_number: int = Query(...)):
 #     try:
-#         with get_connection() as conn, conn.cursor(dictionary=True) as cursor:
-#             cursor.execute("SELECT source FROM books WHERE id = %s", (book_id,))
-#             book = cursor.fetchone()
-#             if not book:
-#                 return JSONResponse(status_code=404, content={"error": "Book not found"})
+#         conn = get_connection()
+#         cursor = conn.cursor(dictionary=True)
 
-#             file_path = book["source"]
-#             if not os.path.exists(file_path):
-#                 return JSONResponse(status_code=404, content={"error": "PDF file not found on disk."})
+#         # 1. Get book source file
+#         cursor.execute("SELECT source FROM books WHERE id = %s", (book_id,))
+#         book = cursor.fetchone()
+#         if not book:
+#             return JSONResponse(status_code=404, content={"error": "Book not found"})
 
-#             cursor.execute("""
-#                 SELECT start_page, end_page, chapter_title
-#                 FROM chapters 
-#                 WHERE chapter_number = %s AND book_id = %s
-#             """, (chapter_number, book_id))
-#             chapter = cursor.fetchone()
+#         file_path = book["source"]
+#         if not os.path.exists(file_path):
+#             return JSONResponse(status_code=404, content={"error": "PDF file not found on disk."})
+
+#         # 2. Get chapter start and end pages
+#         cursor.execute("""
+#             SELECT start_page, end_page, chapter_title
+#             FROM chapters 
+#             WHERE chapter_number = %s AND book_id = %s
+#         """, (chapter_number, book_id))
+#         chapter = cursor.fetchone()
+#         cursor.close()
+#         conn.close()
 
 #         if not chapter or chapter["start_page"] is None or chapter["end_page"] is None:
 #             return JSONResponse(status_code=404, content={"error": "Chapter page range not found"})
 
+#         # 3. Extract chapter pages
 #         pdf_in = fitz.open(file_path)
 #         pdf_out = fitz.open()
+
 #         for i in range(chapter["start_page"] - 1, chapter["end_page"]):
 #             pdf_out.insert_pdf(pdf_in, from_page=i, to_page=i)
 
@@ -326,21 +290,82 @@ def get_book_source(book_id: int = Form(...)):
 #             "title": f"Chapter {chapter_number} - {chapter['chapter_title']}"
 #         })
 #         pdf_out.save(tmp_path)
-#         pdf_in.close()
 #         pdf_out.close()
+#         pdf_in.close()
 
+#         # 4. Read file and return inline
 #         with open(tmp_path, "rb") as f:
 #             pdf_data = f.read()
+
+#         # headers = {
+#         #     "Content-Type": "application/pdf",
+#         #     "Content-Disposition": f'inline; filename="chapter_{book_id}_{chapter_number}.pdf"'
+#         # }
+
+#         headers = {
+#             "Content-Type": "application/pdf",
+#             "Content-Disposition": "inline"
+#         }
+
+#         # Optional cleanup after read
 #         os.remove(tmp_path)
 
-#         return Response(
-#             content=pdf_data,
-#             media_type="application/pdf",
-#             headers={
-#                 "Content-Type": "application/pdf",
-#                 "Content-Disposition": f'inline; filename="chapter_{book_id}_{chapter_number}.pdf"'
-#             }
-#         )
+#         return Response(content=pdf_data, media_type="application/pdf", headers=headers)
 
 #     except Exception as e:
 #         return JSONResponse(status_code=500, content={"error": str(e)})
+
+
+# Make sure this is added once in your app
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+@app.get("/view-chapter-url")
+def view_chapter_url(book_id: int = Query(...), chapter_number: int = Query(...)):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        # Get book file path
+        cursor.execute("SELECT source FROM books WHERE id = %s", (book_id,))
+        book = cursor.fetchone()
+        if not book:
+            return JSONResponse(status_code=404, content={"error": "Book not found"})
+
+        file_path = book["source"]
+        if not os.path.exists(file_path):
+            return JSONResponse(status_code=404, content={"error": "PDF file not found"})
+
+        # Get chapter pages
+        cursor.execute("""
+            SELECT start_page, end_page, chapter_title
+            FROM chapters 
+            WHERE chapter_number = %s AND book_id = %s
+        """, (chapter_number, book_id))
+        chapter = cursor.fetchone()
+        conn.close()
+
+        if not chapter or chapter["start_page"] is None or chapter["end_page"] is None:
+            return JSONResponse(status_code=404, content={"error": "Chapter page range not found"})
+
+        # Extract pages
+        pdf_in = fitz.open(file_path)
+        pdf_out = fitz.open()
+
+        for i in range(chapter["start_page"] - 1, chapter["end_page"]):
+            pdf_out.insert_pdf(pdf_in, from_page=i, to_page=i)
+
+        filename = f"chapter_{book_id}_{chapter_number}.pdf"
+        output_path = f"static/chapters"
+        os.makedirs(output_path, exist_ok=True)
+        final_path = os.path.join(output_path, filename)
+
+        pdf_out.save(final_path)
+        pdf_in.close()
+        pdf_out.close()
+
+        return {
+            "url": f"http://localhost:8000/static/chapters/{filename}"
+        }
+
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})

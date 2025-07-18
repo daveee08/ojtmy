@@ -137,7 +137,8 @@
         }
 
         .sidebar a:hover {
-            background-color: rgba(221, 175, 198, 0.15);
+               background-color: rgba(221, 175, 198, 0.15);
+               color: var(--dark); /* override default blue text */
         }
 
         #toggleSidebar {
@@ -173,22 +174,23 @@
         .sidebar.collapsed .hide-when-collapsed {
             display: none !important;
         }
+
         .glow {
-    background-color: #ffe3f0 !important;
-    color: #d63384 !important;
-    font-weight: 600;
-    border-left: 4px solid #d63384;
-}
+            background-color: #ffe3f0 !important;
+            color: #d63384 !important;
+            font-weight: 600;
+            border-left: 4px solid #d63384;
+        }
     </style>
 </head>
 
 <body>
     @php
-    $currentBookId = request('book_id');
-    $currentUnitId = request('unit_id');
-    $currentChapterId = request('chapter_id');
-    $currentLessonId = request('lesson_id');
-@endphp
+        $currentBookId = request('book_id');
+        $currentUnitId = request('unit_id');
+        $currentChapterId = request('chapter_id');
+        $currentLessonId = request('lesson_id');
+    @endphp
 
     <!-- Toggle Sidebar Button -->
     <button id="toggleSidebar">☰</button>
@@ -202,53 +204,63 @@
 
             {{-- Show chapter select and sessions list only on /virtual_tutor --}}
             @php
-    use Illuminate\Support\Facades\DB;
-    $books = DB::table('book')->orderBy('grade_level')->get();
-@endphp
-
-@foreach ($books as $book)
-    <div class="mb-2">
-        <a href="javascript:void(0);" class="fw-bold {{ $book->id == $currentBookId ? 'glow' : '' }}" onclick="toggleUnits({{ $book->id }})">
-            <i class="bi bi-journal-bookmark"></i>
-            <span class="link-text">{{ $book->title }}</span>
-        </a>
-        <div id="units-{{ $book->id }}" class="ps-3" style="{{ $book->id == $currentBookId ? 'display:block;' : 'display:none;' }}">
-            @php
-                $units = DB::table('units')->where('book_id', $book->id)->orderBy('unit_number')->get();
+                use Illuminate\Support\Facades\DB;
+                $books = DB::table('book')->orderBy('grade_level')->get();
             @endphp
-            @foreach ($units as $unit)
-                <a href="javascript:void(0);" onclick="toggleChapters({{ $unit->id }})"
-   class="text-muted d-block ps-3 {{ $unit->id == $currentUnitId ? 'glow' : '' }}">
-                    ▸ Unit {{ $unit->unit_number }}: {{ $unit->title }}
-                </a>
-                <div id="chapters-{{ $unit->id }}" class="ps-4" style="{{ $unit->id == $currentUnitId ? 'display:block;' : 'display:none;' }}">
 
-                    @php
-                        $chapters = DB::table('chapter')->where('unit_id', $unit->id)->orderBy('chapter_number')->get();
-                    @endphp
-                    @foreach ($chapters as $chapter)
-                        <a href="javascript:void(0);" onclick="toggleLessons({{ $chapter->id }})"
-   class="d-block ps-2 text-secondary {{ $chapter->id == $currentChapterId ? 'glow' : '' }}">
-                            ▹ Chapter {{ $chapter->chapter_number }}: {{ $chapter->chapter_title }}
-                        </a>
-                        <div id="lessons-{{ $chapter->id }}" class="ps-4" style="{{ $chapter->id == $currentChapterId ? 'display:block;' : 'display:none;' }}">
+            @foreach ($books as $book)
+                <div class="mb-2">
+                    <a href="javascript:void(0);" class="fw-bold {{ $book->id == $currentBookId ? 'glow' : '' }}"
+                        onclick="toggleUnits({{ $book->id }})">
+                        <i class="bi bi-journal-bookmark"></i>
+                        <span class="link-text">{{ $book->title }}</span>
+                    </a>
+                    <div id="units-{{ $book->id }}" class="ps-3"
+                        style="{{ $book->id == $currentBookId ? 'display:block;' : 'display:none;' }}">
+                        @php
+                            $units = DB::table('units')->where('book_id', $book->id)->orderBy('unit_number')->get();
+                        @endphp
+                        @foreach ($units as $unit)
+                            <a href="javascript:void(0);" onclick="toggleChapters({{ $unit->id }})"
+                                class="text-muted d-block ps-3 {{ $unit->id == $currentUnitId ? 'glow' : '' }}">
+                                ▸ Unit {{ $unit->unit_number }}: {{ $unit->title }}
+                            </a>
+                            <div id="chapters-{{ $unit->id }}" class="ps-4"
+                                style="{{ $unit->id == $currentUnitId ? 'display:block;' : 'display:none;' }}">
 
-                            @php
-                                $lessons = DB::table('lesson')->where('chapter_id', $chapter->id)->orderBy('lesson_number')->get();
-                            @endphp
-                            @foreach ($lessons as $lesson)
-                                <a href="{{ url('/virtual-tutor-chat') }}?book_id={{ $book->id }}&unit_id={{ $unit->id }}&chapter_id={{ $chapter->id }}&lesson_id={{ $lesson->id }}"
-                                class="d-block text-muted ps-3 {{ $lesson->id == $currentLessonId ? 'glow' : '' }}">
-                                📘 Lesson {{ $lesson->lesson_number }}: {{ $lesson->lesson_title }}
-                                </a>
-                            @endforeach
-                        </div>
-                    @endforeach
+                                @php
+                                    $chapters = DB::table('chapter')
+                                        ->where('unit_id', $unit->id)
+                                        ->orderBy('chapter_number')
+                                        ->get();
+                                @endphp
+                                @foreach ($chapters as $chapter)
+                                    <a href="javascript:void(0);" onclick="toggleLessons({{ $chapter->id }})"
+                                        class="d-block ps-2 text-secondary {{ $chapter->id == $currentChapterId ? 'glow' : '' }}">
+                                        ▹ Chapter {{ $chapter->chapter_number }}: {{ $chapter->chapter_title }}
+                                    </a>
+                                    <div id="lessons-{{ $chapter->id }}" class="ps-4"
+                                        style="{{ $chapter->id == $currentChapterId ? 'display:block;' : 'display:none;' }}">
+
+                                        @php
+                                            $lessons = DB::table('lesson')
+                                                ->where('chapter_id', $chapter->id)
+                                                ->orderBy('lesson_number')
+                                                ->get();
+                                        @endphp
+                                        @foreach ($lessons as $lesson)
+                                            <a href="{{ url('/virtual-tutor-chat') }}?book_id={{ $book->id }}&unit_id={{ $unit->id }}&chapter_id={{ $chapter->id }}&lesson_id={{ $lesson->id }}"
+                                                class="d-block text-muted ps-3 {{ $lesson->id == $currentLessonId ? 'glow' : '' }}">
+                                                📘 Lesson {{ $lesson->lesson_number }}: {{ $lesson->lesson_title }}
+                                            </a>
+                                        @endforeach
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endforeach
+                    </div>
                 </div>
             @endforeach
-        </div>
-    </div>
-@endforeach
 
         </div>
 
@@ -260,21 +272,21 @@
 
     <!-- Scripts -->
     <script>
-    function toggleUnits(bookId) {
-        const el = document.getElementById(`units-${bookId}`);
-        el.style.display = el.style.display === 'none' ? 'block' : 'none';
-    }
+        function toggleUnits(bookId) {
+            const el = document.getElementById(`units-${bookId}`);
+            el.style.display = el.style.display === 'none' ? 'block' : 'none';
+        }
 
-    function toggleChapters(unitId) {
-        const el = document.getElementById(`chapters-${unitId}`);
-        el.style.display = el.style.display === 'none' ? 'block' : 'none';
-    }
+        function toggleChapters(unitId) {
+            const el = document.getElementById(`chapters-${unitId}`);
+            el.style.display = el.style.display === 'none' ? 'block' : 'none';
+        }
 
-    function toggleLessons(chapterId) {
-        const el = document.getElementById(`lessons-${chapterId}`);
-        el.style.display = el.style.display === 'none' ? 'block' : 'none';
-    }
-</script>
+        function toggleLessons(chapterId) {
+            const el = document.getElementById(`lessons-${chapterId}`);
+            el.style.display = el.style.display === 'none' ? 'block' : 'none';
+        }
+    </script>
 
 
 </body>

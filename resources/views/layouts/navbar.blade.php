@@ -83,7 +83,6 @@
 
         .sidebar a i {
             margin-right: 12px;
-            font-size: 1.2rem;
             min-width: 24px;
             width: 24px;
             text-align: center;

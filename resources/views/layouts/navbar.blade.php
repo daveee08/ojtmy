@@ -197,11 +197,6 @@
             <h2></h2>
 
             @if (!request()->is('virtual_tutor_chat*'))
-                <a href="{{ url('/') }}" class="{{ request()->is('/') ? 'active-link' : '' }}"
-                    data-bs-toggle="tooltip" title="Home">
-                    <i class="bi bi-house-door"></i>
-                    <span class="link-text">Home</span>
-                </a>
 
                 <a href="{{ url('/tools') }}" class="{{ request()->is('tools*') ? 'active-link' : '' }}"
                     data-bs-toggle="tooltip" title="Tools">

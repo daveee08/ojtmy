@@ -240,7 +240,7 @@ public function addLesson(Request $request)
         // Gather foreign keys
         $unitId = DB::table('chapter')->where('id', $validated['chapter_id'])->value('unit_id');
         $bookId = DB::table('units')->where('id', $unitId)->value('book_id');
-        $chapterNumber = DB::table('chapter')->where('id', $validated['chapter_id'])->value('chapter_number');
+        $chapterId =  $validated['chapter_id'];
 
         // ✅ Phase 2: Call FastAPI
         $response = Http::timeout(300)
@@ -248,7 +248,7 @@ public function addLesson(Request $request)
             ->post('http://127.0.0.1:5001/upload-and-embed', [
                 'book_id' => $bookId,
                 'unit_id' => $unitId,
-                'chapter_number' => $chapterNumber,
+                'chapter_id' => $chapterId,
                 'lesson_id' => $lessonId,
             ]);
 
@@ -343,5 +343,72 @@ public function showVirtualTutorChat(Request $request)
     ]);
 }
 
+public function sendRagMessage(Request $request)
+{
+
+    set_time_limit(0);
+    $request->validate([
+        'prompt' => 'required|string',
+    ]);
+
+    // ✅ Get from query string
+    $bookId = $request->query('book_id');
+    $unitId = $request->query('unit_id');
+    $chapterId = $request->query('chapter_id');
+    $lessonId = $request->query('lesson_id');
+
+    if (!$bookId || !$unitId || !$chapterId || !$lessonId) {
+        return response()->json([
+            'status' => 'fail',
+            'error' => 'Missing one or more required query parameters: book_id, unit_id, chapter_id, lesson_id.'
+        ], 422);
+    }
+
+    try {
+        // Create session record
+        $sessionId = DB::table('sessions')->insertGetId([
+            'created_at' => now(),
+            'updated_at' => now()
+        ]);
+
+        // Call FastAPI
+        $response = Http::timeout(0)->post('http://127.0.0.1:5001/chat', [
+            'session_id' => $sessionId,
+            'prompt' => $request->input('prompt'),
+            'book_id' => $bookId,
+            'unit_id' => $unitId,
+            'chapter_id' => $chapterId,
+            'lesson_id' => $lessonId,
+        ]);
+
+        if ($response->failed()) {
+            return response()->json([
+                'status' => 'fail',
+                'error' => $response->body()
+            ], 500);
+        }
+
+        $responseData = $response->json();
+        Log::debug('FastAPI raw response:', $responseData);
+
+        return response()->json([
+            'status' => 'success',
+            'response' => $responseData['response'] ?? '[No response returned]',
+            'session_id' => $sessionId
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'response' => $responseData['response'] ?? '[No response returned]',
+            'session_id' => $sessionId
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Something went wrong while sending the chat.',
+            'exception' => $e->getMessage()
+        ], 500);
+    }
+}
 
 }

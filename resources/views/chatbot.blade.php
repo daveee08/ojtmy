@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
   <title>CK Virtual Tutor</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
@@ -329,13 +330,42 @@
     quizToggle.style.display = 'block';
   });
 
-  sendChatBtn.addEventListener('click', () => {
-    const msg = chatInput.value.trim();
-    if (!msg) return;
-    appendUserMessage(msg);
-    chatInput.value = '';
-    quickReplies.style.display = 'none';
-  });
+  sendChatBtn.addEventListener('click', async () => {
+  const msg = chatInput.value.trim();
+  if (!msg) return;
+
+  appendUserMessage(msg);
+  chatInput.value = '';
+  quickReplies.style.display = 'none';
+
+  try {
+    const query = window.location.search; // ⬅️ grabs ?book_id=...&unit_id=... etc.
+    
+    const response = await fetch('/send-rag-message' + query, {
+      method: 'POST',
+      headers: {
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ prompt: msg })
+    });
+
+    const data = await response.json();
+    if (data.status === 'success') {
+      appendBotMessage(data.response);
+    } else {
+      appendBotMessage("⚠️ Failed to get a response.");
+      console.error(data.error || data.message);
+    }
+  } catch (err) {
+    appendBotMessage("⚠️ An error occurred.");
+    console.error(err);
+  }
+});
+
+
+
+
 
   function handleQuickReply(text) {
     appendUserMessage(text);
@@ -350,6 +380,21 @@
     chatBody.appendChild(userMsg);
     chatBody.scrollTop = chatBody.scrollHeight;
   }
+
+  function appendBotMessage(msg) {
+  const botMsg = document.createElement('p');
+  botMsg.textContent = msg;
+  botMsg.style.background = '#f1f8e9';       // light green background for bot
+  botMsg.style.alignSelf = 'flex-start';     // align to left
+  botMsg.style.padding = '8px 12px';
+  botMsg.style.borderRadius = '8px';
+  botMsg.style.margin = '4px 0';
+  botMsg.style.maxWidth = '75%';
+
+  chatBody.appendChild(botMsg);
+  chatBody.scrollTop = chatBody.scrollHeight;
+}
+
 </script>
 
 </body>

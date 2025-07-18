@@ -26,7 +26,9 @@ app.add_middleware(
 EMBED_MODEL = SentenceTransformer("all-MiniLM-L6-v2")
 TOKENIZER = AutoTokenizer.from_pretrained("bert-base-uncased")
 OLLAMA_URL = "http://localhost:11434/api/generate"
-OLLAMA_MODEL = "gemma3:1b"
+OLLAMA_MODEL = "llama3:latest"
+# OLLAMA_MODEL = "gemma3:1b"
+
 HEADERS = {"Content-Type": "application/json"}
 
 DB_CONFIG = {
@@ -52,7 +54,7 @@ def chunk_text_token_based(text: str, max_tokens: int = 512) -> list:
 async def upload_pdf(
     book_id: int = Form(...),
     unit_id: int = Form(...),
-    chapter_number: int = Form(...),
+    chapter_id: int = Form(...),
     lesson_id: int = Form(...),
     file: UploadFile = File(...)
 ):
@@ -73,7 +75,7 @@ async def upload_pdf(
         embeddings = EMBED_MODEL.encode(chunks)
 
         # === FAISS index logic ===
-        index_path = f"bookid_{book_id}_chapter_{chapter_number}.faiss"
+        index_path = f"{book_id}_chapter_{chapter_id}.faiss"
         if os.path.exists(index_path):
             index = faiss.read_index(index_path)
         else:
@@ -94,9 +96,9 @@ async def upload_pdf(
             for i, chunk in enumerate(chunks):
                 faiss_id = start_id + i
                 cursor.execute("""
-                    INSERT INTO chunks (book_id, chapter_number, unit_id, lesson_id, global_faiss_id, text)
+                    INSERT INTO chunks (book_id, chapter_id, unit_id, lesson_id, global_faiss_id, text)
                     VALUES (%s, %s, %s, %s, %s, %s)
-                """, (book_id, chapter_number, unit_id, lesson_id, faiss_id, chunk))
+                """, (book_id, chapter_id, unit_id, lesson_id, faiss_id, chunk))
 
                 if (i + 1) % batch_size == 0:
                     conn.commit()
@@ -159,7 +161,9 @@ class ChatInput(BaseModel):
     session_id: int
     prompt: str
     book_id: int
-    chapter_number: int
+    chapter_id: int
+    unit_id: int
+    lesson_id: int
 
 @app.post("/chat")
 def chat(input: ChatInput):
@@ -167,19 +171,21 @@ def chat(input: ChatInput):
         session_id = input.session_id
         user_prompt = input.prompt.strip()
         book_id = input.book_id
-        chapter_number = input.chapter_number
+        chapter_id = input.chapter_id
+        unit_id = input.unit_id
+        lesson_id = input.lesson_id
 
         # Save user input to DB
         save_chat_to_db(session_id, "user", user_prompt)
 
         # === Step 1: RAG - Get context from FAISS ===
-        index_path = f"{book_id}-{chapter_number}.faiss"
+        index_path = f"{book_id}-{chapter_id}.faiss"
         if not os.path.exists(index_path):
             return JSONResponse(status_code=404, content={"error": "FAISS index not found for this chapter."})
 
         index = faiss.read_index(index_path)
         embedding = EMBED_MODEL.encode([user_prompt]).astype("float32")
-        D, I = index.search(embedding, k=5)  # top 5 matches
+        D, I = index.search(embedding, k=50)  # top 5 matches
 
         # Convert numpy.int64 to native int for SQL query
         matched_ids = [int(idx) for idx in I[0] if idx != -1]
@@ -193,8 +199,8 @@ def chat(input: ChatInput):
                 placeholder = ','.join(['%s'] * len(matched_ids))
                 cursor.execute(f"""
                     SELECT global_faiss_id, text FROM chunks
-                    WHERE book_id = %s AND chapter_number = %s AND global_faiss_id IN ({placeholder})
-                """, (book_id, chapter_number, *matched_ids))
+                    WHERE book_id = %s AND chapter_id = %s AND unit_id = %s AND lesson_id = %s AND global_faiss_id IN ({placeholder})
+                """, (book_id, chapter_id, unit_id, lesson_id, *matched_ids))
                 chunks = cursor.fetchall()
             finally:
                 cursor.close()

@@ -1,13 +1,22 @@
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
 <div class="chatbot-container">
-    <button class="chatbot-toggle">💬</button>
-    <div class="chatbot-window">
-        <div class="chatbot-header">Ask CK Virtual Tutors</div>
+    <button class="chatbot-toggle" title="Chat with CK Virtual Tutor">
+        <i class="fas fa-robot"></i>
+    </button>
+    <div class="chatbot-sidebar">
+        <div class="chatbot-header">
+            <span>Ask CK Virtual Tutors</span>
+            <button class="chatbot-close" title="Close Chat">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
         <div class="chatbot-body">
-            <p>Welcome! How can I assist you today?</p>
+            <p>👋 Hi there! How can I assist you today?</p>
         </div>
         <div class="chatbot-footer">
             <input type="text" placeholder="Type your question...">
-            <button>Send</button>
+            <button><i class="fas fa-paper-plane"></i></button>
         </div>
     </div>
 </div>
@@ -15,80 +24,140 @@
 <style>
     .chatbot-container {
         position: fixed;
-        bottom: 20px;
-        right: 20px;
+        top: 0;
+        right: 0;
+        height: 100vh;
         z-index: 1000;
     }
 
     .chatbot-toggle {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
         background: #E91E63;
-        /* Matches your pink theme */
         color: white;
         border: none;
         border-radius: 50%;
-        width: 50px;
-        height: 50px;
-        font-size: 24px;
+        width: 60px;
+        height: 60px;
+        font-size: 26px;
         cursor: pointer;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        transition: background 0.3s, transform 0.2s;
+        z-index: 1001;
     }
 
-    .chatbot-window {
-        display: none;
-        position: absolute;
-        bottom: 70px;
-        right: 0;
-        width: 300px;
-        height: 400px;
-        background: white;
-        border: 1px solid #ccc;
-        border-radius: 8px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    .chatbot-toggle:hover {
+        background: #d81b60;
+        transform: scale(1.05);
+    }
+
+    .chatbot-sidebar {
+        position: fixed;
+        top: 75px;
+        right: -420px;
+        width: 400px;
+        height: calc(100vh - 75px);
+        background: #fff;
+        border-left: 1px solid #ddd;
+        box-shadow: -2px 0 15px rgba(0, 0, 0, 0.1);
+        border-top-left-radius: 12px;
+        border-bottom-left-radius: 12px;
+        display: flex;
         flex-direction: column;
+        transition: right 0.3s ease;
+        z-index: 1000;
+    }
+
+    .chatbot-sidebar.open {
+        right: 0;
     }
 
     .chatbot-header {
-        background: #E91E63;
+        background: linear-gradient(90deg, #e91e63, #ff4081);
         color: white;
-        padding: 10px;
-        border-top-left-radius: 8px;
-        border-top-right-radius: 8px;
-        text-align: center;
+        padding: 15px 50px 15px 20px;
+        font-size: 18px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: relative;
+        border-top-left-radius: 12px;
+    }
+
+    .chatbot-close {
+        background: transparent;
+        border: none;
+        color: white;
+        font-size: 20px;
+        cursor: pointer;
+        transition: transform 0.2s ease;
+    }
+
+    .chatbot-close:hover {
+        transform: scale(1.2);
     }
 
     .chatbot-body {
         flex: 1;
-        padding: 10px;
+        padding: 20px;
         overflow-y: auto;
+        font-size: 14.5px;
+        color: #333;
     }
 
     .chatbot-footer {
-        padding: 10px;
-        border-top: 1px solid #ccc;
+        padding: 15px 20px;
+        border-top: 1px solid #eee;
         display: flex;
-        gap: 5px;
+        gap: 10px;
+        align-items: center;
     }
 
     .chatbot-footer input {
         flex: 1;
-        padding: 5px;
+        padding: 10px 12px;
         border: 1px solid #ccc;
-        border-radius: 5px;
+        border-radius: 20px;
+        font-size: 14px;
+        outline: none;
+        transition: border 0.2s;
+    }
+
+    .chatbot-footer input:focus {
+        border-color: #e91e63;
     }
 
     .chatbot-footer button {
         background: #E91E63;
         color: white;
         border: none;
-        padding: 5px 10px;
-        border-radius: 5px;
+        padding: 10px 14px;
+        border-radius: 50%;
+        font-size: 16px;
         cursor: pointer;
+        transition: background 0.3s, transform 0.2s;
+    }
+
+    .chatbot-footer button:hover {
+        background: #d81b60;
+        transform: scale(1.05);
     }
 </style>
 
 <script>
-    document.querySelector('.chatbot-toggle').addEventListener('click', () => {
-        const window = document.querySelector('.chatbot-window');
-        window.style.display = window.style.display === 'none' ? 'flex' : 'none';
+    const toggleButton = document.querySelector('.chatbot-toggle');
+    const sidebar = document.querySelector('.chatbot-sidebar');
+    const closeButton = document.querySelector('.chatbot-close');
+
+    toggleButton.addEventListener('click', () => {
+        sidebar.classList.add('open');
+        toggleButton.style.display = 'none';
+    });
+
+    closeButton.addEventListener('click', () => {
+        sidebar.classList.remove('open');
+        toggleButton.style.display = 'block';
     });
 </script>

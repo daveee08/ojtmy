@@ -26,8 +26,8 @@ app.add_middleware(
 EMBED_MODEL = SentenceTransformer("all-MiniLM-L6-v2")
 TOKENIZER = AutoTokenizer.from_pretrained("bert-base-uncased")
 OLLAMA_URL = "http://localhost:11434/api/generate"
-OLLAMA_MODEL = "llama3:latest"
-# OLLAMA_MODEL = "gemma3:1b"
+# OLLAMA_MODEL = "llama3:latest"
+OLLAMA_MODEL = "gemma3:latest"
 
 HEADERS = {"Content-Type": "application/json"}
 
@@ -179,37 +179,47 @@ def chat(input: ChatInput):
         save_chat_to_db(session_id, "user", user_prompt)
 
         # === Step 1: RAG - Get context from FAISS ===
-        index_path = f"{book_id}-{chapter_id}.faiss"
+        index_path = f"{book_id}_chapter_{chapter_id}.faiss"
         if not os.path.exists(index_path):
             return JSONResponse(status_code=404, content={"error": "FAISS index not found for this chapter."})
 
         index = faiss.read_index(index_path)
         embedding = EMBED_MODEL.encode([user_prompt]).astype("float32")
-        D, I = index.search(embedding, k=50)  # top 5 matches
+        D, I = index.search(embedding, k=10)
+        raw_matches = [(int(idx), float(dist)) for idx, dist in zip(I[0], D[0]) if idx != -1]
 
-        # Convert numpy.int64 to native int for SQL query
-        matched_ids = [int(idx) for idx in I[0] if idx != -1]
-        if not matched_ids:
+        if not raw_matches:
             rag_context = "No relevant content found for this chapter."
         else:
-            # Get matched texts from DB using global_faiss_id
+            # Fetch matched chunks
             conn = mysql.connector.connect(**DB_CONFIG)
             try:
                 cursor = conn.cursor(dictionary=True)
-                placeholder = ','.join(['%s'] * len(matched_ids))
+                ids = [idx for idx, _ in raw_matches]
+                placeholder = ','.join(['%s'] * len(ids))
                 cursor.execute(f"""
                     SELECT global_faiss_id, text FROM chunks
                     WHERE book_id = %s AND chapter_id = %s AND unit_id = %s AND lesson_id = %s AND global_faiss_id IN ({placeholder})
-                """, (book_id, chapter_id, unit_id, lesson_id, *matched_ids))
+                """, (book_id, chapter_id, unit_id, lesson_id, *ids))
                 chunks = cursor.fetchall()
             finally:
                 cursor.close()
                 conn.close()
 
-            # Order chunks in same order as retrieved from FAISS
-            rag_context = "\n".join(
-                [c["text"] for c in sorted(chunks, key=lambda x: matched_ids.index(int(x["global_faiss_id"])))]
+            # Rerank by keyword overlap with user prompt (hybrid boost)
+            def keyword_score(chunk_text):
+                chunk_tokens = set(chunk_text.lower().split())
+                prompt_tokens = set(user_prompt.lower().split())
+                return len(chunk_tokens & prompt_tokens)
+
+            reranked_chunks = sorted(
+                chunks,
+                key=lambda c: keyword_score(c["text"]),
+                reverse=True
             )
+
+            top_k = min(10, len(reranked_chunks))
+            rag_context = "\n".join([c["text"] for c in reranked_chunks[:top_k]])
 
         # === Step 2: Add recent chat context ===
         history = get_recent_chat_context(session_id)
@@ -220,6 +230,7 @@ def chat(input: ChatInput):
 
         # === Step 3: Final Prompt ===
         final_prompt = f"Use the following context to answer the user's question:\n{rag_context}\n\n{chat_context}AI:"
+        # final_prompt = f"Use the following context to answer the user's question:\n{rag_context}\nAI:"
 
         # === Step 4: Query Ollama ===
         payload = {

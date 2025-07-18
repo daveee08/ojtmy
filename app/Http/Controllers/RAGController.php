@@ -397,11 +397,6 @@ public function sendRagMessage(Request $request)
             'session_id' => $sessionId
         ]);
 
-        return response()->json([
-            'status' => 'success',
-            'response' => $responseData['response'] ?? '[No response returned]',
-            'session_id' => $sessionId
-        ]);
     } catch (\Exception $e) {
         return response()->json([
             'status' => 'error',

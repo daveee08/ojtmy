@@ -193,62 +193,7 @@ def get_chapters(book_id: int = Form(...)):
                 }
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
-
-@app.post("/view-book")
-def view_book(book_id: int = Form(...)):
-    try:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-
-        cursor.execute("SELECT source FROM books WHERE id = %s", (book_id,))
-        book = cursor.fetchone()
-        if not book:
-            return JSONResponse(status_code=404, content={"error": "Book not found"})
-
-        pdf_path = book["source"]
-
-        # Open and render the first page of the PDF to HTML or image
-        doc = fitz.open(pdf_path)
-        html_pages = []
-        for page in doc:
-            html = page.get_text("html")
-            html_pages.append(html)
-        doc.close()
-
-        return {"html": "".join(html_pages)}
-
-    except Exception as e:
-        return JSONResponse(status_code=500, content={"error": str(e)})
-
-@app.post("/get-book-source")
-def get_book_source(book_id: int = Form(...)):
-    conn = cursor = None
-    try:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT source FROM books WHERE id = %s", (book_id,))
-        book = cursor.fetchone()
-        if not book:
-            return JSONResponse(status_code=404, content={"error": "Book not found"})
-
-        raw_path = book["source"].replace("\\", "/")
-
-        # Remove everything before 'books/' to make it relative to storage/
-        if "books/" in raw_path:
-            relative_path = raw_path.split("books/")[1]
-            web_path = f"/storage/books/{relative_path}"
-        else:
-            # fallback if already a clean path
-            web_path = f"/storage/{raw_path.lstrip('/')}"
-
-        return {"source": web_path}
-
-    finally:
-        if cursor:
-            cursor.close()
-        if conn:
-            conn.close()
-            
+    
 # @app.get("/view-chapter")
 # def view_chapter(book_id: int = Query(...), chapter_number: int = Query(...)):
 #     try:

@@ -61,6 +61,11 @@
                 <li class="nav-item">
                     <a class="nav-link {{ request()->is('login') ? 'active' : '' }}" href="{{ url('/login') }}">Login</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->is('register ') ? 'active' : '' }}" href="{{ url('/register') }}">Sign up</a>
+                </li>
+                    
+                
             @endauth
         </ul>
     </div>

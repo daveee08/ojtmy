@@ -137,7 +137,8 @@
         }
 
         .sidebar a:hover {
-            background-color: rgba(221, 175, 198, 0.15);
+               background-color: rgba(221, 175, 198, 0.15);
+               color: var(--dark); /* override default blue text */
         }
 
         #toggleSidebar {

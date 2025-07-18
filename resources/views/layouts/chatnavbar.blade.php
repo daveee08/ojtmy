@@ -1,3 +1,5 @@
+@extends('layouts.bootstrap')
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -171,10 +173,22 @@
         .sidebar.collapsed .hide-when-collapsed {
             display: none !important;
         }
+        .glow {
+    background-color: #ffe3f0 !important;
+    color: #d63384 !important;
+    font-weight: 600;
+    border-left: 4px solid #d63384;
+}
     </style>
 </head>
 
 <body>
+    @php
+    $currentBookId = request('book_id');
+    $currentUnitId = request('unit_id');
+    $currentChapterId = request('chapter_id');
+    $currentLessonId = request('lesson_id');
+@endphp
 
     <!-- Toggle Sidebar Button -->
     <button id="toggleSidebar">☰</button>
@@ -187,125 +201,81 @@
 
 
             {{-- Show chapter select and sessions list only on /virtual_tutor --}}
-            @if (request()->is('virtual_tutor_chat/*'))
-                <!-- 🔽 Chapter Selector (Hidden on Collapse) -->
-                 <div class="mb-4 hide-when-collapsed">
-                    <label for="tutorSelect" class="form-label fw-semibold">Choose Chapter:</label>
-                    <select class="form-select" id="tutorSelect" onchange="handleChapterChange(this)">
-                        <option value="">Loading chapters...</option>
-                    </select>
-                </div>
-    
-                <a href="{{ url('/virtual_tutor_chat/new') }}"
-                    class="{{ request()->is('virtual_tutor_chat/new') ? 'active-link' : '' }}" data-bs-toggle="tooltip"
-                    title="Start New Chat Session">
-                    <i class="bi bi-plus-circle"></i>
-                    <span class="link-text">New Chat</span>
-                </a>
+            @php
+    use Illuminate\Support\Facades\DB;
+    $books = DB::table('book')->orderBy('grade_level')->get();
+@endphp
 
-                <!-- 🔽 Chat Label (Hidden on Collapse) -->
-                <div class="mt-3">
-                    <label class="form-label fw-semibold px-2 hide-when-collapsed">Chat</label>
-                    <a href="{{ url('/virtual_tutor/session/1') }}"
-                        class="{{ request()->is('virtual_tutor/session/1') ? 'active-link' : '' }}"
-                        data-bs-toggle="tooltip" title="Session 1">
-                        <i class="bi bi-chat-dots"></i>
-                        <span class="link-text">Session 1</span>
-                    </a>
-                    <a href="{{ url('/virtual_tutor/session/2') }}"
-                        class="{{ request()->is('virtual_tutor/session/2') ? 'active-link' : '' }}"
-                        data-bs-toggle="tooltip" title="Session 2">
-                        <i class="bi bi-chat-dots"></i>
-                        <span class="link-text">Session 2</span>
-                    </a>
-                    <a href="{{ url('/virtual_tutor/session/3') }}"
-                        class="{{ request()->is('virtual_tutor/session/3') ? 'active-link' : '' }}"
-                        data-bs-toggle="tooltip" title="Session 3">
-                        <i class="bi bi-chat-dots"></i>
-                        <span class="link-text">Session 3</span>
-                    </a>
+@foreach ($books as $book)
+    <div class="mb-2">
+        <a href="javascript:void(0);" class="fw-bold {{ $book->id == $currentBookId ? 'glow' : '' }}" onclick="toggleUnits({{ $book->id }})">
+            <i class="bi bi-journal-bookmark"></i>
+            <span class="link-text">{{ $book->title }}</span>
+        </a>
+        <div id="units-{{ $book->id }}" class="ps-3" style="{{ $book->id == $currentBookId ? 'display:block;' : 'display:none;' }}">
+            @php
+                $units = DB::table('units')->where('book_id', $book->id)->orderBy('unit_number')->get();
+            @endphp
+            @foreach ($units as $unit)
+                <a href="javascript:void(0);" onclick="toggleChapters({{ $unit->id }})"
+   class="text-muted d-block ps-3 {{ $unit->id == $currentUnitId ? 'glow' : '' }}">
+                    ▸ Unit {{ $unit->unit_number }}: {{ $unit->title }}
+                </a>
+                <div id="chapters-{{ $unit->id }}" class="ps-4" style="{{ $unit->id == $currentUnitId ? 'display:block;' : 'display:none;' }}">
+
+                    @php
+                        $chapters = DB::table('chapter')->where('unit_id', $unit->id)->orderBy('chapter_number')->get();
+                    @endphp
+                    @foreach ($chapters as $chapter)
+                        <a href="javascript:void(0);" onclick="toggleLessons({{ $chapter->id }})"
+   class="d-block ps-2 text-secondary {{ $chapter->id == $currentChapterId ? 'glow' : '' }}">
+                            ▹ Chapter {{ $chapter->chapter_number }}: {{ $chapter->chapter_title }}
+                        </a>
+                        <div id="lessons-{{ $chapter->id }}" class="ps-4" style="{{ $chapter->id == $currentChapterId ? 'display:block;' : 'display:none;' }}">
+
+                            @php
+                                $lessons = DB::table('lesson')->where('chapter_id', $chapter->id)->orderBy('lesson_number')->get();
+                            @endphp
+                            @foreach ($lessons as $lesson)
+                                <a href="{{ url('/virtual-tutor-chat') }}?book_id={{ $book->id }}&unit_id={{ $unit->id }}&chapter_id={{ $chapter->id }}&lesson_id={{ $lesson->id }}"
+                                class="d-block text-muted ps-3 {{ $lesson->id == $currentLessonId ? 'glow' : '' }}">
+                                📘 Lesson {{ $lesson->lesson_number }}: {{ $lesson->lesson_title }}
+                                </a>
+                            @endforeach
+                        </div>
+                    @endforeach
                 </div>
-            @endif
+            @endforeach
+        </div>
+    </div>
+@endforeach
+
         </div>
 
         <!-- Content -->
         <div class="content" id="mainContent">
-            @yield('content')
+            @yield('pdf')
         </div>
     </div>
 
     <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const toggleBtn = document.getElementById("toggleSidebar");
-        // const sidebar = document.getElementById("sidebar");
-        const content = document.getElementById("mainContent");
+    function toggleUnits(bookId) {
+        const el = document.getElementById(`units-${bookId}`);
+        el.style.display = el.style.display === 'none' ? 'block' : 'none';
+    }
 
-        toggleBtn.addEventListener("click", () => {
-            sidebar.classList.toggle("collapsed");
-            content.classList.toggle("expanded");
-        });
+    function toggleChapters(unitId) {
+        const el = document.getElementById(`chapters-${unitId}`);
+        el.style.display = el.style.display === 'none' ? 'block' : 'none';
+    }
 
-        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        tooltipTriggerList.forEach(el => {
-            new bootstrap.Tooltip(el);
-        });
+    function toggleLessons(chapterId) {
+        const el = document.getElementById(`lessons-${chapterId}`);
+        el.style.display = el.style.display === 'none' ? 'block' : 'none';
+    }
+</script>
 
-        // function handleChapterChange(select) {
-        //     const chapter = select.value;
-        //     if (chapter) {
-        //         console.log("Chapter selected:", chapter);
-        //         // You can add logic here
-        //     }
-        // }
-
-        function handleChapterChange(select) {
-            const chapter_number = select.value;
-            if (!chapter_number) return;
-
-            const bookId = "{{ $book_id }}"; // Blade variable from backend
-            const url = `http://127.0.0.1:5001/view-chapter?book_id=${bookId}&chapter_number=${chapter_number}`;
-            window.open(url, "_blank");
-        }
-
-            document.addEventListener('DOMContentLoaded', () => {
-        const chapterSelect = document.getElementById('tutorSelect');
-        const bookId = "{{ $book_id }}"; // From Laravel route param
-
-        fetch("http://127.0.0.1:5001/chapters", {
-            method: "POST",
-            headers: {
-                "Accept": "application/json",
-            },
-            body: (() => {
-                const form = new FormData();
-                form.append("book_id", bookId);
-                return form;
-            })()
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.status !== 'success') {
-                chapterSelect.innerHTML = `<option value="">Failed to load chapters</option>`;
-                return;
-            }
-
-            chapterSelect.innerHTML = `<option value="">Select Chapter</option>`;
-            data.chapters.forEach(chap => {
-                const option = document.createElement('option');
-                option.value = chap.chapter_number;
-                option.textContent = `Chapter ${chap.chapter_number}: ${chap.chapter_title}`;
-                chapterSelect.appendChild(option);
-            });
-        })
-        .catch(err => {
-            console.error("Error loading chapters:", err);
-            chapterSelect.innerHTML = `<option value="">Error loading chapters</option>`;
-        });
-    });
-
-        
-    </script>
 
 </body>
 

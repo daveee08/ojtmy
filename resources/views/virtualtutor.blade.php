@@ -422,60 +422,11 @@
 
 
 
-        <div class="modal fade" id="addUnitModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog">
-                <form id="addUnitForm">
-                    <div class="modal-content p-3">
-                        <h5>Add Unit</h5>
-                        <input type="hidden" name="book_id" id="unitBookId">
-                        <input type="text" name="title" placeholder="Unit Title" class="form-control mb-2" required>
-                        <input type="number" name="unit_number" placeholder="Unit Number" class="form-control mb-2"
-                            required>
-                        <button type="submit" class="btn btn-primary">Add Unit</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-        <div class="modal fade" id="addChapterModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog">
-                <form id="addChapterForm">
-                    <div class="modal-content p-3">
-                        <h5>Add Chapter</h5>
-                        <input type="hidden" name="unit_id" id="chapterUnitId">
-                        <input type="text" name="chapter_title" placeholder="Chapter Title" class="form-control mb-2"
-                            required>
-                        <input type="number" name="chapter_number" placeholder="Chapter Number"
-                            class="form-control mb-2" required>
-                        <button type="submit" class="btn btn-primary">Add Chapter</button>
-                    </div>
-                </form>
-            </div>
+        <div id="bookList" class="tool-grid mt-4">
+            <!-- Filtered books will appear here -->
         </div>
 
-        <div class="modal fade" id="addLessonModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog">
-                <form id="addLessonForm" enctype="multipart/form-data">
-                    <div class="modal-content p-3">
-                        <h5>Add Lesson</h5>
-                        <input type="hidden" name="chapter_id" id="lessonChapterId">
-                        <input type="text" name="lesson_title" placeholder="Lesson Title" class="form-control mb-2"
-                            required>
-                        <input type="number" name="lesson_number" placeholder="Lesson Number" class="form-control mb-2"
-                            required>
-                        <div class="mb-3">
-                            <label for="pdfFile" class="form-label">Upload PDF File</label>
-                            <input type="file" class="form-control" id="pdfFile" name="pdf_file"
-                                accept="application/pdf" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Add Lesson</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-
-
-        <div id="bookList" class="tool-grid mt-4"></div>
+    </div>
     </div>
 
     <script>

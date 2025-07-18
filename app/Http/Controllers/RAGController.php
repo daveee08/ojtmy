@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class RAGController extends Controller
 {
@@ -74,6 +76,8 @@ class RAGController extends Controller
 
 public function addBook(Request $request)
 {
+    Log::info('📘 addBook() called', $request->all());
+
     $validator = Validator::make($request->all(), [
         'title' => 'required|string|max:255',
         'subject_name' => 'required|string|max:255',
@@ -82,6 +86,8 @@ public function addBook(Request $request)
     ]);
 
     if ($validator->fails()) {
+        Log::warning('❌ addBook() validation failed', $validator->errors()->toArray());
+
         return response()->json([
             'status' => 'error',
             'errors' => $validator->errors(),
@@ -96,6 +102,8 @@ public function addBook(Request $request)
         'created_at' => now(),
         'updated_at' => now()
     ]);
+
+    Log::info('✅ Book inserted', ['book_id' => $bookId]);
 
     return response()->json([
         'status' => 'success',
@@ -117,11 +125,24 @@ public function getBooks()
  // 📘 Add Unit
     public function addUnit(Request $request)
 {
+    Log::info('📘 addUnit() called', $request->all());
+
     $validated = $request->validate([
-        'book_id' => 'required|exists:books,id',
+        'book_id' => 'required|exists:book,id',
         'title' => 'required|string|max:255',
         'unit_number' => 'required|integer'
     ]);
+    // if ($validator->fails()) {
+    //     Log::warning('❌ addUnit() validation failed', $validator->errors()->toArray());
+
+    //     return response()->json([
+    //         'status' => 'error',
+    //         'errors' => $validator->errors()
+    //     ], 422);
+    // }
+
+    Log::info('📘 validated() called', $request->all());
+
 
     DB::table('units')->insert([
         'book_id' => $validated['book_id'],
@@ -131,21 +152,28 @@ public function getBooks()
         'updated_at' => now()
     ]);
 
+    Log::info('✅ Unit inserted', ['book_id' => $validated['book_id'], 'unit_number' => $validated['unit_number']]);
+
     return response()->json(['status' => 'success']);
 }
 
     // 📚 Get Units by Book
     public function getUnits(Request $request)
-    {
-        $bookId = $request->query('book_id');
+{
+    $bookId = $request->query('book_id');
 
-        $units = DB::table('units')
-            ->where('book_id', $bookId)
-            ->orderBy('unit_number')
-            ->get();
+    Log::info('📗 getUnits() called', ['book_id' => $bookId]);
 
-        return response()->json(['units' => $units]);
-    }
+    $units = DB::table('units')
+        ->where('book_id', $bookId)
+        ->orderBy('unit_number')
+        ->get();
+
+    Log::info('📗 Units retrieved', ['count' => $units->count()]);
+
+    return response()->json(['units' => $units]);
+}
+
 
     // 📗 Add Chapter
     public function addChapter(Request $request)
@@ -184,7 +212,7 @@ public function getBooks()
     public function addLesson(Request $request)
     {
         $validated = $request->validate([
-        'chapter_id' => 'required|exists:chapters,id',
+        'chapter_id' => 'required|exists:chapter,id',
         'lesson_title' => 'required|string|max:255',
         'lesson_number' => 'required|integer',
         'pdf_file' => 'required|file|mimes:pdf|max:10240', // max 10MB
@@ -219,39 +247,39 @@ public function getBooks()
     }
 
     public function getFirstLesson(Request $request)
-{
-    $bookId = $request->book_id;
+    {
+        $bookId = $request->book_id;
 
-    $unit = DB::table('units')->where('book_id', $bookId)->orderBy('unit_number')->first();
-    if (!$unit) return response()->json(['status' => 'error', 'message' => 'No unit found']);
+        $unit = DB::table('units')->where('book_id', $bookId)->orderBy('unit_number')->first();
+        if (!$unit) return response()->json(['status' => 'error', 'message' => 'No unit found']);
 
-    $chapter = DB::table('chapter')->where('unit_id', $unit->id)->orderBy('chapter_number')->first();
-    if (!$chapter) return response()->json(['status' => 'error', 'message' => 'No chapter found']);
+        $chapter = DB::table('chapter')->where('unit_id', $unit->id)->orderBy('chapter_number')->first();
+        if (!$chapter) return response()->json(['status' => 'error', 'message' => 'No chapter found']);
 
-    $lesson = DB::table('lesson')->where('chapter_id', $chapter->id)->orderBy('lesson_number')->first();
-    if (!$lesson) return response()->json(['status' => 'error', 'message' => 'No lesson found']);
+        $lesson = DB::table('lesson')->where('chapter_id', $chapter->id)->orderBy('lesson_number')->first();
+        if (!$lesson) return response()->json(['status' => 'error', 'message' => 'No lesson found']);
 
-    return response()->json([
-        'status' => 'success',
-        'book_id' => $bookId,
-        'unit_id' => $unit->id,
-        'chapter_id' => $chapter->id,
-        'lesson_id' => $lesson->id
+        return response()->json([
+            'status' => 'success',
+            'book_id' => $bookId,
+            'unit_id' => $unit->id,
+            'chapter_id' => $chapter->id,
+            'lesson_id' => $lesson->id
+        ]);
+    }
+
+    public function showVirtualTutorChat(Request $request)
+    {
+        $lessonId = $request->query('lesson_id');
+
+        $lesson = DB::table('lesson')->find($lessonId);
+
+        return view('virtualtutorchat', [
+        'lesson' => $lesson,
+        'book_id' => $request->query('book_id'),
+        'unit_id' => $request->query('unit_id'),
+        'chapter_id' => $request->query('chapter_id'),
+        'lesson_id' => $lessonId
     ]);
-}
-
-public function showVirtualTutorChat(Request $request)
-{
-    $lessonId = $request->query('lesson_id');
-
-    $lesson = DB::table('lesson')->find($lessonId);
-
-    return view('virtualtutorchat', [
-    'lesson' => $lesson,
-    'book_id' => $request->query('book_id'),
-    'unit_id' => $request->query('unit_id'),
-    'chapter_id' => $request->query('chapter_id'),
-    'lesson_id' => $lessonId
-]);
-}
+    }
 }

@@ -1,5 +1,9 @@
-@extends('layouts.header')
-@extends('layouts.navbar')
+@guest
+    @extends('layouts.headerlogin')
+@else
+    @extends('layouts.header')
+    @extends('layouts.navbar')
+@endguest
 
 @section('title', 'Home')
 
@@ -378,4 +382,3 @@
 
 </script>
 @endsection
-

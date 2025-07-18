@@ -1,5 +1,5 @@
-<!-- @extends('layouts.chatnavbar') -->
-<!-- @extends('layouts.header') -->
+@extends('layouts.chatnavbar')
+@extends('layouts.header')
 @extends('chatbot')
 
 @section('styles')
@@ -16,6 +16,7 @@
             background-color: var(--chat-bg);
             margin: 0;
             padding: 0;
+            overflow-y: hidden;
         }
 
         .chat-container {
@@ -227,6 +228,20 @@
             background-color: #a0aec0;
             cursor: not-allowed;
         }
+        #pdfEmbedContainer {
+            width: 100%;
+            height: calc(100vh - 80px); /* Adjusted height with proper unit */
+            overflow: auto; /* Keeps PDF scrollable */
+            margin-top: 20px; /* Added px unit */
+        }
+        #pdfEmbed {
+            min-height: 600px;
+            height: 100%;
+            width: 100%;
+            object-fit: contain;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
 
         @media (max-width: 768px) {
             :root {
@@ -249,6 +264,7 @@
             .chat-footer button {
                 width: 100%;
             }
+
         }
     </style>
 @endsection

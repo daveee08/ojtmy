@@ -39,17 +39,17 @@
         .search-wrapper {
             display: flex;
             justify-content: center;
-            gap: 10px;
             margin-bottom: 30px;
         }
 
         .search-wrapper select {
             max-width: 400px;
-            padding: 10px 16px;
+            padding: 10px 16px 10px 16px;
             font-size: 1rem;
             border: 1px solid #ccc;
             outline: none;
             background-color: #fff;
+            background-image: none;
             box-shadow: none;
             transition: 0.3s;
         }
@@ -57,15 +57,6 @@
         .search-wrapper input:focus {
             border-color: #e91e63;
             box-shadow: 0 0 0 0.1rem rgba(234, 114, 114, 0.1);
-        }
-
-        .search-wrapper button {
-            height: 42px;
-            width: 42px;
-            padding: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
 
         .tool-grid {
@@ -162,13 +153,18 @@
             transition: color 0.02s ease;
         }
 
-        /* Modal styles... (same as yours) */
+        .tool-card-link:hover .tool-card {
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            transform: translateY(-4px);
+        }
 
+        /* General modal dialog styling */
         .modal .modal-dialog {
             max-width: 600px;
             margin: 1.75rem auto;
         }
 
+        /* Modal content box */
         .modal .modal-content {
             border-radius: 16px;
             padding: 20px;
@@ -176,21 +172,25 @@
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
         }
 
+        /* Header of the modal */
         .modal .modal-header {
             border-bottom: none;
             padding-bottom: 0;
         }
 
+        /* Title inside modal */
         .modal .modal-title {
             font-weight: 600;
             font-size: 1.25rem;
         }
 
+        /* Labels for inputs */
         .modal .form-label {
             font-weight: 500;
             color: #333;
         }
 
+        /* Inputs, selects, and textareas inside modal */
         .modal .form-control,
         .modal .form-select {
             border-radius: 8px;
@@ -198,6 +198,7 @@
             font-size: 1rem;
         }
 
+        /* Footer section with buttons */
         .modal .modal-footer {
             border-top: none;
             justify-content: space-between;
@@ -221,47 +222,28 @@
             border-color: #d81b60;
         }
 
-        .upload-btn {
-            background-color: #fff;
-            border: 1px solid #ccc; 
-            width: 42px;
-            height: 42px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border-radius: 50%;
-            transition: all 0.2s ease-in-out;
+        .btn.btn-primary:focus {
+            background-color: #d81b60;
+            border-color: #d81b60;
         }
 
-        .upload-btn:hover {
+
+        /* Primary button style with e91e63 */
+        .modal .btn.btn-primary {
+            background-color: #e91e63;
             border-color: #e91e63;
         }
 
-        .upload-icon {
-            color: #202020ff; 
-            font-size: 1rem;
+        .modal .btn.btn-primary:hover {
+            background-color: #d81b60;
+            border-color: #d81b60;
         }
 
+        /* Input/select focus outline color */
         .modal .form-control:focus,
         .modal .form-select:focus {
             border-color: #e91e63;
             box-shadow: 0 0 0 0.15rem rgba(233, 30, 99, 0.25);
-        }
-
-        .btn.btn-primary:focus,
-        .btn.btn-primary:active,
-        .btn.btn-primary:focus-visible {
-            background-color: #e91e63 !important;
-            border-color: #e91e63 !important;
-            box-shadow: none !important;
-            outline: none !important;
-        }
-
-        /* Spinner style to match pink theme */
-        .spinner-border {
-            color: #fff; /* Spinner dots color */
-            border-color: #fff transparent #fff transparent !important;
-            background-color: transparent !important;
         }
 
         @media (max-width: 992px) {
@@ -276,30 +258,25 @@
             }
         }
     </style>
+
 @endsection
+
 
 @section('content')
     <div class="container">
         <div class="hero">
             <h1>Welcome to CK Virtual Tutor</h1>
-            <p>AI-powered tutor will utilize a local knowledge base sourced from CK Grade 7 books in Science, English, and Math.</p>
+            <p>AI-powered tutor will utilize a local knowledge base sourced from CK Grade 7 books in Science, English, and
+                Math.</p>
         </div>
 
-        <div class="search-wrapper mb-4 d-flex align-items-center">
+        <!-- 📌 Add Chapter/Subject Selector Here -->
+        <div class="search-wrapper mb-4 d-flex gap-3 align-items-center">
             <select id="subjectSelect" class="form-select">
                 <option value="">Select Grade Level</option>
                 <option value="Grade 1">Grade 1</option>
                 <option value="Grade 2">Grade 2</option>
                 <option value="Grade 3">Grade 3</option>
-                <option value="Grade 4">Grade 4</option>
-                <option value="Grade 5">Grade 5</option>
-                <option value="Grade 6">Grade 6</option>
-                <option value="Grade 7">Grade 7</option>
-                <option value="Grade 8">Grade 8</option>
-                <option value="Grade 9">Grade 9</option>
-                <option value="Grade 10">Grade 10</option>
-                <option value="Grade 11">Grade 11</option>
-                <option value="Grade 12">Grade 12</option>
             </select>
 
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadModal">
@@ -317,11 +294,13 @@
                             <h5 class="modal-title" id="uploadModalLabel">Book Details</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
+
                         <div class="modal-body">
                             <div class="mb-3">
                                 <label for="subjectName" class="form-label">Subject Name</label>
                                 <input type="text" class="form-control" id="subjectName" name="subject_name" required>
                             </div>
+
                             <div class="mb-3">
                                 <label for="gradeLevel" class="form-label">Grade Level</label>
                                 <select class="form-select" id="gradeLevel" name="grade_level" required>
@@ -329,17 +308,10 @@
                                     <option value="Grade 1">Grade 1</option>
                                     <option value="Grade 2">Grade 2</option>
                                     <option value="Grade 3">Grade 3</option>
-                                    <option value="Grade 4">Grade 4</option>
-                                    <option value="Grade 5">Grade 5</option>
-                                    <option value="Grade 6">Grade 6</option>
-                                    <option value="Grade 7">Grade 7</option>
-                                    <option value="Grade 8">Grade 8</option>
-                                    <option value="Grade 9">Grade 9</option>
-                                    <option value="Grade 10">Grade 10</option>
-                                    <option value="Grade 11">Grade 11</option>
-                                    <option value="Grade 12">Grade 12</option>
+                                    <!-- Add more as needed -->
                                 </select>
                             </div>
+
                             <div class="mb-3">
                                 <label for="description" class="form-label">Description</label>
                                 <textarea class="form-control" id="description" name="description" rows="3" required></textarea>
@@ -360,10 +332,6 @@
                                 Cancel
                             </button>
                         </div>
-                        <div id="uploadSuccess" class="text-success mt-2 text-center d-none">
-                            <i class="fas fa-check-circle me-1"></i> File uploaded successfully!
-                        </div>
-
                     </form>
                 </div>
             </div>
@@ -430,10 +398,9 @@
     </div>
 
     <script>
-        // Upload Form with Spinner and Success Message
         document.getElementById("uploadForm").addEventListener("submit", function(e) {
             e.preventDefault();
-            
+
             const formData = new FormData(this);
             const data = {
                 title: document.getElementById("subjectName").value,
@@ -716,5 +683,3 @@
     </script>
 
 @endsection
-
-//original

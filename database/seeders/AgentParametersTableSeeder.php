@@ -33,8 +33,6 @@ class AgentParametersTableSeeder extends Seeder
         $translatorId = DB::table('agents')->where('agent', 'translator')->value('id');
         $socialStoriesId = DB::table('agents')->where('agent', 'social-stories')->value('id');
         $characterBotId =DB::table('agents')->where('agent', 'characterbot')->value('id');
-        $ragchatbotId =DB::table('agents')->where('agent', 'ragchatbot')->value('id');
-
         DB::table('agent_parameters')->insert([
             [
                 'agent_id' => $tutorId,
@@ -306,22 +304,6 @@ class AgentParametersTableSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
-            [
-                'agent_id' => $ragchatbotId,
-                'parameter' => 'chapter_number',
-                'parameter_value' => '',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-             [
-                'agent_id' => $ragchatbotId,
-                'parameter' => 'book_id',
-                'parameter_value' => '',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            
-            
 
 
 

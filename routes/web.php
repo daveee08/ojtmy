@@ -51,22 +51,27 @@ Route::get('/landing', function () {
     return view('landing');
 })->middleware('auth');
 
-
 Route::get('/tools', function () {
-    return view('tool');
-});
+    return view('tools');
+})->middleware('auth');
 
 Route::get('/about', function () {
     return view('about');
 });
 
+// Protected Virtual Tutor routes
 Route::get('virtual_tutor', function () {
     return view('virtualtutor');
-});
+})->middleware('auth')->name('virtual-tutor');
 
 Route::get('/virtual_tutor_chat/{book_id}', function ($book_id) {
-    return view('virtualtutorchat', ['book_id' => $book_id]);
-});
+    $book_id = (int)$book_id;
+    $chapter = request()->input('chapter');
+    $pdfUrl = request()->input('pdf_url');
+    return view('virtualtutorchat', ['book_id' => $book_id, 'chapter' => $chapter, 'pdf_url' => $pdfUrl]);
+})->middleware('auth')->name('virtual-tutor-chat');
+
+Route::get('/books-by-grade', [RAGController::class, 'getBooksByGrade']);
 
 Route::post('/upload-endpoint', [RAGController::class, 'uploadToFastAPI']);
 

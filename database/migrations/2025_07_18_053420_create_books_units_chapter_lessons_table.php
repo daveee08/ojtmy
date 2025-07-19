@@ -47,6 +47,16 @@ class CreateBooksUnitsChapterLessonsTable extends Migration
         $table->timestamps();
     });
 
+    Schema::create('chunks', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('book_id')->constrained('book')->onDelete('cascade');
+            $table->foreignId('chapter_number')->constrained('chapter')->onDelete('cascade');
+            $table->foreignId('unit_id')->constrained('units')->onDelete('cascade');
+            $table->foreignId('lesson_id')->constrained('lesson')->onDelete('cascade');
+            $table->integer('global_faiss_id')->nullable();
+            $table->longText('text');
+        });
+
 
     }
 

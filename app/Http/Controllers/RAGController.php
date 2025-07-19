@@ -111,9 +111,13 @@ public function addBook(Request $request)
     ]);
 }
 
-public function getBooks()
+public function getBooks(Request $request)
 {
-    $books = DB::table('book')->orderBy('id', 'desc')->get();
+    $query = DB::table('book')->orderBy('id', 'desc');
+    if ($request->has('grade_level')) {
+        $query->where('grade_level', $request->input('grade_level'));
+    }
+    $books = $query->get();
 
     return response()->json([
         'status' => 'success',
@@ -270,15 +274,21 @@ public function getBooks()
 public function showVirtualTutorChat(Request $request)
 {
     $lessonId = $request->query('lesson_id');
-
+    $bookId = $request->query('book_id');
+    
     $lesson = DB::table('lesson')->find($lessonId);
+    $book = DB::table('book')->find($bookId);
+    $gradeLevel = $book ? $book->grade_level : null;
+    $books = DB::table('book')->where('grade_level', $gradeLevel)->orderBy('id')->get();
 
     return view('virtualtutorchat', [
-    'lesson' => $lesson,
-    'book_id' => $request->query('book_id'),
-    'unit_id' => $request->query('unit_id'),
-    'chapter_id' => $request->query('chapter_id'),
-    'lesson_id' => $lessonId
-]);
+        'lesson' => $lesson,
+        'books' => $books,
+        'book_id' => $bookId,
+        'unit_id' => $request->query('unit_id'),
+        'chapter_id' => $request->query('chapter_id'),
+        'lesson_id' => $lessonId,
+        'grade_level' => $gradeLevel
+    ]);
 }
 }

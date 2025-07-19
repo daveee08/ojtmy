@@ -228,12 +228,17 @@
             background-color: #a0aec0;
             cursor: not-allowed;
         }
+
         #pdfEmbedContainer {
             width: 100%;
-            height: calc(100vh - 80px); /* Adjusted height with proper unit */
-            overflow: auto; /* Keeps PDF scrollable */
-            margin-top: 20px; /* Added px unit */
+            height: calc(100vh - 80px);
+            /* Adjusted height with proper unit */
+            overflow: auto;
+            /* Keeps PDF scrollable */
+            margin-top: 20px;
+            /* Added px unit */
         }
+
         #pdfEmbed {
             min-height: 600px;
             height: 100%;
@@ -283,6 +288,7 @@
         }
 
         .pdf-embed {
+            margin-top: 1%;
             width: 794px;
             /* A4 width in pixels at 96dpi */
             height: 1123px;

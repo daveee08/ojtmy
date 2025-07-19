@@ -215,7 +215,7 @@ public function getBooks()
         'chapter_id' => 'required|exists:chapter,id',
         'lesson_title' => 'required|string|max:255',
         'lesson_number' => 'required|integer',
-        'pdf_file' => 'required|file|mimes:pdf|max:10240', // max 10MB
+        'pdf_file' => 'required|file|mimes:pdf', // max 10MB
     ]);
 
         // Store the uploaded PDF in storage/app/public/lessons

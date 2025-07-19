@@ -36,7 +36,7 @@
             top: 0;
             left: 0;
             height: 100vh;
-            width: 250px;
+            width: 300px;
             background-color: var(--white);
             padding: 40px 20px;
             box-shadow: 2px 0 10px rgba(0, 0, 0, 0.08);
@@ -120,7 +120,18 @@
             background-color: var(--light-grey);
             transition: all 0.3s ease;
             overflow-x: hidden;
+            width: 100%;
         }
+
+        body.sidebar-collapsed .content {
+            /* margin-left: 70px; */
+        }
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
 
         .layout {
             display: flex;
@@ -137,8 +148,8 @@
         }
 
         .sidebar a:hover {
-               background-color: rgba(221, 175, 198, 0.15);
-               color: var(--dark); /* override default blue text */
+            background-color: rgba(221, 175, 198, 0.15);
+            color: var(--dark);
         }
 
         #toggleSidebar {
@@ -170,7 +181,6 @@
             margin-bottom: 6px;
         }
 
-        /* 🔒 Hide certain elements when sidebar is collapsed */
         .sidebar.collapsed .hide-when-collapsed {
             display: none !important;
         }
@@ -195,18 +205,10 @@
     <!-- Toggle Sidebar Button -->
     <button id="toggleSidebar">☰</button>
 
-    <!-- Sidebar + Content Layout -->
     <div class="layout">
         <!-- Sidebar -->
         <div class="sidebar" id="sidebar">
             <h2></h2>
-
-
-            {{-- Show chapter select and sessions list only on /virtual_tutor --}}
-            @php
-                use Illuminate\Support\Facades\DB;
-                $books = DB::table('book')->orderBy('grade_level')->get();
-            @endphp
 
             @foreach ($books as $book)
                 <div class="mb-2">
@@ -227,12 +229,8 @@
                             </a>
                             <div id="chapters-{{ $unit->id }}" class="ps-4"
                                 style="{{ $unit->id == $currentUnitId ? 'display:block;' : 'display:none;' }}">
-
                                 @php
-                                    $chapters = DB::table('chapter')
-                                        ->where('unit_id', $unit->id)
-                                        ->orderBy('chapter_number')
-                                        ->get();
+                                    $chapters = DB::table('chapter')->where('unit_id', $unit->id)->orderBy('chapter_number')->get();
                                 @endphp
                                 @foreach ($chapters as $chapter)
                                     <a href="javascript:void(0);" onclick="toggleLessons({{ $chapter->id }})"
@@ -241,12 +239,8 @@
                                     </a>
                                     <div id="lessons-{{ $chapter->id }}" class="ps-4"
                                         style="{{ $chapter->id == $currentChapterId ? 'display:block;' : 'display:none;' }}">
-
                                         @php
-                                            $lessons = DB::table('lesson')
-                                                ->where('chapter_id', $chapter->id)
-                                                ->orderBy('lesson_number')
-                                                ->get();
+                                            $lessons = DB::table('lesson')->where('chapter_id', $chapter->id)->orderBy('lesson_number')->get();
                                         @endphp
                                         @foreach ($lessons as $lesson)
                                             <a href="{{ url('/virtual-tutor-chat') }}?book_id={{ $book->id }}&unit_id={{ $unit->id }}&chapter_id={{ $chapter->id }}&lesson_id={{ $lesson->id }}"
@@ -261,10 +255,9 @@
                     </div>
                 </div>
             @endforeach
-
         </div>
 
-        <!-- Content -->
+        <!-- Main Content -->
         <div class="content" id="mainContent">
             @yield('pdf')
         </div>
@@ -273,9 +266,27 @@
     <!-- Scripts -->
     <script>
         function toggleUnits(bookId) {
+            const sidebar = document.getElementById('sidebar');
+            const body = document.body;
+
+            // If sidebar is collapsed, expand it first
+            if (sidebar.classList.contains('collapsed')) {
+                sidebar.classList.remove('collapsed');
+                body.classList.remove('sidebar-collapsed');
+            }
+
+            // Collapse all other books' units
+            document.querySelectorAll('[id^="units-"]').forEach(el => {
+                if (el.id !== `units-${bookId}`) {
+                    el.style.display = 'none';
+                }
+            });
+
+            // Toggle current book's units
             const el = document.getElementById(`units-${bookId}`);
             el.style.display = el.style.display === 'none' ? 'block' : 'none';
         }
+
 
         function toggleChapters(unitId) {
             const el = document.getElementById(`chapters-${unitId}`);
@@ -286,9 +297,26 @@
             const el = document.getElementById(`lessons-${chapterId}`);
             el.style.display = el.style.display === 'none' ? 'block' : 'none';
         }
+
+        // Updated toggle logic to collapse all items
+        document.getElementById('toggleSidebar').addEventListener('click', function () {
+            const sidebar = document.getElementById('sidebar');
+            const body = document.body;
+
+            sidebar.classList.toggle('collapsed');
+            body.classList.toggle('sidebar-collapsed');
+
+            if (sidebar.classList.contains('collapsed')) {
+                const allUnits = sidebar.querySelectorAll('[id^="units-"]');
+                const allChapters = sidebar.querySelectorAll('[id^="chapters-"]');
+                const allLessons = sidebar.querySelectorAll('[id^="lessons-"]');
+
+                allUnits.forEach(unit => unit.style.display = 'none');
+                allChapters.forEach(chapter => chapter.style.display = 'none');
+                allLessons.forEach(lesson => lesson.style.display = 'none');
+            }
+        });
     </script>
-
-
 </body>
 
 </html>

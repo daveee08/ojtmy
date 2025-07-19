@@ -397,9 +397,9 @@
     </div>
     </div>
 
-    <script>
-        document.getElementById("uploadForm").addEventListener("submit", function(e) {
-            e.preventDefault();
+   <script>
+    document.getElementById("uploadForm").addEventListener("submit", function(e) {
+        e.preventDefault();
 
             const formData = new FormData(this);
             const data = {
@@ -435,56 +435,57 @@
                 });
         });
 
-        function loadBooks() {
-            const selectedGrade = document.getElementById("subjectSelect").value;
-            const bookList = document.getElementById("bookList");
-            bookList.innerHTML = '';
+function loadBooks() {
+    const selectedGrade = document.getElementById("subjectSelect").value;
+    const bookList = document.getElementById("bookList");
+    bookList.innerHTML = '';
 
-            if (!selectedGrade) return;
+    if (!selectedGrade) return;
 
-            fetch("/books")
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status !== "success") {
-                        bookList.innerHTML = '<p>Failed to fetch books.</p>';
-                        return;
-                    }
+    fetch("/books")
+        .then(response => response.json())
+        .then(data => {
+            if (data.status !== "success") {
+                bookList.innerHTML = '<p>Failed to fetch books.</p>';
+                return;
+            }
 
-                    const filtered = data.books.filter(book => book.grade_level === selectedGrade);
+            console.log("Fetched books:", data.books); // Debug log
+            const filtered = data.books.filter(book => book.grade_level.toLowerCase() === selectedGrade.toLowerCase());
 
-                    if (filtered.length === 0) {
-                        bookList.innerHTML = '<p>No books found for this grade level.</p>';
-                        return;
-                    }
+            if (filtered.length === 0) {
+                bookList.innerHTML = '<p>No books found for this grade level.</p>';
+                return;
+            }
 
-                    filtered.forEach(book => {
-                        const card = document.createElement('div');
-                        card.className = 'tool-card';
-                        card.innerHTML = `
-                <h5>${book.title}</h5>
-                <p>${book.description}</p>
-                <small>${book.grade_level}</small>
+            filtered.forEach(book => {
+                const card = document.createElement('div');
+                card.className = 'tool-card';
+                card.innerHTML = `
+                    <h5>${book.title}</h5>
+                    <p>${book.description}</p>
+                    <small>${book.grade_level}</small>
 
-                <div class="d-flex gap-2 mt-2">
-                    <button class="btn btn-sm btn-outline-primary" onclick="openUnitModal(${book.id})">+ Add Unit</button>
-                    <button class="btn btn-sm btn-outline-success" onclick="redirectToChat(${book.id})">
-                        <i class="fa fa-brain me-1"></i> Open Tutor
-                    </button>
-                    <button class="btn btn-sm btn-outline-secondary" onclick="toggleUnits(${book.id})">
-                        <i class="fa fa-chevron-down me-1"></i> Show Units
-                    </button>
-                </div>
+                    <div class="d-flex gap-2 mt-2">
+                        <button class="btn btn-sm btn-outline-primary" onclick="openUnitModal(${book.id})">+ Add Unit</button>
+                        <button class="btn btn-sm btn-outline-success" onclick="redirectToChat(${book.id})">
+                            <i class="fa fa-brain me-1"></i> Open Tutor
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="toggleUnits(${book.id})">
+                            <i class="fa fa-chevron-down me-1"></i> Show Units
+                        </button>
+                    </div>
 
-                <div id="unit-container-${book.id}" class="mt-3 ps-3" style="display:none;"></div>
-            `;
-                        bookList.appendChild(card);
-                    });
-                })
-                .catch(err => {
-                    console.error("Fetch error:", err);
-                    bookList.innerHTML = '<p>Error loading books.</p>';
-                });
-        }
+                    <div id="unit-container-${book.id}" class="mt-3 ps-3" style="display:none;"></div>
+                `;
+                bookList.appendChild(card);
+            });
+        })
+        .catch(err => {
+            console.error("Fetch error:", err);
+            bookList.innerHTML = '<p>Error loading books.</p>';
+        });
+}
 
         document.addEventListener('DOMContentLoaded', function() {
             document.getElementById("subjectSelect").addEventListener('change', loadBooks);

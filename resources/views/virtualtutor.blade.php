@@ -397,9 +397,9 @@
     </div>
     </div>
 
-    <script>
-        document.getElementById("uploadForm").addEventListener("submit", function(e) {
-            e.preventDefault();
+   <script>
+    document.getElementById("uploadForm").addEventListener("submit", function(e) {
+        e.preventDefault();
 
             const formData = new FormData(this);
             const data = {

@@ -45,12 +45,15 @@ use App\Http\Controllers\RAGController;
 // Landing Page
 Route::get('/', function () {
     return view('home');
-})->name('home');
+});
 
-// Protected tools route
+Route::get('/landing', function () {
+    return view('landing');
+})->middleware('auth');
+
 Route::get('/tools', function () {
-    return view('tool');
-})->middleware('auth')->name('tools');
+    return view('tools');
+})->middleware('auth');
 
 Route::get('/about', function () {
     return view('about');

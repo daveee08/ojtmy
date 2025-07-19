@@ -14,6 +14,7 @@ class AuthController extends Controller
         return view('login');
     }
 
+
     public function login(Request $request)
     {
         $credentials = $request->validate([
@@ -27,7 +28,7 @@ class AuthController extends Controller
             // ✅ Store grade_level in session
             session(['grade_level' => Auth::user()->grade_level]);
 
-            return redirect()->intended('/landing');
+            return redirect()->intended('/tools');
         }
 
         return back()->withErrors([
@@ -58,7 +59,7 @@ class AuthController extends Controller
 
         Auth::login($user);
 
-        return redirect('/landing');
+        return redirect('/tools');
     }
 
 

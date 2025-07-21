@@ -16,25 +16,88 @@
 
     {{-- Custom Style --}}
     <style>
+        :root {
+            --pink: #e91e63;
+            --white: #ffffff;
+            --dark: #191919;
+            --light-grey: #f5f5f5;
+        }
+
+        [data-bs-theme="dark"] {
+            --pink: #f06292;
+            --white: #333333; /* Lightened from #1e1e1e to #333333 for better visibility */
+            --dark: #d0d0d0; /* Lightened from #e0e0e0 to #d0d0d0 for contrast */
+            --light-grey: #444444; /* Adjusted to a slightly lighter gray */
+        }
+
         body {
             font-family: 'Poppins', sans-serif;
+            background: var(--white);
+            color: var(--dark);
         }
+
         .text-highlight {
-            color: #ec008c;
+            color: var(--pink);
             font-weight: 700;
         }
+
         .form-label {
-            color: #333;
+            color: var(--dark);
             font-weight: 600;
         }
+
         .btn-primary {
-            background-color: #ec008c;
-            border-color: #ec008c;
+            background-color: var(--pink);
+            border-color: var(--pink);
         }
+
         .btn-primary:hover {
             background-color: #c30074;
             border-color: #c30074;
         }
+
+        .card {
+            background-color: var(--white);
+            border: 1px solid var(--light-grey);
+        }
+
+        .bg-light {
+            background-color: var(--light-grey) !important;
+        }
+
+        .btn-outline-secondary {
+            color: var(--dark);
+            border-color: var(--light-grey);
+        }
+
+        .btn-outline-secondary:hover {
+            background-color: var(--light-grey);
+            color: var(--pink);
+        }
+
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        [data-bs-theme="dark"] .alert-danger {
+            background-color: #2c2c2c;
+            color: #f06292;
+        }
+
+        /* Style for new Clear Form button */
+        .btn-clear {
+            background-color: #6c757d;
+            border-color: #6c757d;
+            color: var(--white);
+        }
+
+        .btn-clear:hover {
+            background-color: #5a6268;
+            border-color: #5a6268;
+        }
+
+       
     </style>
 </head>
 <body>
@@ -95,6 +158,7 @@
                     <div class="d-grid d-md-flex justify-content-md-end">
                         <button type="submit" id="submitBtn" class="btn btn-primary px-4" disabled>
                             <span id="btnText">Submit</span>
+                             <button type="button" id="clearBtn" class="btn btn-clear me-2">Clear Form</button>
                             <span id="btnSpinner" class="spinner-border spinner-border-sm d-none ms-2" role="status" aria-hidden="true"></span>
                         </button>
                     </div>
@@ -168,6 +232,12 @@
                 btnSpinner.classList.remove('d-none');
             });
         });
+        document.getElementById('clearBtn').addEventListener('click', () => {
+        document.getElementById('profile').value = '';
+        document.getElementById('text').value = '';
+    });
+        
+       
     </script>
 </body>
 </html>

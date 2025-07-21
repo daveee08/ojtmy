@@ -1,6 +1,7 @@
 @extends('layouts.chatnavbar')
 @extends('layouts.header')
-@extends('chatbot')
+{{-- @extends('chatbot') --}}
+@extends('makequiz')
 
 @section('styles')
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />

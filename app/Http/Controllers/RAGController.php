@@ -212,198 +212,289 @@ public function getBooks(Request $request)
         return response()->json(['chapters' => $chapters]);
     }
 
-public function addLesson(Request $request)
-{
-    set_time_limit(0);
+    public function addLesson(Request $request)
+    {
+        set_time_limit(0);
 
-    $validated = $request->validate([
-        'chapter_id' => 'required|exists:chapter,id',
-        'lesson_title' => 'required|string|max:255',
-        'lesson_number' => 'required|integer',
-        'pdf_file' => 'required|file|mimes:pdf', // max 10MB
-    ]);
-
-    $pdfPath = $request->file('pdf_file')->store('lessons', 'public');
-    $fullPath = storage_path('app/public/' . $pdfPath);
-
-    try {
-        // ✅ Phase 1: Insert lesson and commit immediately
-        $lessonId = DB::table('lesson')->insertGetId([
-            'chapter_id' => $validated['chapter_id'],
-            'lesson_title' => $validated['lesson_title'],
-            'lesson_number' => $validated['lesson_number'],
-            'pdf_path' => $pdfPath,
-            'created_at' => now(),
-            'updated_at' => now(),
+        $validated = $request->validate([
+            'chapter_id' => 'required|exists:chapter,id',
+            'lesson_title' => 'required|string|max:255',
+            'lesson_number' => 'required|integer',
+            'pdf_file' => 'required|file|mimes:pdf', // max 10MB
         ]);
 
-        // Gather foreign keys
-        $unitId = DB::table('chapter')->where('id', $validated['chapter_id'])->value('unit_id');
-        $bookId = DB::table('units')->where('id', $unitId)->value('book_id');
-        $chapterId =  $validated['chapter_id'];
+        $pdfPath = $request->file('pdf_file')->store('lessons', 'public');
+        $fullPath = storage_path('app/public/' . $pdfPath);
 
-        // ✅ Phase 2: Call FastAPI
-        $response = Http::timeout(300)
-            ->attach('file', file_get_contents($fullPath), basename($pdfPath))
-            ->post('http://127.0.0.1:5001/upload-and-embed', [
+        try {
+            // ✅ Phase 1: Insert lesson and commit immediately
+            $lessonId = DB::table('lesson')->insertGetId([
+                'chapter_id' => $validated['chapter_id'],
+                'lesson_title' => $validated['lesson_title'],
+                'lesson_number' => $validated['lesson_number'],
+                'pdf_path' => $pdfPath,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            // Gather foreign keys
+            $unitId = DB::table('chapter')->where('id', $validated['chapter_id'])->value('unit_id');
+            $bookId = DB::table('units')->where('id', $unitId)->value('book_id');
+            $chapterId =  $validated['chapter_id'];
+
+            // ✅ Phase 2: Call FastAPI
+            $response = Http::timeout(300)
+                ->attach('file', file_get_contents($fullPath), basename($pdfPath))
+                ->post('http://127.0.0.1:5001/upload-and-embed', [
+                    'book_id' => $bookId,
+                    'unit_id' => $unitId,
+                    'chapter_id' => $chapterId,
+                    'lesson_id' => $lessonId,
+                ]);
+
+            if ($response->failed()) {
+                // ❌ FastAPI failed — rollback manually
+                DB::table('lesson')->where('id', $lessonId)->delete();
+                if (Storage::disk('public')->exists($pdfPath)) {
+                    Storage::disk('public')->delete($pdfPath);
+                }
+
+                return response()->json([
+                    'status' => 'fail',
+                    'error' => 'FastAPI embed failed',
+                    'fastapi_error' => $response->body(),
+                ], 500);
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'lesson_id' => $lessonId,
+                'embedding' => $response->json(),
+            ]);
+
+        } catch (\Exception $e) {
+            // Cleanup on unexpected Laravel error
+            Log::error('Add lesson failed: ' . $e->getMessage());
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Something went wrong while saving the lesson.',
+                'exception' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+        // 📘 Get Lessons
+        public function getLessons(Request $request)
+        {
+            $chapterId = $request->query('chapter_id');
+
+            $lessons = DB::table('lesson')
+                ->where('chapter_id', $chapterId)
+                ->orderBy('lesson_number')
+                ->get();
+
+            return response()->json(['lessons' => $lessons]);
+        }
+
+        public function getFirstLesson(Request $request)
+    {
+        $bookId = $request->book_id;
+
+        $unit = DB::table('units')->where('book_id', $bookId)->orderBy('unit_number')->first();
+        if (!$unit) return response()->json(['status' => 'error', 'message' => 'No unit found']);
+
+        $chapter = DB::table('chapter')->where('unit_id', $unit->id)->orderBy('chapter_number')->first();
+        if (!$chapter) return response()->json(['status' => 'error', 'message' => 'No chapter found']);
+
+        $lesson = DB::table('lesson')->where('chapter_id', $chapter->id)->orderBy('lesson_number')->first();
+        if (!$lesson) return response()->json(['status' => 'error', 'message' => 'No lesson found']);
+
+        return response()->json([
+            'status' => 'success',
+            'book_id' => $bookId,
+            'unit_id' => $unit->id,
+            'chapter_id' => $chapter->id,
+            'lesson_id' => $lesson->id
+        ]);
+    }
+
+    public function showVirtualTutorChat(Request $request)
+    {
+        $lessonId = $request->query('lesson_id');
+        $bookId = $request->query('book_id');
+        
+        $lesson = DB::table('lesson')->find($lessonId);
+        $book = DB::table('book')->find($bookId);
+        $gradeLevel = $book ? $book->grade_level : null;
+        $books = DB::table('book')->where('grade_level', $gradeLevel)->orderBy('id')->get();
+
+        return view('virtualtutorchat', [
+            'lesson' => $lesson,
+            'books' => $books,
+            'book_id' => $bookId,
+            'unit_id' => $request->query('unit_id'),
+            'chapter_id' => $request->query('chapter_id'),
+            'lesson_id' => $lessonId,
+            'grade_level' => $gradeLevel
+        ]);
+    }
+
+    public function sendRagMessage(Request $request)
+    {
+
+        set_time_limit(0);
+        $request->validate([
+            'prompt' => 'required|string',
+        ]);
+
+        // ✅ Get from query string
+        $bookId = $request->query('book_id');
+        $unitId = $request->query('unit_id');
+        $chapterId = $request->query('chapter_id');
+        $lessonId = $request->query('lesson_id');
+
+        if (!$bookId || !$unitId || !$chapterId || !$lessonId) {
+            return response()->json([
+                'status' => 'fail',
+                'error' => 'Missing one or more required query parameters: book_id, unit_id, chapter_id, lesson_id.'
+            ], 422);
+        }
+
+        try {
+            // Create session record
+            $sessionId = DB::table('sessions')->insertGetId([
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
+
+            // Call FastAPI
+            $response = Http::timeout(0)->post('http://127.0.0.1:5001/chat', [
+                'session_id' => $sessionId,
+                'prompt' => $request->input('prompt'),
                 'book_id' => $bookId,
                 'unit_id' => $unitId,
                 'chapter_id' => $chapterId,
                 'lesson_id' => $lessonId,
             ]);
 
-        if ($response->failed()) {
-            // ❌ FastAPI failed — rollback manually
-            DB::table('lesson')->where('id', $lessonId)->delete();
-            if (Storage::disk('public')->exists($pdfPath)) {
-                Storage::disk('public')->delete($pdfPath);
+            if ($response->failed()) {
+                return response()->json([
+                    'status' => 'fail',
+                    'error' => $response->body()
+                ], 500);
             }
 
+            $responseData = $response->json();
+            Log::debug('FastAPI raw response:', $responseData);
+
             return response()->json([
-                'status' => 'fail',
-                'error' => 'FastAPI embed failed',
-                'fastapi_error' => $response->body(),
+                'status' => 'success',
+                'response' => $responseData['response'] ?? '[No response returned]',
+                'session_id' => $sessionId
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Something went wrong while sending the chat.',
+                'exception' => $e->getMessage()
             ], 500);
         }
-
-        return response()->json([
-            'status' => 'success',
-            'lesson_id' => $lessonId,
-            'embedding' => $response->json(),
-        ]);
-
-    } catch (\Exception $e) {
-        // Cleanup on unexpected Laravel error
-        Log::error('Add lesson failed: ' . $e->getMessage());
-
-        return response()->json([
-            'status' => 'error',
-            'message' => 'Something went wrong while saving the lesson.',
-            'exception' => $e->getMessage(),
-        ], 500);
     }
-}
 
-
-
-    // 📘 Get Lessons
-    public function getLessons(Request $request)
+    public function generateQuiz(Request $request)
     {
+        set_time_limit(0);
+
+        try {
+            $bookId = $request->input('book_id');
+            $unitId = $request->input('unit_id');
+            $chapterId = $request->input('chapter_id');
+            $quizType = $request->input('quiz_type');
+            $numQuestions = $request->input('number_of_questions');
+            $difficulty = $request->input('difficulty_level');
+            $gradeLevel = $request->input('grade_level');
+            $includeAnswers = $request->input('answer_key');
+
+            if (!$bookId || !$unitId || !$chapterId) {
+                return response()->json([
+                    'status' => 'fail',
+                    'error' => 'Missing required body parameters: book_id, unit_id, chapter_id.'
+                ], 422);
+            }
+
+            $payload = [
+                'book_id' => $bookId,
+                'unit_id' => $unitId,
+                'chapter_number' => $chapterId,
+                'quiz_type' => $quizType,
+                'number_of_questions' => (int) $numQuestions,
+                'difficulty_level' => $difficulty,
+                'grade_level' => $gradeLevel,
+                'answer_key' => filter_var($includeAnswers, FILTER_VALIDATE_BOOLEAN)
+            ];
+
+            Log::info("📤 Sending payload to FastAPI:", $payload);
+
+            $response = Http::timeout(0)->post('http://localhost:5001/make-quiz', $payload);
+
+            if ($response->failed()) {
+                Log::error("❌ FastAPI returned failure:", ['body' => $response->body()]);
+                return response()->json([
+                    'status' => 'fail',
+                    'error' => 'FastAPI error',
+                    'details' => $response->body()
+                ], 500);
+            }
+
+            $responseData = $response->json();
+
+            Log::info("✅ FastAPI responded with:", $responseData);
+
+            return response()->json([
+                'status' => 'success',
+                'quiz' => $responseData['quiz'] ?? []
+            ]);
+        } catch (\Exception $e) {
+            Log::error("🔥 Laravel Exception:", ['message' => $e->getMessage()]);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to generate quiz',
+                'exception' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getQuizIfExists(Request $request)
+    {
+        $bookId = $request->query('book_id');
         $chapterId = $request->query('chapter_id');
 
-        $lessons = DB::table('lesson')
-            ->where('chapter_id', $chapterId)
-            ->orderBy('lesson_number')
-            ->get();
-
-        return response()->json(['lessons' => $lessons]);
-    }
-
-    public function getFirstLesson(Request $request)
-{
-    $bookId = $request->book_id;
-
-    $unit = DB::table('units')->where('book_id', $bookId)->orderBy('unit_number')->first();
-    if (!$unit) return response()->json(['status' => 'error', 'message' => 'No unit found']);
-
-    $chapter = DB::table('chapter')->where('unit_id', $unit->id)->orderBy('chapter_number')->first();
-    if (!$chapter) return response()->json(['status' => 'error', 'message' => 'No chapter found']);
-
-    $lesson = DB::table('lesson')->where('chapter_id', $chapter->id)->orderBy('lesson_number')->first();
-    if (!$lesson) return response()->json(['status' => 'error', 'message' => 'No lesson found']);
-
-    return response()->json([
-        'status' => 'success',
-        'book_id' => $bookId,
-        'unit_id' => $unit->id,
-        'chapter_id' => $chapter->id,
-        'lesson_id' => $lesson->id
-    ]);
-}
-
-
-public function showVirtualTutorChat(Request $request)
-{
-    $lessonId = $request->query('lesson_id');
-    $bookId = $request->query('book_id');
-    
-    $lesson = DB::table('lesson')->find($lessonId);
-    $book = DB::table('book')->find($bookId);
-    $gradeLevel = $book ? $book->grade_level : null;
-    $books = DB::table('book')->where('grade_level', $gradeLevel)->orderBy('id')->get();
-
-    return view('virtualtutorchat', [
-        'lesson' => $lesson,
-        'books' => $books,
-        'book_id' => $bookId,
-        'unit_id' => $request->query('unit_id'),
-        'chapter_id' => $request->query('chapter_id'),
-        'lesson_id' => $lessonId,
-        'grade_level' => $gradeLevel
-    ]);
-}
-
-public function sendRagMessage(Request $request)
-{
-
-    set_time_limit(0);
-    $request->validate([
-        'prompt' => 'required|string',
-    ]);
-
-    // ✅ Get from query string
-    $bookId = $request->query('book_id');
-    $unitId = $request->query('unit_id');
-    $chapterId = $request->query('chapter_id');
-    $lessonId = $request->query('lesson_id');
-
-    if (!$bookId || !$unitId || !$chapterId || !$lessonId) {
-        return response()->json([
-            'status' => 'fail',
-            'error' => 'Missing one or more required query parameters: book_id, unit_id, chapter_id, lesson_id.'
-        ], 422);
-    }
-
-    try {
-        // Create session record
-        $sessionId = DB::table('sessions')->insertGetId([
-            'created_at' => now(),
-            'updated_at' => now()
-        ]);
-
-        // Call FastAPI
-        $response = Http::timeout(0)->post('http://127.0.0.1:5001/chat', [
-            'session_id' => $sessionId,
-            'prompt' => $request->input('prompt'),
-            'book_id' => $bookId,
-            'unit_id' => $unitId,
-            'chapter_id' => $chapterId,
-            'lesson_id' => $lessonId,
-        ]);
-
-        if ($response->failed()) {
+        if (!$bookId || !$chapterId) {
             return response()->json([
                 'status' => 'fail',
-                'error' => $response->body()
-            ], 500);
+                'error' => 'Missing book_id or chapter_id'
+            ], 400);
         }
 
-        $responseData = $response->json();
-        Log::debug('FastAPI raw response:', $responseData);
+        $quiz = DB::table('generated_quiz')
+            ->where('book_id', $bookId)
+            ->where('chapter_id', $chapterId)
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        if ($quiz) {
+            return response()->json([
+                'status' => 'success',
+                'exists' => true,
+                'quiz' => json_decode($quiz->message, true)
+            ]);
+        }
 
         return response()->json([
             'status' => 'success',
-            'response' => $responseData['response'] ?? '[No response returned]',
-            'session_id' => $sessionId
+            'exists' => false
         ]);
-
-    } catch (\Exception $e) {
-        return response()->json([
-            'status' => 'error',
-            'message' => 'Something went wrong while sending the chat.',
-            'exception' => $e->getMessage()
-        ], 500);
     }
-}
-
 }

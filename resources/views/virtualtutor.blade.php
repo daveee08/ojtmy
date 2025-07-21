@@ -263,6 +263,12 @@
 
 
 @section('content')
+
+    @if ($errors->any())
+        <div class="alert alert-danger">
+            {{ $errors->first('message') }}
+        </div>
+    @endif
     <div class="container">
         <div class="hero">
             <h1>Welcome to CK Virtual Tutor</h1>
@@ -371,6 +377,11 @@
         </div>
 
         <div class="modal fade" id="addLessonModal" tabindex="-1" aria-hidden="true">
+            @if ($errors->any())
+                <div class="alert alert-danger">
+                    {{ $errors->first('message') }}
+                </div>
+            @endif
             <div class="modal-dialog">
                 <form id="addLessonForm" enctype="multipart/form-data">
                     <div class="modal-content p-3">
@@ -660,26 +671,36 @@
         }
 
         document.getElementById("addLessonForm").addEventListener("submit", function(e) {
-            e.preventDefault();
-            const form = new FormData(this);
+    e.preventDefault();
+    const form = new FormData(this);
 
-            fetch("/lessons", {
-                    method: "POST",
-                    headers: {
-                        "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content
-                    },
-                    body: form
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.status === "success") {
-                        alert("Lesson added!");
-                        bootstrap.Modal.getInstance(document.getElementById('addLessonModal')).hide();
-                        this.reset();
-                        loadLessons(form.get("chapter_id"));
-                    }
-                });
-        });
+    fetch("/lessons", {
+        method: "POST",
+        headers: {
+            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: form
+    })
+    .then(async res => {)
+        const data = await res.json();
+
+        if (!res.ok || data.status !== "success") {
+            alert(data.message || "Something went wrong.");
+            console.error("FastAPI Error:", data.fastapi_error || data);
+            return;
+        }
+
+        // ✅ Success
+        alert("Lesson added!");
+        bootstrap.Modal.getInstance(document.getElementById('addLessonModal')).hide();
+        this.reset();
+        loadLessons(form.get("chapter_id"));
+    })
+    .catch(err => {
+        alert("Unexpected error occurred.");
+        console.error(err);
+    });
+});
     </script>
 
 @endsection

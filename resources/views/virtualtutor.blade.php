@@ -46,7 +46,7 @@
             max-width: 400px;
             padding: 10px 16px 10px 16px;
             font-size: 1rem;
-            border: 1px solid #ccc;
+            border-radius: 50px;
             outline: none;
             background-color: #fff;
             background-image: none;
@@ -266,8 +266,7 @@
     <div class="container">
         <div class="hero">
             <h1>Welcome to CK Virtual Tutor</h1>
-            <p>AI-powered tutor will utilize a local knowledge base sourced from CK Grade 7 books in Science, English, and
-                Math.</p>
+            <p>Your smart and friendly learning companion designed to make studying fun and easy.</p>
         </div>
 
         <!-- 📌 Add Chapter/Subject Selector Here -->
@@ -279,9 +278,13 @@
                 <option value="Grade 3">Grade 3</option>
             </select>
 
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadModal">
-                <i class="fas fa-upload me-1"></i> Add Book
-            </button>
+        <button class="btn btn-primary rounded-circle d-flex align-items-center justify-content-center"
+            style="width: 44px; height: 44px;"
+            data-bs-toggle="modal" data-bs-target="#uploadModal"
+            title="Add Book">
+            <i class="fas fa-plus"></i>
+        </button>
+
         </div>
 
         <!-- Upload Modal -->

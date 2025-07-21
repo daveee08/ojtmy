@@ -681,7 +681,7 @@
         },
         body: form
     })
-    .then(async res => {)
+    .then(async res => {
         const data = await res.json();
 
         if (!res.ok || data.status !== "success") {

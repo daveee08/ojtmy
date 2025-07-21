@@ -152,7 +152,7 @@ Route::post('/qotd/download', [QOTDController::class, 'downloadQuote'])->name('q
 
 // ✅ Tongue Twister
 Route::get('/tonguetwister', [TongueTwistController::class, 'showForm']);
-Route::post('/tonguetwister', [TongueTwistController::class, 'generateTongueTwister']);
+Route::post('/tonguetwister', [TongueTwistController::class, 'processForm']);
 
 // ✅ Teacher Jokes
 Route::get('/teacherjokes', [TeacherJokesController::class, 'showForm']);

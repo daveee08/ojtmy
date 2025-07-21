@@ -48,6 +48,7 @@ class QuizmeController extends Controller
             ['name' => 'grade_level', 'contents' => $validated['grade_level']],
             ['name' => 'num_questions', 'contents' => $validated['num_questions']],
             ['name' => 'user_id', 'contents' => Auth::id() ?? 1],
+            ['name' => 'question_types', 'contents' => $request->input('question_types', 'multiple choice')],
         ];
 
         $response = Http::timeout(0)

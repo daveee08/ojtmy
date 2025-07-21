@@ -126,7 +126,9 @@
         body.sidebar-collapsed .content {
             /* margin-left: 70px; */
         }
-        html, body {
+
+        html,
+        body {
             height: 100%;
             margin: 0;
             padding: 0;
@@ -230,7 +232,10 @@
                             <div id="chapters-{{ $unit->id }}" class="ps-4"
                                 style="{{ $unit->id == $currentUnitId ? 'display:block;' : 'display:none;' }}">
                                 @php
-                                    $chapters = DB::table('chapter')->where('unit_id', $unit->id)->orderBy('chapter_number')->get();
+                                    $chapters = DB::table('chapter')
+                                        ->where('unit_id', $unit->id)
+                                        ->orderBy('chapter_number')
+                                        ->get();
                                 @endphp
                                 @foreach ($chapters as $chapter)
                                     <a href="javascript:void(0);" onclick="toggleLessons({{ $chapter->id }})"
@@ -240,7 +245,10 @@
                                     <div id="lessons-{{ $chapter->id }}" class="ps-4"
                                         style="{{ $chapter->id == $currentChapterId ? 'display:block;' : 'display:none;' }}">
                                         @php
-                                            $lessons = DB::table('lesson')->where('chapter_id', $chapter->id)->orderBy('lesson_number')->get();
+                                            $lessons = DB::table('lesson')
+                                                ->where('chapter_id', $chapter->id)
+                                                ->orderBy('lesson_number')
+                                                ->get();
                                         @endphp
                                         @foreach ($lessons as $lesson)
                                             <a href="{{ url('/virtual-tutor-chat') }}?book_id={{ $book->id }}&unit_id={{ $unit->id }}&chapter_id={{ $chapter->id }}&lesson_id={{ $lesson->id }}"
@@ -299,7 +307,7 @@
         }
 
         // Updated toggle logic to collapse all items
-        document.getElementById('toggleSidebar').addEventListener('click', function () {
+        document.getElementById('toggleSidebar').addEventListener('click', function() {
             const sidebar = document.getElementById('sidebar');
             const body = document.body;
 

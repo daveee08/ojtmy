@@ -259,3 +259,5 @@ Route::get('/lessons', [RAGController::class, 'getLessons']);
 Route::get('/get-first-lesson', [RAGController::class, 'getFirstLesson']);
 
 Route::get('/virtual-tutor-chat', [RAGController::class, 'showVirtualTutorChat']);
+
+Route::post('/send-rag-message', [RAGController::class, 'sendRagMessage']);

@@ -297,6 +297,8 @@ def chat(input: ChatInput):
 
         rewritten_prompt = get_standalone_question(history, user_prompt)
 
+        print(f"[Rewritten Prompt] {rewritten_prompt}")
+
         # === Step 3: Retrieve FAISS context using rewritten prompt ===
         index_path = f"{book_id}_chapter_{chapter_id}.faiss"
         if not os.path.exists(index_path):

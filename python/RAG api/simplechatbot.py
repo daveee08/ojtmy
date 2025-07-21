@@ -197,4 +197,88 @@ def chat(input: ChatInput):
 
     except Exception as e:
         return {"error": str(e)}
+    
 
+class QuizInput(BaseModel):
+    session_id: int
+    book_id: int
+    chapter_number: int
+    faiss_file: str
+    quiz_type: str
+    number_of_questions: int
+    difficulty_level: str
+    grade_level: str
+    answer_key: bool
+
+# === Make Quiz Endpoint ===
+@app.post("/make-quiz")
+def make_quiz(input: QuizInput):
+    try:
+        # Load FAISS index
+        index_path = input.faiss_file
+        if not os.path.exists(index_path):
+            return JSONResponse(status_code=404, content={"error": "FAISS index not found."})
+
+        index = faiss.read_index(index_path)
+
+        # Step 1: Generate questions ONLY using Ollama
+        context_instruction = f"""
+Generate {input.number_of_questions} {input.quiz_type} questions for a quiz.
+Difficulty: {input.difficulty_level}, Grade: {input.grade_level}.
+Do NOT include answers.
+Return only numbered questions.
+"""
+
+        payload = {
+            "model": OLLAMA_MODEL,
+            "prompt": context_instruction,
+            "stream": False
+        }
+
+        response = requests.post(OLLAMA_URL, json=payload, headers=HEADERS)
+        response.raise_for_status()
+        raw_questions = response.json().get("response", "").strip()
+
+        # Step 2: Parse questions (assume 1. 2. 3. format)
+        import re
+        questions = re.findall(r"\d+\.\s+(.*)", raw_questions)
+
+        answers = []
+
+        # Step 3: Search FAISS for each question
+        for q in questions:
+            embedding = EMBED_MODEL.encode([q]).astype("float32")
+            D, I = index.search(embedding, k=1)
+            top_id = int(I[0][0])
+
+            # Fetch corresponding chunk from DB
+            conn = mysql.connector.connect(**DB_CONFIG)
+            try:
+                cursor = conn.cursor(dictionary=True)
+                cursor.execute("""
+                    SELECT text FROM chunks
+                    WHERE book_id = %s AND chapter_number = %s AND global_faiss_id = %s
+                """, (input.book_id, input.chapter_number, top_id))
+                result = cursor.fetchone()
+                answer = result["text"] if result else "Answer not found."
+            finally:
+                cursor.close()
+                conn.close()
+
+            answers.append({"question": q, "answer": answer})
+
+        # Save as AI output
+        save_chat_to_db(input.session_id, "ai", str(answers))
+
+        return {"quiz": answers}
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error": str(e),
+                "details": traceback.format_exc()
+            }
+        )

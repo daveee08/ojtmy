@@ -227,7 +227,7 @@ public function addLesson(Request $request)
     $fullPath = storage_path('app/public/' . $pdfPath);
 
     try {
-        // ✅ Phase 1: Insert lesson and commit immediately
+        // STEP 1: Create and commit the lesson FIRST
         $lessonId = DB::table('lesson')->insertGetId([
             'chapter_id' => $validated['chapter_id'],
             'lesson_title' => $validated['lesson_title'],
@@ -237,12 +237,11 @@ public function addLesson(Request $request)
             'updated_at' => now(),
         ]);
 
-        // Gather foreign keys
+        // STEP 2: Now call FastAPI AFTER the insert is committed
         $unitId = DB::table('chapter')->where('id', $validated['chapter_id'])->value('unit_id');
         $bookId = DB::table('units')->where('id', $unitId)->value('book_id');
         $chapterId =  $validated['chapter_id'];
 
-        // ✅ Phase 2: Call FastAPI
         $response = Http::timeout(300)
             ->attach('file', file_get_contents($fullPath), basename($pdfPath))
             ->post('http://127.0.0.1:5001/upload-and-embed', [
@@ -253,15 +252,12 @@ public function addLesson(Request $request)
             ]);
 
         if ($response->failed()) {
-            // ❌ FastAPI failed — rollback manually
             DB::table('lesson')->where('id', $lessonId)->delete();
-            if (Storage::disk('public')->exists($pdfPath)) {
-                Storage::disk('public')->delete($pdfPath);
-            }
+            Storage::disk('public')->delete($pdfPath);
 
             return response()->json([
                 'status' => 'fail',
-                'error' => 'FastAPI embed failed',
+                'message' => 'Server is not up or an error occurred.',
                 'fastapi_error' => $response->body(),
             ], 500);
         }
@@ -269,20 +265,23 @@ public function addLesson(Request $request)
         return response()->json([
             'status' => 'success',
             'lesson_id' => $lessonId,
-            'embedding' => $response->json(),
         ]);
 
     } catch (\Exception $e) {
-        // Cleanup on unexpected Laravel error
-        Log::error('Add lesson failed: ' . $e->getMessage());
+        if (isset($lessonId)) {
+            DB::table('lesson')->where('id', $lessonId)->delete();
+        }
+        Storage::disk('public')->delete($pdfPath);
 
         return response()->json([
             'status' => 'error',
-            'message' => 'Something went wrong while saving the lesson.',
+            'message' => 'Unexpected failure.',
             'exception' => $e->getMessage(),
         ], 500);
     }
 }
+
+
 
 
 

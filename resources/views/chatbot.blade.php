@@ -151,6 +151,15 @@
       cursor: pointer;
     }
 
+    .chatbot-restart {
+      background: transparent;
+      border: none;
+      color: white;
+      font-size: 15px;
+      cursor: pointer;
+      margin-left: 75px;
+    }
+
     .chatbot-quiz-section {
       position: fixed;
       top: 75px;
@@ -260,6 +269,10 @@
 
         </div>
       </div>
+      <button class="chatbot-restart" title="Restart Chat">
+  <i class="fas fa-arrows-rotate"></i> <!-- or fa-arrows-rotate -->
+</button>
+
       <button class="chatbot-close" title="Close Chat"><i class="fas fa-times"></i></button>
     </div>
 
@@ -294,13 +307,17 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script>
+
+  let sessionId = null;
   const toggleButton = document.querySelector('.chatbot-toggle');
   const quizToggle = document.querySelector('.quiz-toggle');
   const chatbotPanel = document.getElementById('chatbot-panel');
   const quizSection = document.querySelector('.chatbot-quiz-section');
   const closeChatButton = document.querySelector('.chatbot-close');
   const closeQuizButton = document.querySelector('.chatbot-close-quiz');
+  const restartChatButton = document.querySelector('.chatbot-restart');
   const chatInput = document.getElementById('chat-input');
   const chatBody = document.getElementById('chatbot-body');
   const sendChatBtn = document.getElementById('send-chat');
@@ -330,7 +347,7 @@
     quizToggle.style.display = 'block';
   });
 
-  sendChatBtn.addEventListener('click', async () => {
+sendChatBtn.addEventListener('click', async () => {
   const msg = chatInput.value.trim();
   if (!msg) return;
 
@@ -338,30 +355,81 @@
   chatInput.value = '';
   quickReplies.style.display = 'none';
 
+  const params = new URLSearchParams(window.location.search);
+  const book_id = params.get('book_id');
+  const unit_id = params.get('unit_id');
+  const chapter_id = params.get('chapter_id');
+  const lesson_id = params.get('lesson_id');
+
+  // 👇 Typing message setup
+  const typingIndicator = document.createElement('p');
+  typingIndicator.style.fontStyle = "italic";
+  typingIndicator.style.opacity = 0.7;
+  typingIndicator.style.alignSelf = 'flex-start';
+  typingIndicator.style.background = '#f1f8e9';
+  typingIndicator.style.padding = '8px 12px';
+  typingIndicator.style.borderRadius = '8px';
+  typingIndicator.style.margin = '4px 0';
+  typingIndicator.style.maxWidth = '75%';
+  typingIndicator.textContent = "🤖 Typing.";
+  chatBody.appendChild(typingIndicator);
+  chatBody.scrollTop = chatBody.scrollHeight;
+
+  // 👇 Typing animation loop
+  const dots = ["Typing.", "Typing..", "Typing..."];
+  let dotIndex = 0;
+  const typingInterval = setInterval(() => {
+    typingIndicator.textContent = `🤖 ${dots[dotIndex++ % dots.length]}`;
+  }, 500);
+
   try {
-    const query = window.location.search; // ⬅️ grabs ?book_id=...&unit_id=... etc.
-    
+    const query = `?book_id=${book_id}&unit_id=${unit_id}&chapter_id=${chapter_id}&lesson_id=${lesson_id}`;
     const response = await fetch('/send-rag-message' + query, {
       method: 'POST',
       headers: {
         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ prompt: msg })
+      body: JSON.stringify({
+        prompt: msg,
+        session_id: sessionId || null
+      })
     });
 
     const data = await response.json();
+
+    clearInterval(typingInterval);
+    typingIndicator.remove();
+
     if (data.status === 'success') {
-      appendBotMessage(data.response);
+      const mark_message = marked.parse(data.response);
+      appendBotMessage(mark_message);
+
+      if (data.session_id) {
+      sessionId = data.session_id;
+  }
     } else {
       appendBotMessage("⚠️ Failed to get a response.");
       console.error(data.error || data.message);
     }
   } catch (err) {
+    clearInterval(typingInterval);
+    typingIndicator.remove();
     appendBotMessage("⚠️ An error occurred.");
     console.error(err);
   }
 });
+
+
+
+
+  chatInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendChatBtn.click();
+    }
+  });
+
 
 
 
@@ -381,11 +449,31 @@
     chatBody.scrollTop = chatBody.scrollHeight;
   }
 
-  function appendBotMessage(msg) {
+//   function appendBotMessage(msg) {
+//   const botMsg = document.createElement('p');
+//   // botMsg.textContent = msg;
+//   botMsg.innerHTML = msg;
+//   botMsg.style.background = '#f1f8e9';       // light green background for bot
+//   botMsg.style.alignSelf = 'flex-start';     // align to left
+//   botMsg.style.padding = '8px 12px';
+//   botMsg.style.borderRadius = '8px';
+//   botMsg.style.margin = '4px 0';
+//   botMsg.style.maxWidth = '75%';
+
+//   chatBody.appendChild(botMsg);
+//   chatBody.scrollTop = chatBody.scrollHeight;
+// }
+
+function appendBotMessage(msg) {
   const botMsg = document.createElement('p');
-  botMsg.textContent = msg;
-  botMsg.style.background = '#f1f8e9';       // light green background for bot
-  botMsg.style.alignSelf = 'flex-start';     // align to left
+  if (msg === "🤖 Typing...") {
+    botMsg.style.fontStyle = "italic";
+    botMsg.style.opacity = 0.7;
+  }
+
+  botMsg.innerHTML = msg;
+  botMsg.style.background = '#f1f8e9';
+  botMsg.style.alignSelf = 'flex-start';
   botMsg.style.padding = '8px 12px';
   botMsg.style.borderRadius = '8px';
   botMsg.style.margin = '4px 0';
@@ -393,7 +481,41 @@
 
   chatBody.appendChild(botMsg);
   chatBody.scrollTop = chatBody.scrollHeight;
+  return botMsg;
 }
+// document.getElementById('restart-chat').addEventListener('click', () => {
+//   // Clear messages
+//   chatBody.innerHTML = '';
+
+//   // Show greeting again
+//   const greeting = document.createElement('p');
+//   greeting.textContent = "Hi there! 👋 Would you like help with your lesson?";
+//   chatBody.appendChild(greeting);
+//   chatBody.scrollTop = chatBody.scrollHeight;
+
+//   // Show quick replies
+//   quickReplies.style.display = 'flex';
+
+//   // ✅ Reset session
+//   sessionId = null;
+// });
+
+restartChatButton.addEventListener('click', () => {
+  // Clear messages
+  chatBody.innerHTML = '';
+
+  // Show greeting again
+  const greeting = document.createElement('p');
+  greeting.textContent = "Hi there! 👋 Would you like help with your lesson?";
+  chatBody.appendChild(greeting);
+  chatBody.scrollTop = chatBody.scrollHeight;
+
+  // Show quick replies
+  quickReplies.style.display = 'flex';
+
+  // ✅ Reset session
+  sessionId = null;
+});
 
 </script>
 

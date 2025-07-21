@@ -8,10 +8,10 @@
 <nav class="sidebar" id="sidebar">
     <h2></h2>
 
-    <a href="{{ url('/') }}" class="{{ request()->is('/') ? 'active-link' : '' }}" data-bs-toggle="tooltip" title="Home">
+    {{-- <a href="{{ url('/') }}" class="{{ request()->is('/') ? 'active-link' : '' }}" data-bs-toggle="tooltip" title="Home">
         <i class="bi bi-house-door"></i>
         <span class="link-text">Home</span>
-    </a>
+    </a> --}}
 
     <a href="{{ url('/tools') }}" class="{{ request()->is('tools*') ? 'active-link' : '' }}" data-bs-toggle="tooltip" title="Tools">
         <i class="bi bi-tools"></i>

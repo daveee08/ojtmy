@@ -2,7 +2,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Summarizer\SummarizeController;
 use App\Http\Controllers\Proofreader\ProofreaderController;
-use App\Http\Controllers\Quizme\QuizmeController;
+use App\Http\Controllers\QuizMe\QuizmeController;
 use App\Http\Controllers\StepTutorController;
 use App\Http\Controllers\FiveQuestion\FiveQuestionsController;
 use App\Http\Controllers\EmailWriter\EmailWriterController;
@@ -138,11 +138,12 @@ Route::get('/proofreader', [ProofreaderController::class, 'showForm'])->name('pr
 Route::post('/proofreader', [ProofreaderController::class, 'processForm'])->name('proofreader.process');
 
 // ✅ QuizMe Tool
-Route::get('/quizme', 'App\Http\Controllers\QuizmeController@showForm');
-Route::post('/quizme', 'App\Http\Controllers\QuizmeController@processForm');
-Route::post('/quizme/download', 'App\Http\Controllers\QuizmeController@downloadContent')->name('quizme.download');
-Route::post('/quizme/evaluate-answer', 'App\Http\Controllers\QuizmeController@evaluateAnswer');
-Route::post('/quizme/chat', 'App\Http\Controllers\QuizmeController@chat');
+Route::get('/quizme', [QuizmeController::class, 'showForm']);
+Route::post('/quizme', [QuizmeController::class, 'processForm']);
+Route::post('/quizme/download', [QuizmeController::class, 'downloadPracticePlan'])->name('quizme.download');
+Route::post('/quizme/download-pdf', [QuizmeController::class, 'downloadPdf']);
+Route::post('/quizme/evaluate-answer', 'App\Http\Controllers\QuizMe\QuizmeController@evaluateAnswer');
+Route::post('/quizme/chat', 'App\Http\Controllers\QuizMe\QuizmeController@chat');
 
 // ✅ Qoutes of the Day
 Route::get('/qotd', [QOTDController::class, 'showForm']);
@@ -161,6 +162,7 @@ Route::post('/teacherjokes', [TeacherJokesController::class, 'generateJoke']);
 Route::get('/coachsportprac', [CoachSportsPracController::class, 'showForm']);
 Route::post('/coachsportprac', [CoachSportsPracController::class, 'processForm']);
 Route::post('/coachsportprac/download', [CoachSportsPracController::class, 'downloadPracticePlan'])->name('coachsportprac.download');
+Route::post('/coachsportprac/download-pdf', [CoachSportsPracController::class, 'downloadPdf']);
 
 // ✅ 5 Questions Tool
 Route::get('/5questions', [FiveQuestionsController::class, 'showForm'])->name('fivequestions.form');

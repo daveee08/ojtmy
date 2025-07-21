@@ -320,12 +320,16 @@
                 <option value="Grade 12">Grade 12</option>
             </select>
 
+        @auth
+        @if (auth()->user()->role === 'teacher' && auth()->user()->is_admin === 1)
         <button class="btn btn-primary rounded-circle d-flex align-items-center justify-content-center"
             style="width: 44px; height: 44px;"
             data-bs-toggle="modal" data-bs-target="#uploadModal"
             title="Add Book">
             <i class="fas fa-plus"></i>
         </button>
+        @endif  
+        @endauth
 
         </div>
 
@@ -402,6 +406,7 @@
                         <input type="text" name="title" placeholder="Unit Title" class="form-control mb-2" required>
                         <input type="number" name="unit_number" placeholder="Unit Number" class="form-control mb-2"
                             required>
+                            
                         <button type="submit" class="btn btn-primary">Add Unit</button>
                     </div>
                 </form>
@@ -531,7 +536,11 @@
                 <small>${book.grade_level}</small>
 
                 <div class="d-flex gap-2 mt-2">
+                    @auth
+                    @if (auth()->user()->role === 'teacher' || auth()->user()->is_admin === 1)
                     <button class="btn btn-sm btn-outline-primary" onclick="openUnitModal(${book.id})">+ Add Unit</button>
+                    @endif
+                    @endauth
                     <button class="btn btn-sm btn-outline-success" onclick="redirectToChat(${book.id})">
                         <i class="fa fa-brain me-1"></i> Open Tutor
                     </button>
@@ -659,7 +668,11 @@
                         unitDiv.innerHTML = `
                     <div class="border p-2 rounded mb-2">
                         <strong>Unit ${unit.unit_number}:</strong> ${unit.title}
+                        @auth
+                        @if (auth()->user()->role === 'teacher' || auth()->user()->is_admin === 1)
                         <button class="btn btn-sm btn-outline-success ms-2" onclick="openChapterModal(${unit.id})">+ Add Chapter</button>
+                        @endif
+                        @endauth
                         <button class="btn btn-sm btn-outline-secondary ms-2" onclick="toggleVisibility('${unitId}')">Toggle Chapters</button>
                         <div id="${unitId}" class="ps-3 mt-2" style="display:none;"></div>
                     </div>
@@ -684,7 +697,11 @@
                         chapterDiv.innerHTML = `
                     <div class="border-start ps-2 mb-2">
                         <strong>Chapter ${chapter.chapter_number}:</strong> ${chapter.chapter_title}
+                        @auth
+                        @if (auth()->user()->role === 'teacher' || auth()->user()->is_admin === 1)
                         <button class="btn btn-sm btn-outline-info ms-2" onclick="openLessonModal(${chapter.id})">+ Add Lesson</button>
+                        @endif
+                        @endauth
                         <button class="btn btn-sm btn-outline-secondary ms-2" onclick="toggleVisibility('${chapterId}')">Toggle Lessons</button>
                         <div id="${chapterId}" class="ps-3 mt-2" style="display:none;"></div>
                     </div>

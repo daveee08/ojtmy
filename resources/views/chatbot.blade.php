@@ -287,7 +287,7 @@
     </div>
 
     <div class="chatbot-footer">
-      <button class="emoji-btn"><i class="far fa-smile"></i></button>
+      <!-- <button class="emoji-btn"><i class="far fa-smile"></i></button> -->
       <input type="text" id="chat-input" placeholder="Type your question...">
       <button id="send-chat"><i class="fas fa-paper-plane"></i></button>
     </div>
@@ -340,7 +340,7 @@ sendChatBtn.addEventListener('click', async () => {
 
   appendUserMessage(msg);
   chatInput.value = '';
-  quickReplies.style.display = 'none';
+  quickReplies.style.display = 'block';
 
   const params = new URLSearchParams(window.location.search);
   const book_id = params.get('book_id');
@@ -423,9 +423,12 @@ sendChatBtn.addEventListener('click', async () => {
 
 
   function handleQuickReply(text) {
-    appendUserMessage(text);
-    quickReplies.style.display = 'none';
-  }
+  const input = document.getElementById('chat-input');
+  input.value = text; // Set input value to the quick reply
+
+  quickReplies.style.display = 'none';
+
+}
 
   function appendUserMessage(msg) {
     const userMsg = document.createElement('p');

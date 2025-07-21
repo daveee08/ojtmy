@@ -226,63 +226,64 @@ public function getBooks(Request $request)
         $pdfPath = $request->file('pdf_file')->store('lessons', 'public');
         $fullPath = storage_path('app/public/' . $pdfPath);
 
-        try {
-            // ✅ Phase 1: Insert lesson and commit immediately
-            $lessonId = DB::table('lesson')->insertGetId([
-                'chapter_id' => $validated['chapter_id'],
-                'lesson_title' => $validated['lesson_title'],
-                'lesson_number' => $validated['lesson_number'],
-                'pdf_path' => $pdfPath,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+    try {
+        // STEP 1: Create and commit the lesson FIRST
+        $lessonId = DB::table('lesson')->insertGetId([
+            'chapter_id' => $validated['chapter_id'],
+            'lesson_title' => $validated['lesson_title'],
+            'lesson_number' => $validated['lesson_number'],
+            'pdf_path' => $pdfPath,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
 
-            // Gather foreign keys
-            $unitId = DB::table('chapter')->where('id', $validated['chapter_id'])->value('unit_id');
-            $bookId = DB::table('units')->where('id', $unitId)->value('book_id');
-            $chapterId =  $validated['chapter_id'];
+        // STEP 2: Now call FastAPI AFTER the insert is committed
+        $unitId = DB::table('chapter')->where('id', $validated['chapter_id'])->value('unit_id');
+        $bookId = DB::table('units')->where('id', $unitId)->value('book_id');
+        $chapterId =  $validated['chapter_id'];
 
-            // ✅ Phase 2: Call FastAPI
-            $response = Http::timeout(300)
-                ->attach('file', file_get_contents($fullPath), basename($pdfPath))
-                ->post('http://127.0.0.1:5001/upload-and-embed', [
-                    'book_id' => $bookId,
-                    'unit_id' => $unitId,
-                    'chapter_id' => $chapterId,
-                    'lesson_id' => $lessonId,
-                ]);
-
-            if ($response->failed()) {
-                // ❌ FastAPI failed — rollback manually
-                DB::table('lesson')->where('id', $lessonId)->delete();
-                if (Storage::disk('public')->exists($pdfPath)) {
-                    Storage::disk('public')->delete($pdfPath);
-                }
-
-                return response()->json([
-                    'status' => 'fail',
-                    'error' => 'FastAPI embed failed',
-                    'fastapi_error' => $response->body(),
-                ], 500);
-            }
-
-            return response()->json([
-                'status' => 'success',
+        $response = Http::timeout(300)
+            ->attach('file', file_get_contents($fullPath), basename($pdfPath))
+            ->post('http://127.0.0.1:5001/upload-and-embed', [
+                'book_id' => $bookId,
+                'unit_id' => $unitId,
+                'chapter_id' => $chapterId,
                 'lesson_id' => $lessonId,
-                'embedding' => $response->json(),
             ]);
 
-        } catch (\Exception $e) {
-            // Cleanup on unexpected Laravel error
-            Log::error('Add lesson failed: ' . $e->getMessage());
+        if ($response->failed()) {
+            DB::table('lesson')->where('id', $lessonId)->delete();
+            Storage::disk('public')->delete($pdfPath);
 
             return response()->json([
-                'status' => 'error',
-                'message' => 'Something went wrong while saving the lesson.',
-                'exception' => $e->getMessage(),
+                'status' => 'fail',
+                'message' => 'Server is not up or an error occurred.',
+                'fastapi_error' => $response->body(),
             ], 500);
         }
+
+        return response()->json([
+            'status' => 'success',
+            'lesson_id' => $lessonId,
+        ]);
+
+    } catch (\Exception $e) {
+        if (isset($lessonId)) {
+            DB::table('lesson')->where('id', $lessonId)->delete();
+        }
+        Storage::disk('public')->delete($pdfPath);
+
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Unexpected failure.',
+            'exception' => $e->getMessage(),
+        ], 500);
     }
+}
+
+
+
+
 
         // 📘 Get Lessons
         public function getLessons(Request $request)
@@ -343,10 +344,12 @@ public function getBooks(Request $request)
     public function sendRagMessage(Request $request)
     {
 
-        set_time_limit(0);
-        $request->validate([
-            'prompt' => 'required|string',
-        ]);
+    set_time_limit(0);
+    $request->validate([
+        'prompt' => 'required|string',
+    ]);
+
+    $sessionId = $request->input('session_id');
 
         // ✅ Get from query string
         $bookId = $request->query('book_id');
@@ -361,12 +364,14 @@ public function getBooks(Request $request)
             ], 422);
         }
 
-        try {
-            // Create session record
-            $sessionId = DB::table('sessions')->insertGetId([
-                'created_at' => now(),
-                'updated_at' => now()
-            ]);
+    try {
+        // Create session record
+        if (!$sessionId) {
+        $sessionId = DB::table('sessions')->insertGetId([
+            'created_at' => now(),
+            'updated_at' => now()
+        ]);
+    }
 
             // Call FastAPI
             $response = Http::timeout(0)->post('http://127.0.0.1:5001/chat', [

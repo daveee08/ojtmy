@@ -299,10 +299,55 @@
         }
     </style>
 
-    <div class="pdf-container">
+    <!-- <div class="pdf-container">
+            @if ($lesson && $lesson->pdf_path)
+    <embed src="{{ asset('storage/' . $lesson->pdf_path) }}#toolbar=0&navpanes=0&scrollbar=0" type="application/pdf"
+                    class="pdf-embed" />
+@else
+    <p>No lesson PDF available.</p>
+    @endif
+        </div> -->
+
+    <div class="pdf-container" style="padding: 1rem;">
         @if ($lesson && $lesson->pdf_path)
-            <embed src="{{ asset('storage/' . $lesson->pdf_path) }}#toolbar=0&navpanes=0&scrollbar=0" type="application/pdf"
-                class="pdf-embed" />
+            <div id="pdf-viewer"
+                style="width: 100%; height: 80vh; overflow-y: auto; background: #fff; border: 1px solid #ccc;"></div>
+
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.6.347/pdf.min.js"></script>
+            <script>
+                const url = "{{ asset('storage/' . $lesson->pdf_path) }}";
+
+                const container = document.getElementById('pdf-viewer');
+                const pdfjsLib = window['pdfjs-dist/build/pdf'];
+                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.6.347/pdf.worker.min.js';
+
+                pdfjsLib.getDocument(url).promise.then(pdf => {
+                    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                        pdf.getPage(pageNum).then(page => {
+                            const viewport = page.getViewport({
+                                scale: 1.3
+                            });
+                            const canvas = document.createElement("canvas");
+                            const context = canvas.getContext("2d");
+
+                            canvas.height = viewport.height;
+                            canvas.width = viewport.width;
+                            canvas.style.margin = "10px auto";
+                            canvas.style.display = "block";
+                            canvas.style.boxShadow = "0 0 8px rgba(0,0,0,0.1)";
+
+                            page.render({
+                                canvasContext: context,
+                                viewport: viewport
+                            }).promise.then(() => {
+                                container.appendChild(canvas);
+                            });
+                        });
+                    }
+                }).catch(error => {
+                    container.innerHTML = `<p style="color: red;">Failed to load PDF: ${error.message}</p>`;
+                });
+            </script>
         @else
             <p>No lesson PDF available.</p>
         @endif

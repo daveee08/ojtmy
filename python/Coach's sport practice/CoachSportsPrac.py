@@ -1,78 +1,166 @@
-from fastapi import FastAPI
-from pydantic import BaseModel, Field, ConfigDict
-from langchain_ollama import OllamaLLM
-from langchain.prompts import PromptTemplate
-from fpdf import FPDF
-from io import BytesIO
-from fastapi.responses import StreamingResponse, JSONResponse
+from fastapi import FastAPI, HTTPException, UploadFile, Form, File, Depends
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
+from langchain_community.llms import Ollama
+from langchain_core.prompts import ChatPromptTemplate
+import shutil, os, tempfile, uvicorn, traceback, sys
+from typing import Optional
+from langchain_core.messages import HumanMessage, AIMessage
+from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI()
+current_script_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.join(current_script_dir, '..', '..')
+sys.path.insert(0, project_root)
 
-class PracticePlanRequest(BaseModel):
-    model_config = ConfigDict(extra='ignore')
+try:
+    from python.chat_router_final import chat_router
+    from python.db_utils_final import create_session_and_parameter_inputs, insert_message
+except ImportError:
+    chat_router = None
+    create_session_and_parameter_inputs = None
+    insert_message = None
+
+# --- Prompt Templates ---
+coach_prompt_template = """
+You are an expert sports coach AI. Your job is to generate a detailed practice plan for students.
+
+Parameters:
+- Grade Level: {grade_level}
+- Length of Practice: {length_of_practice}
+- Sport: {sport}
+- Additional Customization: {additional_customization}
+
+Instructions:
+- Provide a detailed practice plan, including warm-up, drills, and cool-down.
+- Use bullet points for each item.
+- Highlight important keywords and sports terms in bold and italics using markdown.
+- Start directly with the practice plan, no intro or conclusion.
+- Adapt the plan based on any additional customization provided.
+
+Respond ONLY with the practice plan text (no extra commentary).
+"""
+
+# --- FastAPI App Initialization ---
+app = FastAPI(debug=True)
+if chat_router:
+    app.include_router(chat_router)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# --- Pydantic Model for Form Input ---
+class CoachSportsPracFormInput(BaseModel):
+    user_id: int
+    input_type: str
+    sport: str
     grade_level: str
     length_of_practice: str
-    sport: str
-    additional_customization: str | None = None
+    additional_customization: str = ""
+    message_id: Optional[str] = None
 
-class PdfRequest(BaseModel):
-    content: str
-    filename: str
+    @classmethod
+    def as_form(
+        cls,
+        user_id: int = Form(...),
+        input_type: str = Form(...),
+        sport: str = Form(...),
+        grade_level: str = Form(...),
+        length_of_practice: str = Form(...),
+        additional_customization: str = Form(""),
+        message_id: Optional[str] = Form(default=None)
+    ):
+        return cls(
+            user_id=user_id,
+            input_type=input_type,
+            sport=sport,
+            grade_level=grade_level,
+            length_of_practice=length_of_practice,
+            additional_customization=additional_customization,
+            message_id=message_id
+        )
+
+# --- LangChain Setup ---
+model = Ollama(model="llama3")
+prompt_template = ChatPromptTemplate.from_template(coach_prompt_template)
+
+# --- Output Cleaner ---
+def clean_output(text: str) -> str:
+    return text.strip()
+
+# --- Main Output Generation Function ---
+async def generate_output(
+    input_type: str,
+    sport: str,
+    grade_level: str,
+    length_of_practice: str,
+    additional_customization: str = "",
+):
+    if not sport.strip() or not grade_level.strip() or not length_of_practice.strip():
+        raise ValueError("Sport, grade level, and length of practice are required.")
+
+    prompt_input = {
+        "sport": sport,
+        "grade_level": grade_level,
+        "length_of_practice": length_of_practice,
+        "additional_customization": additional_customization
+    }
+
+    chain = prompt_template | model
+    result = chain.invoke(prompt_input)
+    return clean_output(result)
+
+@app.post("/coach_sports_prac")
+async def coach_sports_prac_api(
+    form_data: CoachSportsPracFormInput = Depends(CoachSportsPracFormInput.as_form)
+):
+    try:
+        output = await generate_output(
+            input_type=form_data.input_type,
+            sport=form_data.sport,
+            grade_level=form_data.grade_level,
+            length_of_practice=form_data.length_of_practice,
+            additional_customization=form_data.additional_customization,
+        )
+
+        scope_vars = {
+            "grade_level": form_data.grade_level,
+            "length_of_practice": form_data.length_of_practice,
+            "sport": form_data.sport,
+            "additional_customization": form_data.additional_customization,
+        }
+
+        filled_prompt = coach_prompt_template.format(
+            sport=form_data.sport.strip(),
+            grade_level=form_data.grade_level.strip(),
+            length_of_practice=form_data.length_of_practice.strip(),
+            additional_customization=form_data.additional_customization.strip()
+        )
+
+        session_id = None
+        if create_session_and_parameter_inputs:
+            session_id = create_session_and_parameter_inputs(
+                user_id=form_data.user_id,
+                agent_id=5,  # Use a unique agent_id for Coach's Sport Practice
+                scope_vars=scope_vars,
+                human_topic=form_data.sport,
+                ai_output=output,
+                agent_prompt=filled_prompt
+            )
+
+        return {"output": output, "message_id": session_id}
+    except Exception as e:
+        traceback_str = traceback.format_exc()
+        print(traceback_str)
+        return JSONResponse(status_code=500, content={"detail": str(e), "trace": traceback_str})
 
 @app.get("/")
-async def read_root():
-    return {"message": "CoachSportsPrac API is running!"}
+def root():
+    return {"message": "Coach's Sport Practice API is running!"}
 
-@app.post("/generate-practice-plan")
-async def generate_practice_plan_api(request: PracticePlanRequest):
-    try:
-        llm = OllamaLLM(model="gemma:2b")
-
-        prompt_template = PromptTemplate(
-            input_variables=["grade_level", "length_of_practice", "sport", "additional_customization"],
-            template="""
-            You are an AI assistant that generates sports practice plans.
-            Create a practice plan for a {grade_level} level for {sport}.
-            The practice should be {length_of_practice} long.
-            {additional_customization}
-            
-            Provide a detailed practice plan, including warm-up, drills, and cool-down.
-            
-            **Important Formatting Instructions:**
-            - Use a single asterisk (*) for bullet points at the beginning of each item.
-            - Make important keywords and specific sports terms **bold** and *italic* using markdown (e.g., `**warm-up**` and `*sprint drills*`).
-            - Start directly with the practice plan, without any introductory or concluding remarks.
-            """
-        )
-        
-        customization_text = f"Also, include the following: {request.additional_customization}." if request.additional_customization else ""
-
-        practice_plan = (prompt_template | llm).invoke({
-            'grade_level': request.grade_level,
-            'length_of_practice': request.length_of_practice,
-            'sport': request.sport,
-            'additional_customization': customization_text,
-        })
-        practice_plan = practice_plan.strip()
-
-        return {"practice_plan": practice_plan}
-    except Exception as e:
-        return JSONResponse(status_code=500, content={"error": str(e)})
-
-@app.post("/generate-pdf")
-async def generate_pdf(request: PdfRequest):
-    try:
-        pdf = FPDF()
-        pdf.add_page()
-        pdf.set_font("Arial", size=12)
-        pdf.multi_cell(0, 10, request.content.encode('latin-1', 'replace').decode('latin-1'))
-
-        buffer = BytesIO()
-        pdf.output(buffer, 'S')
-        buffer.seek(0)
-
-        return StreamingResponse(buffer, media_type="application/pdf", headers={
-            "Content-Disposition": f"attachment; filename={request.filename}.pdf"
-        })
-    except Exception as e:
-        return JSONResponse(status_code=500, content={"error": str(e)})
+if __name__ == "__main__":
+    uvicorn.run("CoachSportsPrac:app", host="127.0.0.1", port=5003, reload=True)

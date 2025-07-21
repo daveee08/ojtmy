@@ -351,6 +351,8 @@ public function sendRagMessage(Request $request)
         'prompt' => 'required|string',
     ]);
 
+    $sessionId = $request->input('session_id');
+
     // ✅ Get from query string
     $bookId = $request->query('book_id');
     $unitId = $request->query('unit_id');
@@ -366,10 +368,12 @@ public function sendRagMessage(Request $request)
 
     try {
         // Create session record
+        if (!$sessionId) {
         $sessionId = DB::table('sessions')->insertGetId([
             'created_at' => now(),
             'updated_at' => now()
         ]);
+    }
 
         // Call FastAPI
         $response = Http::timeout(0)->post('http://127.0.0.1:5001/chat', [

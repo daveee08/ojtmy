@@ -20,7 +20,7 @@ utils_path = r"C:/laragon/www/ojtmy/python/RAG api/utils"
 if utils_path not in sys.path:
     sys.path.append(utils_path)
 
-from rag_utils import retrieve_book_chapter_and_context, get_standalone_question
+# from rag_utils import retrieve_book_chapter_and_context, get_standalone_question
 
 
 try:

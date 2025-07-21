@@ -85,6 +85,7 @@
     @endif
     <form method="POST" action="/coachsportprac">
         @csrf
+        <input type="hidden" name="input_type" value="sport">
         <div style="margin-bottom: 18px;">
             <label for="grade" style="font-weight:500;">Grade level: <span style="color:red">*</span></label>
             <select name="grade_level" id="grade_level" class="form-control form-control-csp" required>
@@ -133,9 +134,21 @@
             <button type="submit" class="btn btn-primary-csp">Generate</button>
         </div>
     </form>
-    @if (isset($response))
+    @if(isset($example))
+        <button type="button" class="btn btn-info" onclick="
+            document.getElementById('grade_level').value = '{{ $example['grade_level'] }}';
+            document.getElementById('length_of_practice').value = '{{ $example['length_of_practice'] }}';
+            document.getElementById('sport').value = '{{ $example['sport'] }}';
+            document.getElementById('additional_customization').value = '{{ $example['additional_customization'] }}';
+        ">Fill Example</button>
+    @endif
+    @if (!empty($cleanContent))
         <div class="practice-plan-output" style="margin-top: 24px;">
-            {!! $response !!}
+            {!! nl2br(e($cleanContent)) !!}
+        </div>
+        <div class="btn-group mt-3" role="group">
+            <button type="button" class="btn btn-secondary" onclick="downloadTxtInteractive()">Download as TXT</button>
+            <button type="button" class="btn btn-primary" onclick="downloadPdfInteractive()">Download as PDF</button>
         </div>
     @endif
     @if(isset($practicePlan))
@@ -160,5 +173,81 @@
             </div>
         </div>
     @endif
+    <div style="font-size: 0.9em; color: #888; margin-top: 8px;">
+        Tip: To choose the file name and location, enable "Ask where to save each file before downloading" in your browser's settings.
+    </div>
 </div>
 @endsection
+
+<script>
+document.querySelectorAll('form[action="/coachsportprac/download"]').forEach(function(form) {
+    form.addEventListener('submit', function() {
+        document.getElementById('download_sport').value = document.getElementById('sport').value;
+        document.getElementById('download_grade_level').value = document.getElementById('grade_level').value;
+    });
+});
+
+function downloadTxt() {
+    const content = {!! json_encode($cleanContent) !!};
+    let filename = prompt("Enter file name:", "Practice Plan.txt");
+    if (!filename) return;
+    if (!filename.endsWith('.txt')) filename += '.txt';
+    const blob = new Blob([content], {type: "text/plain"});
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(link.href);
+}
+
+function downloadTxtInteractive() {
+    const content = @json($cleanContent);
+    const sport = @json($currentSport ?? 'Practice');
+    const grade = @json($currentGrade ?? 'All Levels');
+    let filename = prompt("Enter file name:", `${sport} Practice Plan for ${grade} Level.txt`);
+    if (!filename) return;
+    if (!filename.toLowerCase().endsWith('.txt')) filename += '.txt';
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+}
+
+function downloadPdfInteractive() {
+    const content = @json($cleanContent);
+    const sport = @json($currentSport ?? 'Practice');
+    const grade = @json($currentGrade ?? 'All Levels');
+    let filename = prompt("Enter file name:", `${sport} Practice Plan for ${grade} Level.pdf`);
+    if (!filename) return;
+    if (!filename.toLowerCase().endsWith('.pdf')) filename += '.pdf';
+
+    fetch('/coachsportprac/download-pdf', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+        },
+        body: JSON.stringify({ content, sport, grade_level: grade })
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Failed to generate PDF');
+        return response.blob();
+    })
+    .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+    })
+    .catch(err => alert(err.message));
+}
+</script>

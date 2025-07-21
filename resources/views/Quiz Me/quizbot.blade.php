@@ -157,41 +157,51 @@
         <div class="row">
             <div class="col-md-12 mb-4">
                 <div class="p-4 rounded shadow-sm bg-white tool-item">
-                    <form id="quizForm">
+                    <form id="quizForm" method="POST" action="/quizme">
                         @csrf
+                        <input type="hidden" name="input_type" value="topic">
+                        @if ($errors->any())
+                            <div class="alert alert-danger">
+                                <ul>
+                                    @foreach ($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
                         <div class="mb-3">
                             <label for="topic" class="form-label">Topic or Exam You Want to Be Quizzed On:</label>
-                            <input type="text" class="form-control" id="topic" name="topic" required>
+                            <input type="text" class="form-control" id="topic" name="topic" value="{{ old('topic') }}" required>
                         </div>
                         <div class="mb-3">
                             <label for="grade_level" class="form-label">Grade Level:</label>
                             <select class="form-select" id="grade_level" name="grade_level" required>
-                                <option value="Pre-K">Pre-K</option>
-                                <option value="Kindergarten">Kindergarten</option>
-                                <option value="1st Grade">1st Grade</option>
-                                <option value="2nd Grade">2nd Grade</option>
-                                <option value="3rd Grade">3rd Grade</option>
-                                <option value="4th Grade">4th Grade</option>
-                                <option value="5th Grade">5th Grade</option>
-                                <option value="6th Grade">6th Grade</option>
-                                <option value="7th Grade">7th Grade</option>
-                                <option value="8th Grade">8th Grade</option>
-                                <option value="9th Grade">9th Grade</option>
-                                <option value="10th Grade">10th Grade</option>
-                                <option value="11th Grade">11th Grade</option>
-                                <option value="12th Grade">12th Grade</option>
-                                <option value="University">University</option>
-                                <option value="1st Year College">1st Year College</option>
-                                <option value="2nd Year College">2nd Year College</option>
-                                <option value="3rd Year College">3rd Year College</option>
-                                <option value="4th Year College">4th Year College</option>
-                                <option value="Adult">Adult</option>
-                                <option value="Professional Staff">Professional Staff</option>
+                                <option value="Pre-K" {{ old('grade_level') == 'Pre-K' ? 'selected' : '' }}>Pre-K</option>
+                                <option value="Kindergarten" {{ old('grade_level') == 'Kindergarten' ? 'selected' : '' }}>Kindergarten</option>
+                                <option value="1st Grade" {{ old('grade_level') == '1st Grade' ? 'selected' : '' }}>1st Grade</option>
+                                <option value="2nd Grade" {{ old('grade_level') == '2nd Grade' ? 'selected' : '' }}>2nd Grade</option>
+                                <option value="3rd Grade" {{ old('grade_level') == '3rd Grade' ? 'selected' : '' }}>3rd Grade</option>
+                                <option value="4th Grade" {{ old('grade_level') == '4th Grade' ? 'selected' : '' }}>4th Grade</option>
+                                <option value="5th Grade" {{ old('grade_level') == '5th Grade' ? 'selected' : '' }}>5th Grade</option>
+                                <option value="6th Grade" {{ old('grade_level') == '6th Grade' ? 'selected' : '' }}>6th Grade</option>
+                                <option value="7th Grade" {{ old('grade_level') == '7th Grade' ? 'selected' : '' }}>7th Grade</option>
+                                <option value="8th Grade" {{ old('grade_level') == '8th Grade' ? 'selected' : '' }}>8th Grade</option>
+                                <option value="9th Grade" {{ old('grade_level') == '9th Grade' ? 'selected' : '' }}>9th Grade</option>
+                                <option value="10th Grade" {{ old('grade_level') == '10th Grade' ? 'selected' : '' }}>10th Grade</option>
+                                <option value="11th Grade" {{ old('grade_level') == '11th Grade' ? 'selected' : '' }}>11th Grade</option>
+                                <option value="12th Grade" {{ old('grade_level') == '12th Grade' ? 'selected' : '' }}>12th Grade</option>
+                                <option value="University" {{ old('grade_level') == 'University' ? 'selected' : '' }}>University</option>
+                                <option value="1st Year College" {{ old('grade_level') == '1st Year College' ? 'selected' : '' }}>1st Year College</option>
+                                <option value="2nd Year College" {{ old('grade_level') == '2nd Year College' ? 'selected' : '' }}>2nd Year College</option>
+                                <option value="3rd Year College" {{ old('grade_level') == '3rd Year College' ? 'selected' : '' }}>3rd Year College</option>
+                                <option value="4th Year College" {{ old('grade_level') == '4th Year College' ? 'selected' : '' }}>4th Year College</option>
+                                <option value="Adult" {{ old('grade_level') == 'Adult' ? 'selected' : '' }}>Adult</option>
+                                <option value="Professional Staff" {{ old('grade_level') == 'Professional Staff' ? 'selected' : '' }}>Professional Staff</option>
                             </select>
                         </div>
                         <div class="mb-3">
                             <label for="num_questions" class="form-label">Number of Questions:</label>
-                            <input type="number" class="form-control" id="num_questions" name="num_questions" value="10" required>
+                            <input type="number" class="form-control" id="num_questions" name="num_questions" value="{{ old('num_questions', 10) }}" min="1" required>
                         </div>
                         <button type="submit" class="btn btn-pink" id="generateBtn">Generate Quiz</button>
                         <button type="button" class="btn btn-info ms-2" id="loadExemplarBtn">Load Example</button>
@@ -297,138 +307,6 @@
         let currentQuestionIndex = 0;
         let currentTopic = '';
         let currentGradeLevel = '';
-
-        document.getElementById('quizForm').addEventListener('submit', async function(event) {
-            console.log('Generate Quiz button clicked, form submitted.');
-            event.preventDefault();
-
-            const generateBtn = document.getElementById('generateBtn');
-            const loadingSpinner = document.getElementById('loadingSpinner');
-            const loadingText = document.getElementById('loadingText');
-            const interactiveQuizDiv = document.getElementById('interactive-quiz');
-            const quizSummaryDiv = document.getElementById('quiz-summary');
-            const resourcesOutputDiv = document.getElementById('resources-output');
-            const errorMessageDiv = document.getElementById('errorMessage');
-            const quizContentPre = document.getElementById('quizContent'); // This will be used for final summary text download
-            const resourcesContentPre = document.getElementById('resourcesContent');
-            const loadingOverlay = document.getElementById('loadingOverlay'); // Get the fullscreen overlay
-            const conversationalAiDiv = document.getElementById('conversational-ai'); // Define it here
-
-            // Reset UI
-            errorMessageDiv.style.display = 'none';
-            interactiveQuizDiv.style.display = 'none';
-            quizSummaryDiv.style.display = 'none';
-            resourcesOutputDiv.style.display = 'none';
-            quizContentPre.textContent = '';
-            resourcesContentPre.textContent = '';
-            document.getElementById('feedback').innerHTML = '';
-            conversationalAiDiv.style.display = 'none'; // Ensure chat is hidden on new quiz generation
-            document.getElementById('chat-history').innerHTML = ''; // Clear chat history
-
-            // Show fullscreen loading overlay
-            loadingOverlay.classList.remove('d-none');
-            loadingOverlay.classList.add('d-flex');
-
-            currentTopic = document.getElementById('topic').value;
-            currentGradeLevel = document.getElementById('grade_level').value;
-            const num_questions = document.getElementById('num_questions').value;
-            const csrfToken = document.querySelector('input[name="_token"]').value;
-
-            console.log('Sending quiz request with:');
-            console.log('Topic:', currentTopic);
-            console.log('Grade Level:', currentGradeLevel);
-            console.log('Number of Questions:', num_questions);
-            console.log('CSRF Token:', csrfToken);
-
-            try {
-                const response = await fetch('/quizme', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': csrfToken
-                    },
-                    body: JSON.stringify({ topic: currentTopic, grade_level: currentGradeLevel, num_questions })
-                });
-
-                const data = await response.json();
-                console.log('Backend response data:', data);
-
-                if (response.ok) {
-                    // Check if data.quiz is an array and has content
-                    if (Array.isArray(data.quiz) && data.quiz.length > 0) {
-                        currentQuiz = data.quiz;
-
-                        // Construct full quiz text immediately after successful generation
-                        let fullQuizText = '';
-                        currentQuiz.forEach((q, index) => {
-                            fullQuizText += `Question ${index + 1}: ${q.question_text.replace(/\*\*/g, '')}\n`;
-                            for (const optionKey in q.options) {
-                                fullQuizText += `${optionKey}) ${q.options[optionKey].replace(/\*\*/g, '')}\n`;
-                            }
-                            fullQuizText += `Correct Answer: ${q.correct_answer.replace(/\*\*/g, '')}\n\n`;
-                        });
-
-                        // Populate download forms with the newly generated quiz content
-                        const quizTextContent = document.getElementById('quizTextContent');
-                        if (quizTextContent) quizTextContent.value = fullQuizText;
-                        const quizPdfContent = document.getElementById('quizPdfContent');
-                        if (quizPdfContent) quizPdfContent.value = fullQuizText;
-                        const quizTopicName = document.getElementById('quizTopicName');
-                        if (quizTopicName) quizTopicName.value = currentTopic;
-                        const quizPdfTopicName = document.getElementById('quizPdfTopicName');
-                        if (quizPdfTopicName) quizPdfTopicName.value = currentTopic;
-
-                        // Clean ** from resources before setting for display and download
-                        const cleanedResources = data.resources.replace(/\*\*/g, '');
-                        const resourcesTextContent = document.getElementById('resourcesTextContent');
-                        if (resourcesTextContent) resourcesTextContent.value = cleanedResources;
-                        const resourcesPdfContent = document.getElementById('resourcesPdfContent');
-                        if (resourcesPdfContent) resourcesPdfContent.value = cleanedResources;
-                        const resourcesContent = document.getElementById('resourcesContent');
-                        if (resourcesContent) resourcesContent.textContent = cleanedResources;
-                        resourcesOutputDiv.style.display = 'block';
-
-                        // Set the topic name for download forms
-                        const resourcesTopicName = document.getElementById('resourcesTopicName');
-                        if (resourcesTopicName) resourcesTopicName.value = currentTopic;
-                        const resourcesPdfTopicName = document.getElementById('resourcesPdfTopicName');
-                        if (resourcesPdfTopicName) resourcesPdfTopicName.value = currentTopic;
-
-                        currentQuestionIndex = 0; // Start with the first question
-                        displayQuestion();
-                        interactiveQuizDiv.style.display = 'block';
-                    } else {
-                        errorMessageDiv.textContent = 'Backend returned an empty or invalid quiz structure.';
-                        errorMessageDiv.style.display = 'block';
-                        console.error('Backend quiz data is empty or invalid:', data.quiz);
-                    }
-                } else {
-                    errorMessageDiv.textContent = data.error || 'An unknown error occurred.';
-                    errorMessageDiv.style.display = 'block';
-                }
-            } catch (error) {
-                console.error('Fetch error:', error);
-                errorMessageDiv.textContent = 'Network error or service unavailable. Please check console for details.';
-                errorMessageDiv.style.display = 'block';
-                // Additionally log the error details more thoroughly
-                if (error instanceof TypeError) {
-                    console.error('TypeError (likely network error or CORS issue): ', error.message);
-                } else if (error instanceof SyntaxError) {
-                    console.error('SyntaxError (likely JSON parsing error): ', error.message);
-                } else {
-                    console.error('General fetch error:', error);
-                }
-            } finally {
-                // Hide fullscreen loading overlay and re-enable button in all cases
-                loadingOverlay.classList.add('d-none');
-                loadingOverlay.classList.remove('d-flex');
-                generateBtn.disabled = false;
-
-                // Hide old loading indicators if they were somehow still active
-                loadingSpinner.style.display = 'none';
-                loadingText.style.display = 'none';
-            }
-        });
 
         document.getElementById('submitAnswerBtn').addEventListener('click', async function() {
             const userAnswer = document.getElementById('userAnswer').value.trim();

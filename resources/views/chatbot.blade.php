@@ -330,6 +330,8 @@
     chatbotPanel.style.display = 'none';
     toggleButton.style.display = 'block';
     quizToggle.style.display = 'block';
+    toggleButton.style.display = 'block';
+
   });
 
 sendChatBtn.addEventListener('click', async () => {

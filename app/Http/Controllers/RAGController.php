@@ -242,7 +242,7 @@ public function addLesson(Request $request)
         $bookId = DB::table('units')->where('id', $unitId)->value('book_id');
         $chapterId =  $validated['chapter_id'];
 
-        $response = Http::timeout(300)
+        $response = Http::timeout(0)
             ->attach('file', file_get_contents($fullPath), basename($pdfPath))
             ->post('http://127.0.0.1:5001/upload-and-embed', [
                 'book_id' => $bookId,

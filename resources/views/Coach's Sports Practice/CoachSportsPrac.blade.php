@@ -74,11 +74,20 @@
 <div class="container-csp">
     <h2 class="h2-csp">Coach's Sports Practice</h2>
     <p class="p-csp">Generate a plan for practice for any sport that you're coaching!</p>
+    @if ($errors->any())
+        <div class="alert alert-danger">
+            <ul>
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
     <form method="POST" action="/coachsportprac">
         @csrf
         <div style="margin-bottom: 18px;">
             <label for="grade" style="font-weight:500;">Grade level: <span style="color:red">*</span></label>
-            <select id="grade" name="grade" class="form-control form-control-csp" required>
+            <select name="grade_level" id="grade_level" class="form-control form-control-csp" required>
                 <option value="Pre-K" {{ (old('grade', $grade ?? '') == 'Pre-K') ? 'selected' : '' }}>Pre-K</option>
                 <option value="Kindergarten" {{ (old('grade', $grade ?? '') == 'Kindergarten') ? 'selected' : '' }}>Kindergarten</option>
                 <option value="1st Grade" {{ (old('grade', $grade ?? '') == '1st Grade') ? 'selected' : '' }}>1st Grade</option>
@@ -104,7 +113,7 @@
         </div>
         <div style="margin-bottom: 18px;">
             <label for="length" style="font-weight:500;">Length of Practice: <span style="color:red">*</span></label>
-            <select id="length" name="length" class="form-control form-control-csp" required>
+            <select name="length_of_practice" id="length_of_practice" class="form-control form-control-csp" required>
                 <option value="30 mins" {{ (old('length', $length ?? '') == '30 mins') ? 'selected' : '' }}>30 mins</option>
                 <option value="1 hour" {{ (old('length', $length ?? '') == '1 hour') ? 'selected' : '' }}>1 hour</option>
                 <option value="1.5 hours" {{ (old('length', $length ?? '') == '1.5 hours') ? 'selected' : '' }}>1.5 hours</option>
@@ -114,16 +123,21 @@
         </div>
         <div style="margin-bottom: 18px;">
             <label for="sport" style="font-weight:500;">Sport: <span style="color:red">*</span></label>
-            <textarea id="sport" name="sport" class="form-control form-control-csp" rows="2" placeholder="Soccer, Basketball, Cheerleading, Lacrosse, Baseball, Football, etc." required>{{ old('sport', $sport ?? '') }}</textarea>
+            <input type="text" name="sport" id="sport" class="form-control form-control-csp" value="{{ old('sport', $sport ?? '') }}" required>
         </div>
         <div style="margin-bottom: 18px;">
             <label for="customization" style="font-weight:500;">Additional Customization (Optional):</label>
-            <textarea id="customization" name="customization" class="form-control form-control-csp" rows="2" placeholder="Include a jogging warmup, include weightlifting, activities to improve agility, focus on passing, etc.">{{ old('customization', $customization ?? '') }}</textarea>
+            <input type="text" name="additional_customization" id="additional_customization" class="form-control form-control-csp" value="{{ old('customization', $customization ?? '') }}" placeholder="Include a jogging warmup, include weightlifting, activities to improve agility, focus on passing, etc.">
         </div>
         <div style="display:flex; gap:16px; align-items:center; margin-bottom: 24px;">
             <button type="submit" class="btn btn-primary-csp">Generate</button>
         </div>
     </form>
+    @if (isset($response))
+        <div class="practice-plan-output" style="margin-top: 24px;">
+            {!! $response !!}
+        </div>
+    @endif
     @if(isset($practicePlan))
         <div class="plan-display-csp">
             <strong>Practice Plan:</strong><br>

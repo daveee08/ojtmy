@@ -626,11 +626,6 @@
         </div>
 
         <div class="modal fade" id="addLessonModal" tabindex="-1" aria-hidden="true">
-            @if ($errors->any())
-                <div class="alert alert-danger">
-                    {{ $errors->first('message') }}
-                </div>
-            @endif
             <div class="modal-dialog">
                 <form id="addLessonForm" enctype="multipart/form-data">
                     <div class="modal-content p-3">

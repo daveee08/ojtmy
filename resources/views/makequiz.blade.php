@@ -221,6 +221,7 @@
         closeQuizButton.addEventListener('click', () => {
             quizSection.classList.remove('open');
             quizToggle.style.display = 'block';
+            toggleButton.style.display = 'block';
         });
 
         submitButton.addEventListener('click', async () => {

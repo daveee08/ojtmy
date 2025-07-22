@@ -51,17 +51,25 @@ def chunk_text_token_based(text: str, max_tokens: int = 512) -> list:
     return chunks
 
 # === Step 2: Rewrite user query using LLM (Ollama) ===
-def get_standalone_question(history: list, user_prompt: str) -> str:
+def get_standalone_question(history: list, user_prompt: str, first: bool) -> str:
+    
+    if first:
+        return user_prompt
+
     conversation = ""
     for turn in history[-5:]:  # Limit to last 5 messages
         role = "User" if turn["role"] == "user" else "AI"
         conversation += f"{role}: {turn['message']}\n"
 
-    prompt = (
-        "Rewrite the user's latest message into a standalone question based on the conversation history.\n\n"
-        f"Conversation:\n{conversation}\nUser: {user_prompt}\n\n"
-        "Rewritten Question:"
-    )
+    prompt = f"""You are a helpful assistant. Your task is to rewrite the user's latest message into a standalone question or query that is context-independent and complete on its own.
+
+This is critical for retrieval systems that use semantic similarity. Avoid using vague pronouns like "it", "this", "that" — be specific. Include relevant context from the conversation, but only what’s necessary to make the question clear and self-contained.
+
+Conversation history:
+{conversation.strip()}
+User: {user_prompt.strip()}
+
+Standalone version:"""
 
     payload = {
         "model": OLLAMA_MODEL,
@@ -156,17 +164,26 @@ def save_chat_to_db(session_id: int, role: str, message: str):
     conn = mysql.connector.connect(**DB_CONFIG)
     try:
         cursor = conn.cursor()
+
+        # Step 1: Get latest turn
+        cursor.execute("""
+            SELECT IFNULL(MAX(turn), 0) + 1 AS next_turn
+            FROM chat_rag_history
+            WHERE session_id = %s
+        """, (session_id,))
+        next_turn = cursor.fetchone()[0]
+
+        # Step 2: Insert new message with next turn
         cursor.execute("""
             INSERT INTO chat_rag_history (session_id, turn, role, message)
-            VALUES (%s, 
-                (SELECT IFNULL(MAX(turn), 0) + 1 FROM chat_rag_history WHERE session_id = %s),
-                %s, %s
-            )
-        """, (session_id, session_id, role, message))
+            VALUES (%s, %s, %s, %s)
+        """, (session_id, next_turn, role, message))
+
         conn.commit()
     finally:
         cursor.close()
         conn.close()
+
 
 def get_recent_chat_context(session_id: str, limit: int = 10):
     conn = mysql.connector.connect(**DB_CONFIG)
@@ -297,7 +314,13 @@ def chat(input: ChatInput):
         history = get_recent_chat_context(session_id)
 
 
-        rewritten_prompt = get_standalone_question(history, user_prompt)
+        # Step 2: Determine if it's the first message (i.e., only 1 in history = user message just saved)
+        is_first_message = len(history) <= 1
+
+        print("Is it first message?", is_first_message)
+
+        # Step 3: Rewrite prompt conditionally
+        rewritten_prompt = get_standalone_question(history, user_prompt, is_first_message)
 
         print(f"[Rewritten Prompt] {rewritten_prompt}")
 
@@ -353,10 +376,18 @@ def chat(input: ChatInput):
 
         # === Step 5: Final prompt construction ===
         final_prompt = (
-            f"Use the following context to answer the user's question:\n"
-            f"{rag_context}\n\n"
-            f"{chat_context}AI:"
-        )
+        "You are a helpful educational assistant. You are only allowed to answer questions "
+        "based on the context provided from the current chapter. If the user's question is not answerable "
+        "using the context below, you must respond by saying that the question is outside the scope of this chapter.\n\n"
+        "Only answer based on the context. Do not guess or add outside information.\n\n"
+
+        "Context:\n"
+        f"{rag_context}\n\n"
+        "Conversation so far:\n"
+        f"{chat_context}"
+        "AI:"
+    )
+
 
         # === Step 6: Send to Ollama ===
         payload = {
@@ -491,3 +522,164 @@ def save_generated_quiz_to_db(book_id, chapter_id, message):
                 VALUES (%s, %s, %s, NOW(), NOW())
             """, (book_id, chapter_id, message))
         conn.commit()
+
+
+## strict mode chat (if preffered)
+#<---------------------------------->
+# def get_top_chunk_similarity(
+#     faiss_index, top_idx: int, query_vector: np.ndarray,
+#     book_id: int, chapter_id: int, unit_id: int, lesson_id: int
+# ) -> float:
+#     """Re-encodes the top matched chunk and returns cosine similarity to query vector."""
+#     # Fetch chunk text
+#     conn = mysql.connector.connect(**DB_CONFIG)
+#     try:
+#         cursor = conn.cursor()
+#         cursor.execute("""
+#             SELECT text FROM chunks
+#             WHERE global_faiss_id = %s
+#               AND book_id = %s AND chapter_id = %s AND unit_id = %s AND lesson_id = %s
+#             LIMIT 1
+#         """, (top_idx, book_id, chapter_id, unit_id, lesson_id))
+#         result = cursor.fetchone()
+#     finally:
+#         cursor.close()
+#         conn.close()
+
+#     if not result:
+#         return -1.0  # signal failure
+
+#     matched_text = result[0]
+#     matched_vector = EMBED_MODEL.encode([matched_text])[0]
+
+#     # Cosine similarity function
+#     def cosine_similarity(a, b):
+#         return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
+
+#     return cosine_similarity(query_vector, matched_vector)
+
+# @app.post("/chat")
+# def chat(input: ChatInput):
+#     try:
+#         session_id = input.session_id
+#         user_prompt = input.prompt.strip()
+#         book_id = input.book_id
+#         chapter_id = input.chapter_id
+#         unit_id = input.unit_id
+#         lesson_id = input.lesson_id
+
+#         # Save user message to DB first
+#         save_chat_to_db(session_id, "user", user_prompt)
+
+#         # === Step 1: Retrieve chat history ===
+#         history = get_recent_chat_context(session_id)
+
+
+#         # Step 2: Determine if it's the first message (i.e., only 1 in history = user message just saved)
+#         is_first_message = len(history) <= 1
+
+#         print("Is it first message?", is_first_message)
+
+#         # Step 3: Rewrite prompt conditionally
+#         rewritten_prompt = get_standalone_question(history, user_prompt, is_first_message)
+
+#         print(f"[Rewritten Prompt] {rewritten_prompt}")
+
+#         # === Step 3: Retrieve FAISS context using rewritten prompt ===
+#         index_path = f"{book_id}_chapter_{chapter_id}.faiss"
+#         if not os.path.exists(index_path):
+#             return JSONResponse(status_code=404, content={"error": "FAISS index not found for this chapter."})
+
+#         index = faiss.read_index(index_path)
+#         embedding = EMBED_MODEL.encode([rewritten_prompt]).astype("float32")
+#         D, I = index.search(embedding, k=10)
+
+#         # Retrieve the actual chunk vectors for similarity checking
+#         query_vector = embedding[0]
+#         top_idx = int(I[0][0])
+#         similarity = get_top_chunk_similarity(index, top_idx, query_vector, book_id, chapter_id, unit_id, lesson_id)
+
+#         if similarity < 0:
+#             ai_reply = "Sorry, I couldn't find the relevant content chunk for similarity checking."
+#             save_chat_to_db(session_id, "ai", ai_reply)
+#             return {"response": ai_reply}
+
+#         print(f"[Cosine similarity to top chunk] {similarity:.4f}")
+#         SIMILARITY_THRESHOLD = 0.40  # You can tune this based on your dataset
+
+
+#         if similarity < SIMILARITY_THRESHOLD:
+#             ai_reply = (
+#                 "Sorry, your question appears to be outside the scope of this chapter. "
+#                 "Please ask something related to the current material."
+#             )
+#             save_chat_to_db(session_id, "ai", ai_reply)
+#             return {"response": ai_reply}
+
+#         raw_matches = [(int(idx), float(dist)) for idx, dist in zip(I[0], D[0]) if idx != -1]
+
+#         if not raw_matches:
+#             rag_context = "No relevant content found for this chapter."
+#         else:
+#             # Fetch matched chunks
+#             conn = mysql.connector.connect(**DB_CONFIG)
+#             try:
+#                 cursor = conn.cursor(dictionary=True)
+#                 ids = [idx for idx, _ in raw_matches]
+#                 placeholder = ','.join(['%s'] * len(ids))
+#                 cursor.execute(f"""
+#                     SELECT global_faiss_id, text FROM chunks
+#                     WHERE book_id = %s AND chapter_id = %s AND unit_id = %s AND lesson_id = %s
+#                     AND global_faiss_id IN ({placeholder})
+#                 """, (book_id, chapter_id, unit_id, lesson_id, *ids))
+#                 chunks = cursor.fetchall()
+#             finally:
+#                 cursor.close()
+#                 conn.close()
+
+#             # Hybrid reranking: keyword overlap
+#             def keyword_score(chunk_text):
+#                 chunk_tokens = set(chunk_text.lower().split())
+#                 prompt_tokens = set(rewritten_prompt.lower().split())
+#                 return len(chunk_tokens & prompt_tokens)
+
+#             reranked_chunks = sorted(
+#                 chunks,
+#                 key=lambda c: keyword_score(c["text"]),
+#                 reverse=True
+#             )
+
+#             top_k = min(10, len(reranked_chunks))
+#             rag_context = "\n".join([c["text"] for c in reranked_chunks[:top_k]])
+
+#         # === Step 4: Prepare chat history for final prompt ===
+#         chat_context = ""
+#         for turn in history:
+#             role_label = "User" if turn['role'] == 'user' else "AI"
+#             chat_context += f"{role_label}: {turn['message']}\n"
+
+#         # === Step 5: Final prompt construction ===
+#         final_prompt = (
+#             f"Use the following context to answer the user's question:\n"
+#             f"{rag_context}\n\n"
+#             f"{chat_context}AI:"
+#         )
+
+#         # === Step 6: Send to Ollama ===
+#         payload = {
+#             "model": OLLAMA_MODEL,
+#             "prompt": final_prompt,
+#             "stream": False
+#         }
+
+#         response = requests.post(OLLAMA_URL, json=payload, headers=HEADERS)
+#         response.raise_for_status()
+#         ai_reply = response.json().get("response", "").strip()
+
+#         # Save AI response to DB
+#         save_chat_to_db(session_id, "ai", ai_reply)
+
+#         return {"response": ai_reply}
+
+#     except Exception as e:
+#         return {"error": str(e)}

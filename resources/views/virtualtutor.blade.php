@@ -5,13 +5,17 @@
 @section('title', 'CK Virtual Tutor')
 
 @section('styles')
-<style>
+<style>\
     .container {
         margin-top: 100px;
         max-width: 1100px;
         margin-left: auto;
         margin-right: auto;
         padding: 0 20px;
+    }
+
+    body {
+        overflow-y: scroll; /* Forces the vertical scrollbar to always be visible */
     }
 
     .hero {
@@ -52,6 +56,10 @@
         background-image: none;
         box-shadow: none;
         transition: 0.3s;
+        -webkit-appearance: none; /* For custom dropdown arrow */
+        -moz-appearance: none;    /* For custom dropdown arrow */
+        appearance: none;         /* For custom dropdown arrow */
+        padding-right: 35px; /* Make space for an arrow icon */
     }
 
     .search-wrapper input:focus {
@@ -72,28 +80,25 @@
     }
 
     .books-grid {
-        display: grid;
-        /* Significantly increased min-width to give more "kalapad" (width) to expanded cards */
-        grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
-        gap: 25px; /* Ample gap between book cards */
+        grid-template-columns: repeat(auto-fill, minmax(1000px, 1fr));
+        gap: 15px; 
     }
 
     .book-card {
         background-color: #ffffff;
         border: 1px solid #e0e0e0;
         border-radius: 12px;
-        padding: 24px; /* Generous base padding for the card */
-        margin-bottom: 15px;
+        padding: 1px 20px;
+        margin-top: 10; 
         transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
         cursor: pointer;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-        height: 120px; /* Small initial height */
         overflow: hidden;
         position: relative;
     }
 
     .book-card.expanded {
-        height: auto; /* Expands on click */
+        height: auto;
     }
 
     .book-card:hover {
@@ -106,15 +111,13 @@
         font-size: 1.1rem;
         color: #333333;
         font-weight: 600;
-        margin-top: 0;
-        margin-bottom: 5px;
+        margin-top: 30;
     }
 
     .book-card p {
         font-size: 0.9rem;
         color: #666;
-        margin: 0;
-        margin-bottom: 15px;
+        margin: 10;
         overflow: hidden;
         text-overflow: ellipsis;
         display: -webkit-box;
@@ -124,8 +127,6 @@
 
     .book-actions {
         display: flex;
-        gap: 15px; /* More space between the main action buttons */
-        margin-top: 15px;
         opacity: 0;
         max-height: 0;
         overflow: hidden;
@@ -134,11 +135,10 @@
 
     .book-card.expanded .book-actions {
         opacity: 1;
-        max-height: 50px; /* Adjust as needed for button height */
+        max-height: 50px; 
     }
 
     .unit-container {
-        margin-top: 25px; /* Increased space above the entire units section */
         opacity: 0;
         max-height: 0;
         overflow: hidden;
@@ -147,138 +147,140 @@
 
     .book-card.expanded .unit-container {
         opacity: 1;
-        max-height: 1000px; /* Large enough to show all units, adjust if necessary */
+        max-height: 1000px;
     }
 
     .unit-item {
         border: 1px solid #e0e0e0;
         border-radius: 10px;
-        padding: 18px 25px; /* Ample internal padding (vertical & horizontal) */
-        margin-bottom: 20px; /* More vertical space between individual units */
+        padding: 18px 25px;
+        margin-bottom: 20px;
         background-color: #f9f9f9;
-        display: flex; /* Use flexbox for better control of internal alignment */
-        flex-direction: column; /* Stack contents vertically - this applies to the whole unit block, not just header */
+        display: flex;
+        flex-direction: column;
     }
 
     .unit-item strong {
         color: #e91e63;
-        /* Keep nowrap and ellipsis for long titles to prevent wrapping if space is tight */
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        margin-right: 15px; /* More space between title and buttons */
+        margin-right: 15px;
+        display: flex; /* Added for icon alignment */
+        align-items: center; /* Added for icon alignment */
+        gap: 8px; /* Added space between icon and text */
     }
 
-    /* The flex container for unit header (icon, text, buttons) */
     .unit-item > .d-flex {
-        align-items: center; /* Vertically align items */
-        /* IMPORTANT: Changed flex-wrap to nowrap for primary horizontal emphasis */
-        flex-wrap: nowrap; /* Attempt to keep all on one line primarily */
-        justify-content: space-between; /* Push title to left, buttons to right */
-        row-gap: 8px; /* Fallback for wrapping if it occurs */
-        margin-bottom: 10px; /* Space below the unit title/buttons before chapters */
-        width: 100%; /* Ensure it takes full available width */
-    }
-
-    /* The unit title itself within the d-flex header */
-    .unit-item > .d-flex > div:first-child { /* Assuming the title is in the first div */
-        flex-grow: 1; /* Allow title to take up available space */
-        min-width: 0; /* Allow title to shrink if needed, but ellipsis will handle overflow */
-        display: flex; /* Use flex to align icon and text */
         align-items: center;
-        gap: 8px; /* Space between folder icon and title text */
+        flex-wrap: nowrap;
+        justify-content: space-between;
+        row-gap: 8px;
+        margin-bottom: 10px;
+        width: 100%;
     }
 
-    /* Group of buttons within the unit header */
+    .unit-item > .d-flex > div:first-child {
+        flex-grow: 1;
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
     .unit-item > .d-flex .button-group {
         display: flex;
-        gap: 15px; /* Space between buttons within the group */
-        flex-shrink: 0; /* Prevent button group from shrinking */
+        gap: 15px;
+        flex-shrink: 0;
     }
 
-    /* Spacing and size for buttons within unit/chapter headers */
     .unit-item .d-flex button {
-        padding: 7px 14px; /* Ample padding for buttons */
-        font-size: 0.875rem; /* Good font size for secondary buttons */
-        white-space: nowrap; /* Prevent button text from wrapping */
-        flex-shrink: 0; /* Prevent individual buttons from shrinking */
+        padding: 7px 14px;
+        font-size: 0.875rem;
+        white-space: nowrap;
+        flex-shrink: 0;
     }
 
-    /* Ensure specific buttons are styled correctly */
-    .btn-add-chapter, .btn-hide-chapters { /* Assuming specific classes for these buttons */
-        /* No margin-left: auto here as justify-content handles it */
+    .btn-add-chapter, .btn-hide-chapters {
+        
     }
-
 
     .unit-item .chapter-container {
-        padding-left: 30px; /* Increased indentation for chapters */
-        margin-top: 10px; /* Space between unit header and first chapter */
+        padding-left: 30px;
+        margin-top: 15px; /* Adjusted margin-top for more space */
     }
 
     .chapter-item {
         border-left: 3px solid #e0e0e0;
-        padding-left: 20px; /* Increased indentation */
-        padding-top: 10px;
+        padding-left: 20px;
         padding-bottom: 10px;
-        margin-bottom: 15px; /* More vertical space between chapters */
-        position: relative;
+        margin-bottom: 15px;
+        position: relative; /* Added for icon positioning */
     }
 
     .chapter-item strong {
         color: #4CAF50;
-        white-space: nowrap; /* Prevent chapter title from wrapping if possible */
+        white-space: nowrap;
         overflow: hidden;
-        text-overflow: ellipsis; /* Add ellipsis if title is too long */
-        margin-right: 15px; /* More space between title and buttons */
+        text-overflow: ellipsis;
+        margin-right: 15px;
+        display: flex; /* Changed to flex for icon alignment */
+        align-items: center; /* Added for icon alignment */
+        gap: 8px; /* Added space between icon and text */
+        max-width: 200px; /* Kept existing max-width */
     }
 
-    /* The flex container for chapter header (icon, text, buttons) */
     .chapter-item > .d-flex {
-        align-items: center; /* Vertically align items */
-        /* IMPORTANT: Changed flex-wrap to nowrap for primary horizontal emphasis */
-        flex-wrap: nowrap; /* Attempt to keep all on one line primarily */
-        justify-content: space-between; /* Push title to left, buttons to right */
-        row-gap: 8px; /* Fallback for wrapping if it occurs */
-        margin-bottom: 10px; /* Space below chapter title/buttons before lessons */
-        width: 100%; /* Ensure it takes full available width */
-    }
-
-    /* The chapter title itself within the d-flex header */
-    .chapter-item > .d-flex > div:first-child { /* Assuming the title is in the first div */
-        flex-grow: 1; /* Allow title to take up available space */
-        min-width: 0; /* Allow title to shrink if needed, but ellipsis will handle overflow */
-        display: flex; /* Use flex to align icon and text */
         align-items: center;
-        gap: 8px; /* Space between folder icon and title text */
+        flex-wrap: nowrap;
+        justify-content: space-between;
+        row-gap: 8px;
+        margin-bottom: 10px;
+        width: 100%;
     }
 
-    /* Group of buttons within the chapter header */
+    .chapter-item > .d-flex > div:first-child {
+        flex-grow: 1;
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
     .chapter-item > .d-flex .button-group {
         display: flex;
-        gap: 15px; /* Space between buttons within the group */
-        flex-shrink: 0; /* Prevent button group from shrinking */
+        gap: 15px;
+        flex-shrink: 0;
     }
 
-    /* Spacing and size for buttons within chapter headers */
     .chapter-item .d-flex button {
-        padding: 7px 14px; /* Ample padding for buttons */
-        font-size: 0.875rem; /* Good font size */
-        white-space: nowrap; /* Prevent button text from wrapping */
-        flex-shrink: 0; /* Prevent individual buttons from shrinking */
+        padding: 7px 14px;
+        font-size: 0.875rem;
+        white-space: nowrap;
+        flex-shrink: 0;
     }
 
-    /* Ensure specific buttons are styled correctly */
-    .btn-add-lesson, .btn-show-lessons, .btn-hide-lessons { /* Assuming specific classes for these buttons */
-        /* No margin-left: auto here as justify-content handles it */
+    .btn-add-lesson, .btn-show-lessons, .btn-hide-lessons {
+        
     }
 
     .lesson-item {
-        padding-left: 25px; /* Significantly increased indentation for lessons */
-        margin-bottom: 10px; /* More vertical space between lessons */
-        font-size: 0.95rem; /* Slightly larger font for lesson titles */
+        padding-left: 25px;
+        margin-bottom: 10px;
+        font-size: 0.95rem;
+        display: flex; /* Added for icon alignment */
+        align-items: center; /* Added for icon alignment */
+        gap: 8px; /* Added space between icon and text */
     }
 
-    /* General modal dialog styling (keeping original as it's not related to layout issues) */
+    .toggle-icon {
+        transition: transform 0.3s ease-in-out;
+    }
+
+    .chapter-item.expanded .toggle-icon {
+        transform: rotate(180deg);
+    }
+
     .modal .modal-dialog {
         max-width: 600px;
         margin: 1.75rem auto;
@@ -345,48 +347,47 @@
         box-shadow: 0 0 0 0.15rem rgba(233, 30, 99, 0.25);
     }
     .btn-add-unit {
-        background-color: #007bff; /* Blue */
+        background-color: #007bff;
         border-color: #007bff;
         color: white;
         font-weight: 500;
         font-size: 0.9rem;
         padding: 0.5rem 1rem;
         border-radius: 8px;
-        white-space: nowrap; /* Prevent text wrapping */
+        white-space: nowrap;
     }
     .btn-add-unit:hover {
         background-color: #0056b3;
         border-color: #0056b3;
     }
     .btn-open-tutor {
-        background-color: #28a745; /* Green */
+        background-color: #28a745;
         border-color: #28a745;
         color: white;
         font-weight: 500;
         font-size: 0.9rem;
         padding: 0.5rem 1rem;
         border-radius: 8px;
-        white-space: nowrap; /* Prevent text wrapping */
+        white-space: nowrap;
     }
     .btn-open-tutor:hover {
         background-color: #218838;
         border-color: #218838;
     }
 
-    /* Responsive Adjustments */
     @media (max-width: 1200px) {
         .books-grid {
-            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); /* Adjusted min-width for slightly smaller screens */
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
         }
     }
 
     @media (max-width: 992px) {
         .books-grid {
-            grid-template-columns: repeat(2, 1fr); /* Two columns on medium screens */
+            grid-template-columns: repeat(2, 1fr);
             gap: 20px;
         }
         .book-card {
-            padding: 20px;
+            padding: 10px;
         }
         .unit-item {
             padding: 15px 20px;
@@ -400,33 +401,33 @@
         .lesson-item {
             padding-left: 20px;
         }
+
         .unit-item .d-flex button,
         .chapter-item .d-flex button {
             padding: 6px 10px;
             font-size: 0.8rem;
         }
-        /* Allow buttons to wrap again on medium screens if horizontal space is very limited */
         .unit-item > .d-flex,
         .chapter-item > .d-flex {
-            flex-wrap: wrap; /* Allow wrapping */
-            justify-content: flex-start; /* Align items to start when wrapping */
+            flex-wrap: wrap;
+            justify-content: flex-start;
         }
         .unit-item > .d-flex > div:first-child,
         .chapter-item > .d-flex > div:first-child {
-            width: 100%; /* Title takes full width before buttons */
-            margin-bottom: 5px; /* Space below title before buttons wrap */
+            width: 100%;
+            margin-bottom: 5px;
         }
         .unit-item .d-flex button,
         .chapter-item .d-flex button {
-            margin-left: 0; /* Remove horizontal margin when stacked/wrapped */
-            margin-right: 8px; /* Add some margin to the right if they don't fill 100% */
-            margin-bottom: 5px; /* Space between wrapped buttons */
+            margin-left: 0;
+            margin-right: 8px;
+            margin-bottom: 5px;
         }
     }
 
-    @media (max-width: 768px) { /* Tablet breakpoint: Single column, stacking buttons */
+    @media (max-width: 768px) {
         .books-grid {
-            grid-template-columns: 1fr; /* Single column on tablets and smaller */
+            grid-template-columns: 1fr;
         }
         .book-card {
             padding: 20px;
@@ -443,33 +444,32 @@
         .lesson-item {
             padding-left: 18px;
         }
-        /* Force buttons to stack completely on tablets */
         .unit-item > .d-flex,
         .chapter-item > .d-flex {
-            flex-direction: column; /* Stack vertically */
-            align-items: flex-start; /* Align stacked items to the left */
+            flex-direction: column;
+            align-items: flex-start;
             margin-bottom: 8px;
         }
         .unit-item .d-flex button:first-of-type,
         .chapter-item .d-flex button:first-of-type {
-            margin-left: 0; /* Remove auto margin when stacked */
+            margin-left: 0;
         }
         .unit-item .d-flex button,
         .chapter-item .d-flex button {
-            margin-left: 0; /* Remove horizontal margin when stacked */
-            margin-right: 0; /* Remove horizontal margin when stacked */
-            width: 100%; /* Make buttons full width when stacked */
-            margin-bottom: 5px; /* Space between stacked buttons */
-            padding: 8px 10px; /* Adjust padding for stacked buttons */
+            margin-left: 0;
+            margin-right: 0;
+            width: 100%;
+            margin-bottom: 5px;
+            padding: 8px 10px;
         }
     }
 
-    @media (max-width: 576px) { /* Smallest mobile screens */
+    @media (max-width: 576px) {
         .books-grid {
             grid-template-columns: 1fr;
         }
         .book-card {
-            padding: 15px;
+            padding: 10px;
         }
         .unit-item {
             padding: 10px 15px;
@@ -486,7 +486,6 @@
             padding-left: 15px;
             margin-bottom: 6px;
         }
-        /* Ensure stacking behavior for buttons is consistent on smallest screens */
         .unit-item > .d-flex,
         .chapter-item > .d-flex {
             flex-direction: column;
@@ -512,13 +511,16 @@
             <p>Your smart and friendly learning companion designed to make studying fun and easy.</p>
         </div>
 
-        <div class="search-wrapper mb-4 d-flex gap-3 align-items-center">
-            <select id="subjectSelect" class="form-select">
+        <div class="search-wrapper mb-4 d-flex gap-3 align-items-center position-relative">
+            <select id="subjectSelect" class="form-select me-2">
                 <option value="">Select Grade Level</option>
                 <option value="Grade 1">Grade 1</option>
                 <option value="Grade 2">Grade 2</option>
                 <option value="Grade 3">Grade 3</option>
-                </select>
+            </select>
+            {{-- A Font Awesome icon for dropdown arrow can be added here or via pseudo-element in CSS if JS handles it.
+                 For now, CSS `appearance: none;` prepares the select for a custom arrow.
+                 Example (requires JS to toggle classes): <i class="fas fa-chevron-down dropdown-arrow-icon"></i> --}}
 
             <button class="btn btn-primary rounded-circle d-flex align-items-center justify-content-center"
                 style="width: 44px; height: 44px;" data-bs-toggle="modal" data-bs-target="#uploadModal" title="Add Book">
@@ -548,7 +550,7 @@
                                     <option value="Grade 1">Grade 1</option>
                                     <option value="Grade 2">Grade 2</option>
                                     <option value="Grade 3">Grade 3</option>
-                                    </select>
+                                </select>
                             </div>
 
                             <div class="mb-3">
@@ -622,356 +624,385 @@
             </div>
         </div>
 
-
         <div id="gradeLevelSections">
-            </div>
+            {{-- Content for grade levels will be dynamically inserted here by JavaScript --}}
+        </div>
 
     </div>
 
     <script>
-        document.getElementById("uploadForm").addEventListener("submit", function(e) {
-            e.preventDefault();
+    document.getElementById("uploadForm").addEventListener("submit", function(e) {
+        e.preventDefault();
 
-            const formData = new FormData(this);
-            const data = {
-                title: document.getElementById("subjectName").value,
-                grade_level: document.getElementById("gradeLevel").value,
-                subject_name: document.getElementById("subjectName").value,
-                description: document.getElementById("description").value
-            };
+        const formData = new FormData(this);
+        const data = {
+            title: document.getElementById("subjectName").value,
+            grade_level: document.getElementById("gradeLevel").value,
+            subject_name: document.getElementById("subjectName").value,
+            description: document.getElementById("description").value
+        };
 
-            fetch("/books", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute(
-                            'content')
-                    },
-                    body: JSON.stringify(data)
-                })
-                .then(res => res.json())
-                .then(res => {
-                    if (res.status === 'success') {
-                        alert("Book added successfully!");
-                        document.getElementById("uploadForm").reset();
-                        bootstrap.Modal.getInstance(document.getElementById('uploadModal')).hide();
-                        loadBooksByGrade(); // Reload books for the selected grade
-                    } else {
-                        alert("Error adding book.");
-                    }
-                })
-                .catch(err => {
-                    console.error(err);
-                    alert("Something went wrong.");
-                });
-        });
-
-        function loadBooksByGrade() {
-            const selectedGrade = document.getElementById("subjectSelect").value;
-            const gradeLevelSections = document.getElementById("gradeLevelSections");
-            gradeLevelSections.innerHTML = ''; // Clear previous content
-
-            if (!selectedGrade) {
-                // If no grade is selected, don't show any books.
-                return;
-            }
-
-            fetch("/books")
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status !== "success") {
-                        gradeLevelSections.innerHTML = '<p>Failed to fetch books.</p>';
-                        return;
-                    }
-
-                    const filteredBooks = data.books.filter(book => book.grade_level === selectedGrade);
-
-                    if (filteredBooks.length === 0) {
-                        gradeLevelSections.innerHTML = `<p>No books found for ${selectedGrade}.</p>`;
-                        return;
-                    }
-
-                    let gradeSection = document.createElement('div');
-                    gradeSection.className = 'grade-level-section';
-                    gradeSection.innerHTML = `<h3>${selectedGrade}</h3><div class="books-grid" id="books-grid-${selectedGrade.replace(/\s/g, '-')}"></div>`;
-                    gradeLevelSections.appendChild(gradeSection);
-
-                    const booksGrid = document.getElementById(`books-grid-${selectedGrade.replace(/\s/g, '-')}`);
-
-                    filteredBooks.forEach(book => {
-                        const bookCard = document.createElement('div');
-                        bookCard.className = 'book-card';
-                        bookCard.setAttribute('data-book-id', book.id);
-                        bookCard.innerHTML = `
-                            <h5>${book.title}</h5>
-                            <p>${book.description}</p>
-                            <small>${book.grade_level}</small>
-                            <div class="book-actions">
-                                <button class="btn btn-add-unit" onclick="event.stopPropagation(); openUnitModal(${book.id})">+ Add Unit</button>
-                                <button class="btn btn-open-tutor" onclick="event.stopPropagation(); redirectToChat(${book.id})">
-                                    <i class="fa fa-brain me-1"></i> Open Tutor
-                                </button>
-                            </div>
-                            <div id="unit-container-${book.id}" class="unit-container"></div>
-                        `;
-                        bookCard.addEventListener('click', function() {
-                            this.classList.toggle('expanded');
-                            if (this.classList.contains('expanded')) {
-                                loadUnits(book.id);
-                            } else {
-                                const unitContainer = document.getElementById(`unit-container-${book.id}`);
-                                unitContainer.innerHTML = ''; // Clear units when collapsed
-                            }
-                        });
-                        booksGrid.appendChild(bookCard);
-                    });
-                })
-                .catch(err => {
-                    console.error("Fetch error:", err);
-                    gradeLevelSections.innerHTML = '<p>Error loading books.</p>';
-                });
-        }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById("subjectSelect").addEventListener('change', loadBooksByGrade);
-        });
-
-        function redirectToChat(bookId) {
-            fetch(`/get-first-lesson?book_id=${bookId}`)
-                .then(res => res.json())
-                .then(data => {
-                    if (data.status === "success") {
-                        const {
-                            book_id,
-                            unit_id,
-                            chapter_id,
-                            lesson_id
-                        } = data;
-                        const url =
-                            `/virtual-tutor-chat?book_id=${book_id}&unit_id=${unit_id}&chapter_id=${chapter_id}&lesson_id=${lesson_id}`;
-                        window.location.href = url;
-                    } else {
-                        alert("No lessons found for this book.");
-                    }
-                });
-        }
-
-        function openUnitModal(bookId) {
-            document.getElementById("unitBookId").value = bookId;
-            new bootstrap.Modal(document.getElementById("addUnitModal")).show();
-        }
-
-        function openChapterModal(unitId) { // This is now "Add Lesson" in the UI flow for units
-            document.getElementById("chapterUnitId").value = unitId;
-            new bootstrap.Modal(document.getElementById("addChapterModal")).show();
-        }
-
-        function openLessonModal(chapterId) {
-            document.getElementById("lessonChapterId").value = chapterId;
-            new bootstrap.Modal(document.getElementById("addLessonModal")).show();
-        }
-
-        document.getElementById("addUnitForm").addEventListener("submit", function(e) {
-            e.preventDefault();
-            const form = new FormData(this);
-            fetch("/units", {
-                    method: "POST",
-                    headers: {
-                        "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content
-                    },
-                    body: form
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.status === "success") {
-                        alert("Unit added!");
-                        bootstrap.Modal.getInstance(document.getElementById("addUnitModal")).hide();
-                        this.reset();
-                        loadUnits(form.get("book_id")); // Reload units for the specific book
-                    } else {
-                        alert("Error adding unit.");
-                    }
-                })
-                .catch(err => {
-                    console.error("Error adding unit:", err);
-                    alert("Something went wrong while adding unit.");
-                });
-        });
-
-        document.getElementById("addChapterForm").addEventListener("submit", function(e) {
-            e.preventDefault();
-            const form = new FormData(this);
-            fetch("/chapters", {
-                    method: "POST",
-                    headers: {
-                        "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content
-                    },
-                    body: form
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.status === "success") {
-                        alert("Chapter added!");
-                        bootstrap.Modal.getInstance(document.getElementById("addChapterModal")).hide();
-                        this.reset();
-                        loadChapters(form.get("unit_id")); // Reload chapters for the specific unit
-                    } else {
-                        alert("Error adding chapter.");
-                    }
-                })
-                .catch(err => {
-                    console.error("Error adding chapter:", err);
-                    alert("Something went wrong while adding chapter.");
-                });
-        });
-
-        function loadUnits(bookId) {
-            fetch(`/units?book_id=${bookId}`)
-                .then(res => res.json())
-                .then(data => {
-                    const container = document.getElementById(`unit-container-${bookId}`);
-                    container.innerHTML = ''; // Clear existing units
-
-                    if (data.units && data.units.length > 0) {
-                        data.units.forEach(unit => {
-                            const unitId = `unit-${unit.id}`;
-                            const unitDiv = document.createElement('div');
-                            unitDiv.className = 'unit-item';
-                            unitDiv.innerHTML = `
-                                <div class="d-flex align-items-center mb-2">
-                                    <i class="fas fa-folder me-2"></i> <strong>Unit ${unit.unit_number}:</strong> ${unit.title}
-                                    <button class="btn btn-sm btn-outline-info ms-auto" onclick="event.stopPropagation(); openChapterModal(${unit.id})">+ Add Chapter</button>
-                                    <button class="btn btn-sm btn-outline-secondary ms-2" onclick="event.stopPropagation(); toggleVisibility('${unitId}')">Show Chapters</button>
-                                </div>
-                                <div id="${unitId}" class="chapter-container" style="display:none;"></div>
-                            `;
-                            container.appendChild(unitDiv);
-                            loadChapters(unit.id); // Load chapters for this unit
-                        });
-                    } else {
-                        container.innerHTML = '<p class="ms-3">No units added yet.</p>';
-                    }
-                })
-                .catch(err => {
-                    console.error("Error loading units:", err);
-                    const container = document.getElementById(`unit-container-${bookId}`);
-                    container.innerHTML = '<p class="ms-3">Error loading units.</p>';
-                });
-        }
-
-        function loadChapters(unitId) {
-            fetch(`/chapters?unit_id=${unitId}`)
-                .then(res => res.json())
-                .then(data => {
-                    const container = document.getElementById(`unit-${unitId}`);
-                    container.innerHTML = ''; // Clear existing chapters
-
-                    if (data.chapters && data.chapters.length > 0) {
-                        data.chapters.sort((a, b) => a.chapter_number - b.chapter_number); // Sort chapters
-                        data.chapters.forEach(chapter => {
-                            const chapterId = `chapter-${chapter.id}`;
-                            const chapterDiv = document.createElement('div');
-                            chapterDiv.className = 'chapter-item';
-                            chapterDiv.innerHTML = `
-                                <div class="d-flex align-items-center mb-1">
-                                    <i class="fas fa-file-alt me-2"></i> <strong>Chapter ${chapter.chapter_number}:</strong> ${chapter.chapter_title}
-                                    <button class="btn btn-sm btn-outline-success ms-auto" onclick="event.stopPropagation(); openLessonModal(${chapter.id})">+ Add Lesson</button>
-                                    <button class="btn btn-sm btn-outline-secondary ms-2" onclick="event.stopPropagation(); toggleVisibility('${chapterId}')">Show Lessons</button>
-                                </div>
-                                <div id="${chapterId}" class="ps-3 mt-2" style="display:none;"></div>
-                            `;
-                            container.appendChild(chapterDiv);
-                            loadLessons(chapter.id); // Load lessons for this chapter
-                        });
-                    } else {
-                        container.innerHTML = '<p class="ms-3 text-muted">No chapters added yet.</p>';
-                    }
-                })
-                .catch(err => {
-                    console.error("Error loading chapters:", err);
-                    const container = document.getElementById(`unit-${unitId}`);
-                    container.innerHTML = '<p class="ms-3 text-muted">Error loading chapters.</p>';
-                });
-        }
-
-        function loadLessons(chapterId) {
-            fetch(`/lessons?chapter_id=${chapterId}`)
-                .then(res => res.json())
-                .then(data => {
-                    const container = document.getElementById(`chapter-${chapterId}`);
-                    container.innerHTML = ''; // Clear existing lessons
-
-                    if (data.lessons && data.lessons.length > 0) {
-                        data.lessons.sort((a, b) => a.lesson_number - b.lesson_number); // Sort lessons
-                        data.lessons.forEach(lesson => {
-                            const lessonDiv = document.createElement('div');
-                            lessonDiv.className = 'lesson-item';
-                            lessonDiv.innerHTML = `
-                                <div>
-                                    📘 <strong>Lesson ${lesson.lesson_number}:</strong> ${lesson.lesson_title}
-                                </div>
-                            `;
-                            container.appendChild(lessonDiv);
-                        });
-                    } else {
-                        container.innerHTML = '<p class="ms-3 text-muted">No lessons added yet.</p>';
-                    }
-                })
-                .catch(err => {
-                    console.error("Error loading lessons:", err);
-                    const container = document.getElementById(`chapter-${chapterId}`);
-                    container.innerHTML = '<p class="ms-3 text-muted">Error loading lessons.</p>';
-                });
-        }
-
-        function toggleVisibility(id) {
-            const el = document.getElementById(id);
-            if (el) {
-                if (el.style.display === 'none' || el.style.display === '') {
-                    el.style.display = 'block';
-                    // Change button text to "Hide"
-                    const button = el.previousElementSibling.querySelector('button[onclick*="toggleVisibility"]');
-                    if (button) {
-                        button.textContent = button.textContent.replace('Show', 'Hide');
-                    }
+        fetch("/books", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute(
+                        'content')
+                },
+                body: JSON.stringify(data)
+            })
+            .then(res => res.json())
+            .then(res => {
+                if (res.status === 'success') {
+                    alert("Book added successfully!");
+                    document.getElementById("uploadForm").reset();
+                    bootstrap.Modal.getInstance(document.getElementById('uploadModal')).hide();
+                    loadBooksByGrade(); // Reload books for the selected grade
                 } else {
-                    el.style.display = 'none';
-                    // Change button text to "Show"
-                    const button = el.previousElementSibling.querySelector('button[onclick*="toggleVisibility"]');
-                    if (button) {
-                        button.textContent = button.textContent.replace('Hide', 'Show');
-                    }
+                    alert("Error adding book.");
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Something went wrong.");
+            });
+    });
+
+    function loadBooksByGrade() {
+        const selectedGrade = document.getElementById("subjectSelect").value;
+        const gradeLevelSections = document.getElementById("gradeLevelSections");
+        gradeLevelSections.innerHTML = ''; // Clear previous content
+
+        if (!selectedGrade) {
+            // If no grade is selected, don't show any books.
+            // You might want to display a message like "Please select a grade level."
+            gradeLevelSections.innerHTML = '<p class="text-muted text-center mt-4">Please select a grade level to view books.</p>';
+            return;
+        }
+
+        fetch("/books")
+            .then(response => response.json())
+            .then(data => {
+                if (data.status !== "success") {
+                    gradeLevelSections.innerHTML = '<p class="text-danger">Failed to fetch books.</p>';
+                    return;
+                }
+
+                const filteredBooks = data.books.filter(book => book.grade_level === selectedGrade);
+
+                if (filteredBooks.length === 0) {
+                    gradeLevelSections.innerHTML = `<p class="text-muted text-center mt-4">No books found for ${selectedGrade}.</p>`;
+                    return;
+                }
+
+                let gradeSection = document.createElement('div');
+                gradeSection.className = 'grade-level-section';
+                gradeSection.innerHTML = `<h3>${selectedGrade}</h3><div class="books-grid" id="books-grid-${selectedGrade.replace(/\s/g, '-')}"></div>`;
+                gradeLevelSections.appendChild(gradeSection);
+
+                const booksGrid = document.getElementById(`books-grid-${selectedGrade.replace(/\s/g, '-')}`);
+
+                filteredBooks.forEach(book => {
+                    const bookCard = document.createElement('div');
+                    bookCard.className = 'book-card';
+                    bookCard.setAttribute('data-book-id', book.id);
+                    bookCard.innerHTML = `
+                        <h5>${book.title}</h5>
+                        <p>${book.description}</p>
+                        <div class="book-actions mt-3 d-flex justify-content-between align-items-center">
+                            <button class="btn btn-sm btn-add-unit" onclick="event.stopPropagation(); openUnitModal(${book.id})">
+                                <i class="fas fa-plus-circle me-1"></i> Add Unit
+                            </button>
+                            <button class="btn btn-sm btn-open-tutor" onclick="event.stopPropagation(); redirectToChat(${book.id})">
+                                <i class="fa fa-brain me-1"></i> Open Tutor
+                            </button>
+                        </div>
+                        <div id="unit-container-${book.id}" class="unit-container mt-3"></div>
+                    `;
+                    bookCard.addEventListener('click', function() {
+                        this.classList.toggle('expanded');
+                        if (this.classList.contains('expanded')) {
+                            loadUnits(book.id);
+                        } else {
+                            const unitContainer = document.getElementById(`unit-container-${book.id}`);
+                            unitContainer.innerHTML = ''; // Clear units when collapsed
+                        }
+                    });
+                    booksGrid.appendChild(bookCard);
+                });
+            })
+            .catch(err => {
+                console.error("Fetch error:", err);
+                gradeLevelSections.innerHTML = '<p class="text-danger">Error loading books.</p>';
+            });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById("subjectSelect").addEventListener('change', loadBooksByGrade);
+        loadBooksByGrade(); // Initial load when the page loads
+    });
+
+    function redirectToChat(bookId) {
+        fetch(`/get-first-lesson?book_id=${bookId}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === "success") {
+                    const {
+                        book_id,
+                        unit_id,
+                        chapter_id,
+                        lesson_id
+                    } = data;
+                    const url =
+                        `/virtual-tutor-chat?book_id=${book_id}&unit_id=${unit_id}&chapter_id=${chapter_id}&lesson_id=${lesson_id}`;
+                    window.location.href = url;
+                } else {
+                    alert("No lessons found for this book. Please add lessons to enable the tutor.");
+                }
+            })
+            .catch(err => {
+                console.error("Error redirecting to chat:", err);
+                alert("Could not load tutor. Please try again later.");
+            });
+    }
+
+    function openUnitModal(bookId) {
+        document.getElementById("unitBookId").value = bookId;
+        new bootstrap.Modal(document.getElementById("addUnitModal")).show();
+    }
+
+    function openChapterModal(unitId) { // This is now "Add Chapter"
+        document.getElementById("chapterUnitId").value = unitId;
+        new bootstrap.Modal(document.getElementById("addChapterModal")).show();
+    }
+
+    function openLessonModal(chapterId) {
+        document.getElementById("lessonChapterId").value = chapterId;
+        new bootstrap.Modal(document.getElementById("addLessonModal")).show();
+    }
+
+    document.getElementById("addUnitForm").addEventListener("submit", function(e) {
+        e.preventDefault();
+        const form = new FormData(this);
+        fetch("/units", {
+                method: "POST",
+                headers: {
+                    "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: form
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === "success") {
+                    alert("Unit added!");
+                    bootstrap.Modal.getInstance(document.getElementById("addUnitModal")).hide();
+                    this.reset();
+                    loadUnits(form.get("book_id")); // Reload units for the specific book
+                } else {
+                    alert("Error adding unit.");
+                }
+            })
+            .catch(err => {
+                console.error("Error adding unit:", err);
+                alert("Something went wrong while adding unit.");
+            });
+    });
+
+    document.getElementById("addChapterForm").addEventListener("submit", function(e) {
+        e.preventDefault();
+        const form = new FormData(this);
+        fetch("/chapters", {
+                method: "POST",
+                headers: {
+                    "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: form
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === "success") {
+                    alert("Chapter added!");
+                    bootstrap.Modal.getInstance(document.getElementById("addChapterModal")).hide();
+                    this.reset();
+                    loadChapters(form.get("unit_id")); // Reload chapters for the specific unit
+                } else {
+                    alert("Error adding chapter.");
+                }
+            })
+            .catch(err => {
+                console.error("Error adding chapter:", err);
+                alert("Something went wrong while adding chapter.");
+            });
+    });
+
+    function loadUnits(bookId) {
+        fetch(`/units?book_id=${bookId}`)
+            .then(res => res.json())
+            .then(data => {
+                const container = document.getElementById(`unit-container-${bookId}`);
+                container.innerHTML = ''; // Clear existing units
+
+                if (data.units && data.units.length > 0) {
+                    data.units.sort((a,b) => a.unit_number - b.unit_number); // Sort units
+                    data.units.forEach(unit => {
+                        const unitId = `unit-${unit.id}`;
+                        const unitDiv = document.createElement('div');
+                        unitDiv.className = 'unit-item';
+                        unitDiv.innerHTML = `
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="text-primary"></i> <strong>Unit ${unit.unit_number}:</strong> ${unit.title}
+                                <button class="btn btn-sm btn-outline-info ms-auto" onclick="event.stopPropagation(); openChapterModal(${unit.id})">
+                                    <i class="fas fa-plus-circle me-1"></i> Add Chapter
+                                </button>
+                                <span class="ms-3 toggle-span" onclick="event.stopPropagation(); toggleVisibility('${unitId}', this)">
+                                    <i class="fas fa-chevron-down toggle-icon"></i>
+                                </span>
+                            </div>
+                            <div id="${unitId}" class="chapter-container" style="display:none;"></div>
+                        `;
+                        container.appendChild(unitDiv);
+                        loadChapters(unit.id); // Load chapters for this unit
+                    });
+                } else {
+                    container.innerHTML = '<p class="ms-3 text-muted">No units added yet.</p>';
+                }
+            })
+            .catch(err => {
+                console.error("Error loading units:", err);
+                const container = document.getElementById(`unit-container-${bookId}`);
+                container.innerHTML = '<p class="ms-3 text-danger">Error loading units.</p>';
+            });
+    }
+
+    function loadChapters(unitId) {
+        fetch(`/chapters?unit_id=${unitId}`)
+            .then(res => res.json())
+            .then(data => {
+                const container = document.getElementById(`unit-${unitId}`);
+                container.innerHTML = ''; // Clear existing chapters
+
+                if (data.chapters && data.chapters.length > 0) {
+                    data.chapters.sort((a, b) => a.chapter_number - b.chapter_number); // Sort chapters
+                    data.chapters.forEach(chapter => {
+                        const chapterId = `chapter-${chapter.id}`;
+                        const chapterDiv = document.createElement('div');
+                        chapterDiv.className = 'chapter-item';
+                        chapterDiv.innerHTML = `
+                            <div class="d-flex align-items-center mb-1">
+                                <i class="text-success"></i> <strong>Chapter ${chapter.chapter_number}:</strong> ${chapter.chapter_title}
+                                <button class="btn btn-sm btn-outline-success ms-auto" onclick="event.stopPropagation(); openLessonModal(${chapter.id})">
+                                    <i class="fas fa-plus-circle me-1"></i> Add Lesson
+                                </button>
+                                <span class="ms-3 toggle-span" onclick="event.stopPropagation(); toggleVisibility('${chapterId}', this)">
+                                    <i class="fas fa-chevron-down toggle-icon"></i>
+                                </span>
+                            </div>
+                            <div id="${chapterId}" class="ps-3 mt-2" style="display:none;"></div>
+                        `;
+                        container.appendChild(chapterDiv);
+                        loadLessons(chapter.id); // Load lessons for this chapter
+                    });
+                } else {
+                    container.innerHTML = '<p class="ms-3 text-muted">No chapters added yet.</p>';
+                }
+            })
+            .catch(err => {
+                console.error("Error loading chapters:", err);
+                const container = document.getElementById(`unit-${unitId}`);
+                container.innerHTML = '<p class="ms-3 text-danger">Error loading chapters.</p>';
+            });
+    }
+
+    function loadLessons(chapterId) {
+        fetch(`/lessons?chapter_id=${chapterId}`)
+            .then(res => res.json())
+            .then(data => {
+                const container = document.getElementById(`chapter-${chapterId}`);
+                container.innerHTML = ''; // Clear existing lessons
+
+                if (data.lessons && data.lessons.length > 0) {
+                    data.lessons.sort((a, b) => a.lesson_number - b.lesson_number); // Sort lessons
+                    data.lessons.forEach(lesson => {
+                        const lessonDiv = document.createElement('div');
+                        lessonDiv.className = 'lesson-item d-flex align-items-center'; // Added d-flex and align-items-center
+                        lessonDiv.innerHTML = `
+                            <i class="fas fa-book-reader me-2 text-info"></i> <div>
+                                <strong>Lesson ${lesson.lesson_number}:</strong> ${lesson.lesson_title}
+                            </div>
+                        `;
+                        container.appendChild(lessonDiv);
+                    });
+                } else {
+                    container.innerHTML = '<p class="ms-3 text-muted">No lessons added yet.</p>';
+                }
+            })
+            .catch(err => {
+                console.error("Error loading lessons:", err);
+                const container = document.getElementById(`chapter-${chapterId}`);
+                container.innerHTML = '<p class="ms-3 text-danger">Error loading lessons.</p>';
+            });
+    }
+
+    // Refactored toggleVisibility to handle both units and chapters
+    function toggleVisibility(id, buttonElement) {
+        const el = document.getElementById(id);
+        if (el) {
+            const icon = buttonElement.querySelector('.toggle-icon');
+            if (el.style.display === 'none' || el.style.display === '') {
+                el.style.display = 'block';
+                if (icon) {
+                    icon.classList.remove('fa-chevron-down');
+                    icon.classList.add('fa-chevron-up');
+                }
+                // For unit toggle, change button text if it exists (Show Chapters/Hide Chapters)
+                const unitToggleButton = buttonElement.closest('.d-flex').querySelector('.btn[onclick*="toggleVisibility"]');
+                if (unitToggleButton) {
+                    unitToggleButton.textContent = unitToggleButton.textContent.replace('Show', 'Hide');
+                }
+            } else {
+                el.style.display = 'none';
+                if (icon) {
+                    icon.classList.remove('fa-chevron-up');
+                    icon.classList.add('fa-chevron-down');
+                }
+                // For unit toggle, change button text if it exists (Show Chapters/Hide Chapters)
+                const unitToggleButton = buttonElement.closest('.d-flex').querySelector('.btn[onclick*="toggleVisibility"]');
+                if (unitToggleButton) {
+                    unitToggleButton.textContent = unitToggleButton.textContent.replace('Hide', 'Show');
                 }
             }
+        } else {
+            console.error('Element not found for ID:', id);
         }
+    }
 
-        document.getElementById("addLessonForm").addEventListener("submit", function(e) {
-            e.preventDefault();
-            const form = new FormData(this);
 
-            fetch("/lessons", {
-                    method: "POST",
-                    headers: {
-                        "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content
-                    },
-                    body: form
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.status === "success") {
-                        alert("Lesson added!");
-                        bootstrap.Modal.getInstance(document.getElementById('addLessonModal')).hide();
-                        this.reset();
-                        loadLessons(form.get("chapter_id")); // Reload lessons for the specific chapter
-                    } else {
-                        alert("Error adding lesson.");
-                    }
-                })
-                .catch(err => {
-                    console.error("Error adding lesson:", err);
-                    alert("Something went wrong while adding lesson.");
-                });
-        });
-    </script>
+    document.getElementById("addLessonForm").addEventListener("submit", function(e) {
+        e.preventDefault();
+        const form = new FormData(this);
 
+        fetch("/lessons", {
+                method: "POST",
+                headers: {
+                    "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: form
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === "success") {
+                    alert("Lesson added!");
+                    bootstrap.Modal.getInstance(document.getElementById('addLessonModal')).hide();
+                    this.reset();
+                    loadLessons(form.get("chapter_id")); // Reload lessons for the specific chapter
+                } else {
+                    alert("Error adding lesson.");
+                }
+            })
+            .catch(err => {
+                console.error("Error adding lesson:", err);
+                alert("Something went wrong while adding lesson.");
+            });
+    });
+</script>
 @endsection

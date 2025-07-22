@@ -8,11 +8,6 @@
 <nav class="sidebar" id="sidebar">
     <h2></h2>
 
-    {{-- <a href="{{ url('/') }}" class="{{ request()->is('/') ? 'active-link' : '' }}" data-bs-toggle="tooltip" title="Home">
-        <i class="bi bi-house-door"></i>
-        <span class="link-text">Home</span>
-    </a> --}}
-
     <a href="{{ url('/tools') }}" class="{{ request()->is('tools*') ? 'active-link' : '' }}" data-bs-toggle="tooltip" title="Tools">
         <i class="bi bi-tools"></i>
         <span class="link-text">Tools</span>
@@ -96,7 +91,7 @@
         min-width: 24px;
         width: 24px;
         text-align: center;
-        transition: margin 0.3s ease, font-size 0.3s ease;
+        transition: margin 0.3s ease, font-size 0.3s ease, color 0.3s ease; /* Added color transition */
     }
 
     .sidebar.collapsed a i {
@@ -129,6 +124,10 @@
     .sidebar a:hover {
         background-color: rgba(221, 175, 198, 0.15);
         color: var(--dark); /* Explicitly set to default black on hover */
+    }
+
+    .sidebar a:hover i {
+        color: var(--pink); /* Change icon to pink on hover */
     }
 
     #toggleSidebar {

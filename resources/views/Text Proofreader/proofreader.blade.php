@@ -15,25 +15,60 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 
     {{-- Custom Style --}}
-    <style>
-        body {
-            font-family: 'Poppins', sans-serif;
-        }
+     <style>
         .text-highlight {
-            color: #ec008c;
+            color: var(--pink);
             font-weight: 700;
         }
+
         .form-label {
-            color: #333;
+            color: var(--dark);
             font-weight: 600;
         }
+
         .btn-primary {
-            background-color: #ec008c;
-            border-color: #ec008c;
+            background-color: var(--pink);
+            border-color: var(--pink);
         }
+
         .btn-primary:hover {
             background-color: #c30074;
             border-color: #c30074;
+        }
+        .bg-light {
+            background-color: var(--light-grey) !important;
+        }
+
+        .btn-outline-secondary {
+            color: var(--dark);
+            border-color: var(--light-grey);
+        }
+
+        .btn-outline-secondary:hover {
+            background-color: var(--light-grey);
+            color: var(--pink);
+        }
+
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        [data-bs-theme="dark"] .alert-danger {
+            background-color: #2c2c2c;
+            color: #f06292;
+        }
+
+        /* Style for new Clear Form button */
+        .btn-clear {
+            background-color: #6c757d;
+            border-color: #6c757d;
+            color: var(--white);
+        }
+
+        .btn-clear:hover {
+            background-color: #5a6268;
+            border-color: #5a6268;
         }
     </style>
 </head>
@@ -95,6 +130,7 @@
                     <div class="d-grid d-md-flex justify-content-md-end">
                         <button type="submit" id="submitBtn" class="btn btn-primary px-4" disabled>
                             <span id="btnText">Submit</span>
+                             <button type="button" id="clearBtn" class="btn btn-clear me-2">Clear Form</button>
                             <span id="btnSpinner" class="spinner-border spinner-border-sm d-none ms-2" role="status" aria-hidden="true"></span>
                         </button>
                     </div>
@@ -168,6 +204,12 @@
                 btnSpinner.classList.remove('d-none');
             });
         });
+        document.getElementById('clearBtn').addEventListener('click', () => {
+        document.getElementById('profile').value = '';
+        document.getElementById('text').value = '';
+    });
+        
+       
     </script>
 </body>
 </html>

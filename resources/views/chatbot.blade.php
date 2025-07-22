@@ -253,9 +253,9 @@
   <button class="chatbot-toggle" title="Chat with CK Virtual Tutor">
     <i class="fas fa-robot"></i>
   </button>
-  <button class="quiz-toggle" title="Create Quiz">
+  <!-- <button class="quiz-toggle" title="Create Quiz">
     <i class="fas fa-pen"></i>
-  </button>
+  </button> -->
 
   <div class="chatbot-sidebar" id="chatbot-panel">
     <div class="chatbot-header">
@@ -287,7 +287,7 @@
     </div>
 
     <div class="chatbot-footer">
-      <button class="emoji-btn"><i class="far fa-smile"></i></button>
+      <!-- <button class="emoji-btn"><i class="far fa-smile"></i></button> -->
       <input type="text" id="chat-input" placeholder="Type your question...">
       <button id="send-chat"><i class="fas fa-paper-plane"></i></button>
     </div>
@@ -312,11 +312,8 @@
 
   let sessionId = null;
   const toggleButton = document.querySelector('.chatbot-toggle');
-  const quizToggle = document.querySelector('.quiz-toggle');
   const chatbotPanel = document.getElementById('chatbot-panel');
-  const quizSection = document.querySelector('.chatbot-quiz-section');
   const closeChatButton = document.querySelector('.chatbot-close');
-  const closeQuizButton = document.querySelector('.chatbot-close-quiz');
   const restartChatButton = document.querySelector('.chatbot-restart');
   const chatInput = document.getElementById('chat-input');
   const chatBody = document.getElementById('chatbot-body');
@@ -333,18 +330,8 @@
     chatbotPanel.style.display = 'none';
     toggleButton.style.display = 'block';
     quizToggle.style.display = 'block';
-  });
-
-  quizToggle.addEventListener('click', () => {
-    quizSection.classList.add('open');
-    toggleButton.style.display = 'none';
-    quizToggle.style.display = 'none';
-  });
-
-  closeQuizButton.addEventListener('click', () => {
-    quizSection.classList.remove('open');
     toggleButton.style.display = 'block';
-    quizToggle.style.display = 'block';
+
   });
 
 sendChatBtn.addEventListener('click', async () => {
@@ -353,7 +340,7 @@ sendChatBtn.addEventListener('click', async () => {
 
   appendUserMessage(msg);
   chatInput.value = '';
-  quickReplies.style.display = 'none';
+  quickReplies.style.display = 'block';
 
   const params = new URLSearchParams(window.location.search);
   const book_id = params.get('book_id');
@@ -436,9 +423,12 @@ sendChatBtn.addEventListener('click', async () => {
 
 
   function handleQuickReply(text) {
-    appendUserMessage(text);
-    quickReplies.style.display = 'none';
-  }
+  const input = document.getElementById('chat-input');
+  input.value = text; // Set input value to the quick reply
+
+  quickReplies.style.display = 'none';
+
+}
 
   function appendUserMessage(msg) {
     const userMsg = document.createElement('p');

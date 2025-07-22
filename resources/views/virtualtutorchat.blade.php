@@ -1,6 +1,6 @@
 @extends('layouts.chatnavbar')
 @extends('layouts.header')
-{{-- @extends('chatbot') --}}
+@extends('chatbot')
 @extends('makequiz')
 
 @section('styles')

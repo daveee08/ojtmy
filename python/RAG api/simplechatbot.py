@@ -52,17 +52,25 @@ def chunk_text_token_based(text: str, max_tokens: int = 512) -> list:
     return chunks
 
 # === Step 2: Rewrite user query using LLM (Ollama) ===
-def get_standalone_question(history: list, user_prompt: str) -> str:
+def get_standalone_question(history: list, user_prompt: str, first: bool) -> str:
+    
+    if first:
+        return user_prompt
+
     conversation = ""
     for turn in history[-5:]:  # Limit to last 5 messages
         role = "User" if turn["role"] == "user" else "AI"
         conversation += f"{role}: {turn['message']}\n"
 
-    prompt = (
-        "Rewrite the user's latest message into a standalone question based on the conversation history.\n\n"
-        f"Conversation:\n{conversation}\nUser: {user_prompt}\n\n"
-        "Rewritten Question:"
-    )
+    prompt = f"""You are a helpful assistant. Your task is to rewrite the user's latest message into a standalone question or query that is context-independent and complete on its own.
+
+This is critical for retrieval systems that use semantic similarity. Avoid using vague pronouns like "it", "this", "that" — be specific. Include relevant context from the conversation, but only what’s necessary to make the question clear and self-contained.
+
+Conversation history:
+{conversation.strip()}
+User: {user_prompt.strip()}
+
+Standalone version:"""
 
     payload = {
         "model": OLLAMA_MODEL,
@@ -157,17 +165,26 @@ def save_chat_to_db(session_id: int, role: str, message: str):
     conn = mysql.connector.connect(**DB_CONFIG)
     try:
         cursor = conn.cursor()
+
+        # Step 1: Get latest turn
+        cursor.execute("""
+            SELECT IFNULL(MAX(turn), 0) + 1 AS next_turn
+            FROM chat_rag_history
+            WHERE session_id = %s
+        """, (session_id,))
+        next_turn = cursor.fetchone()[0]
+
+        # Step 2: Insert new message with next turn
         cursor.execute("""
             INSERT INTO chat_rag_history (session_id, turn, role, message)
-            VALUES (%s, 
-                (SELECT IFNULL(MAX(turn), 0) + 1 FROM chat_rag_history WHERE session_id = %s),
-                %s, %s
-            )
-        """, (session_id, session_id, role, message))
+            VALUES (%s, %s, %s, %s)
+        """, (session_id, next_turn, role, message))
+
         conn.commit()
     finally:
         cursor.close()
         conn.close()
+
 
 def get_recent_chat_context(session_id: str, limit: int = 10):
     conn = mysql.connector.connect(**DB_CONFIG)
@@ -298,7 +315,13 @@ def chat(input: ChatInput):
         history = get_recent_chat_context(session_id)
 
 
-        rewritten_prompt = get_standalone_question(history, user_prompt)
+        # Step 2: Determine if it's the first message (i.e., only 1 in history = user message just saved)
+        is_first_message = len(history) <= 1
+
+        print("Is it first message?", is_first_message)
+
+        # Step 3: Rewrite prompt conditionally
+        rewritten_prompt = get_standalone_question(history, user_prompt, is_first_message)
 
         print(f"[Rewritten Prompt] {rewritten_prompt}")
 
@@ -354,10 +377,18 @@ def chat(input: ChatInput):
 
         # === Step 5: Final prompt construction ===
         final_prompt = (
-            f"Use the following context to answer the user's question:\n"
-            f"{rag_context}\n\n"
-            f"{chat_context}AI:"
-        )
+        "You are a helpful educational assistant. You are only allowed to answer questions "
+        "based on the context provided from the current chapter. If the user's question is not answerable "
+        "using the context below, you must respond by saying that the question is outside the scope of this chapter.\n\n"
+        "Only answer based on the context. Do not guess or add outside information.\n\n"
+
+        "Context:\n"
+        f"{rag_context}\n\n"
+        "Conversation so far:\n"
+        f"{chat_context}"
+        "AI:"
+    )
+
 
         # === Step 6: Send to Ollama ===
         payload = {

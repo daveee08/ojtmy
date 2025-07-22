@@ -241,19 +241,23 @@ Route::post('/socialstory', [SocialStoryController::class, 'generate'])->name('s
 Route::get('/characterchat', [CharacterChatController::class, 'showForm'])->name('characterchat.form');
 Route::post('/characterchat', [CharacterChatController::class, 'generate'])->name('characterchat.generate');
 
+
+Route::middleware(['auth', 'role:teacher'])->group(function () {
 Route::post('/books', [RAGController::class, 'addBook']);
+Route::post('/units', [RAGController::class, 'addUnit']);
+Route::post('/chapters', [RAGController::class, 'addChapter']);
+Route::post('/lessons', [RAGController::class, 'addLesson']);
+
+});
 Route::get('/books', [RAGController::class, 'getBooks']);
 
 // 📘 Units
-Route::post('/units', [RAGController::class, 'addUnit']);
 Route::get('/units', [RAGController::class, 'getUnits']);
 
 // 📘 Chapters
-Route::post('/chapters', [RAGController::class, 'addChapter']);
 Route::get('/chapters', [RAGController::class, 'getChapters']);
 
 // 📘 Lessons
-Route::post('/lessons', [RAGController::class, 'addLesson']);
 Route::get('/lessons', [RAGController::class, 'getLessons']);
 
 Route::get('/get-first-lesson', [RAGController::class, 'getFirstLesson']);

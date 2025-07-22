@@ -263,12 +263,6 @@
 
 
 @section('content')
-
-    @if ($errors->any())
-        <div class="alert alert-danger">
-            {{ $errors->first('message') }}
-        </div>
-    @endif
     <div class="container">
         <div class="hero">
             <h1>Welcome to CK Virtual Tutor</h1>
@@ -284,12 +278,10 @@
                 <option value="Grade 3">Grade 3</option>
             </select>
 
-        <button class="btn btn-primary rounded-circle d-flex align-items-center justify-content-center"
-            style="width: 44px; height: 44px;"
-            data-bs-toggle="modal" data-bs-target="#uploadModal"
-            title="Add Book">
-            <i class="fas fa-plus"></i>
-        </button>
+            <button class="btn btn-primary rounded-circle d-flex align-items-center justify-content-center"
+                style="width: 44px; height: 44px;" data-bs-toggle="modal" data-bs-target="#uploadModal" title="Add Book">
+                <i class="fas fa-plus"></i>
+            </button>
 
         </div>
 
@@ -327,10 +319,10 @@
                             </div>
 
                             <!-- <div class="mb-3">
-                                                                        <label for="pdfFile" class="form-label">Upload PDF File</label>
-                                                                        <input type="file" class="form-control" id="pdfFile" name="pdf_file"
-                                                                            accept="application/pdf" required>
-                                                                    </div> -->
+                                                                <label for="pdfFile" class="form-label">Upload PDF File</label>
+                                                                <input type="file" class="form-control" id="pdfFile" name="pdf_file"
+                                                                    accept="application/pdf" required>
+                                                            </div> -->
                         </div>
 
                         <div class="modal-footer">
@@ -377,11 +369,6 @@
         </div>
 
         <div class="modal fade" id="addLessonModal" tabindex="-1" aria-hidden="true">
-            @if ($errors->any())
-                <div class="alert alert-danger">
-                    {{ $errors->first('message') }}
-                </div>
-            @endif
             <div class="modal-dialog">
                 <form id="addLessonForm" enctype="multipart/form-data">
                     <div class="modal-content p-3">
@@ -671,36 +658,26 @@
         }
 
         document.getElementById("addLessonForm").addEventListener("submit", function(e) {
-    e.preventDefault();
-    const form = new FormData(this);
+            e.preventDefault();
+            const form = new FormData(this);
 
-    fetch("/lessons", {
-        method: "POST",
-        headers: {
-            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content
-        },
-        body: form
-    })
-    .then(async res => {)
-        const data = await res.json();
-
-        if (!res.ok || data.status !== "success") {
-            alert(data.message || "Something went wrong.");
-            console.error("FastAPI Error:", data.fastapi_error || data);
-            return;
-        }
-
-        // ✅ Success
-        alert("Lesson added!");
-        bootstrap.Modal.getInstance(document.getElementById('addLessonModal')).hide();
-        this.reset();
-        loadLessons(form.get("chapter_id"));
-    })
-    .catch(err => {
-        alert("Unexpected error occurred.");
-        console.error(err);
-    });
-});
+            fetch("/lessons", {
+                    method: "POST",
+                    headers: {
+                        "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: form
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === "success") {
+                        alert("Lesson added!");
+                        bootstrap.Modal.getInstance(document.getElementById('addLessonModal')).hide();
+                        this.reset();
+                        loadLessons(form.get("chapter_id"));
+                    }
+                });
+        });
     </script>
 
 @endsection

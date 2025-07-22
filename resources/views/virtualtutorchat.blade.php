@@ -300,13 +300,13 @@
     </style>
 
     <!-- <div class="pdf-container">
-            @if ($lesson && $lesson->pdf_path)
+                @if ($lesson && $lesson->pdf_path)
     <embed src="{{ asset('storage/' . $lesson->pdf_path) }}#toolbar=0&navpanes=0&scrollbar=0" type="application/pdf"
-                    class="pdf-embed" />
+                        class="pdf-embed" />
 @else
     <p>No lesson PDF available.</p>
     @endif
-        </div> -->
+            </div> -->
 
     <div class="pdf-container" style="padding: 1rem;">
         @if ($lesson && $lesson->pdf_path)

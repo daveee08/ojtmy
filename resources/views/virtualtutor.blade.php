@@ -46,7 +46,7 @@
             max-width: 400px;
             padding: 10px 16px 10px 16px;
             font-size: 1rem;
-            border: 1px solid #ccc;
+            border-radius: 50px;
             outline: none;
             background-color: #fff;
             background-image: none;
@@ -257,17 +257,48 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #e91e63;
+            color: #fff;
+            padding: 12px 24px; /* Slightly larger padding for better appearance */
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            z-index: 10000; /* Increased z-index to ensure it appears above all elements */
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .notification.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0)
+        }
+
     </style>
 
 @endsection
 
 
 @section('content')
+
+    @if ($errors->any())
+        <div class="alert alert-danger">
+            {{ $errors->first('message') }}
+        </div>
+    @endif
+    <div id="notification" class="notification"></div>
+
     <div class="container">
         <div class="hero">
             <h1>Welcome to CK Virtual Tutor</h1>
-            <p>AI-powered tutor will utilize a local knowledge base sourced from CK Grade 7 books in Science, English, and
-                Math.</p>
+            <p>Your smart and friendly learning companion designed to make studying fun and easy.</p>
         </div>
 
         <!-- 📌 Add Chapter/Subject Selector Here -->
@@ -279,9 +310,13 @@
                 <option value="Grade 3">Grade 3</option>
             </select>
 
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadModal">
-                <i class="fas fa-upload me-1"></i> Add Book
-            </button>
+        <button class="btn btn-primary rounded-circle d-flex align-items-center justify-content-center"
+            style="width: 44px; height: 44px;"
+            data-bs-toggle="modal" data-bs-target="#uploadModal"
+            title="Add Book">
+            <i class="fas fa-plus"></i>
+        </button>
+
         </div>
 
         <!-- Upload Modal -->
@@ -318,10 +353,10 @@
                             </div>
 
                             <!-- <div class="mb-3">
-                                                            <label for="pdfFile" class="form-label">Upload PDF File</label>
-                                                            <input type="file" class="form-control" id="pdfFile" name="pdf_file"
-                                                                accept="application/pdf" required>
-                                                        </div> -->
+                                                                        <label for="pdfFile" class="form-label">Upload PDF File</label>
+                                                                        <input type="file" class="form-control" id="pdfFile" name="pdf_file"
+                                                                            accept="application/pdf" required>
+                                                                    </div> -->
                         </div>
 
                         <div class="modal-footer">
@@ -368,6 +403,11 @@
         </div>
 
         <div class="modal fade" id="addLessonModal" tabindex="-1" aria-hidden="true">
+            @if ($errors->any())
+                <div class="alert alert-danger">
+                    {{ $errors->first('message') }}
+                </div>
+            @endif
             <div class="modal-dialog">
                 <form id="addLessonForm" enctype="multipart/form-data">
                     <div class="modal-content p-3">
@@ -397,9 +437,9 @@
     </div>
     </div>
 
-   <script>
-    document.getElementById("uploadForm").addEventListener("submit", function(e) {
-        e.preventDefault();
+    <script>
+        document.getElementById("uploadForm").addEventListener("submit", function(e) {
+            e.preventDefault();
 
             const formData = new FormData(this);
             const data = {
@@ -421,75 +461,90 @@
                 .then(res => res.json())
                 .then(res => {
                     if (res.status === 'success') {
-                        alert("Book added successfully!");
+                        // alert("Book added successfully!");
+                        showNotification(`Book added successfully!`);
+
                         document.getElementById("uploadForm").reset();
                         bootstrap.Modal.getInstance(document.getElementById('uploadModal')).hide();
                         loadBooks(); // Reload books
                     } else {
-                        alert("Error adding book.");
+                        showNotification(`Error adding book.`);
+
                     }
                 })
                 .catch(err => {
                     console.error(err);
-                    alert("Something went wrong.");
+                    showNotification(`Something went wrong.`);
+
                 });
         });
 
-function loadBooks() {
-    const selectedGrade = document.getElementById("subjectSelect").value;
-    const bookList = document.getElementById("bookList");
-    bookList.innerHTML = '';
+        function loadBooks() {
+            const selectedGrade = document.getElementById("subjectSelect").value;
+            const bookList = document.getElementById("bookList");
+            bookList.innerHTML = '';
 
-    if (!selectedGrade) return;
+            if (!selectedGrade) return;
 
-    fetch("/books")
-        .then(response => response.json())
-        .then(data => {
-            if (data.status !== "success") {
-                bookList.innerHTML = '<p>Failed to fetch books.</p>';
-                return;
-            }
+            fetch("/books")
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status !== "success") {
+                        bookList.innerHTML = '<p>Failed to fetch books.</p>';
+                        return;
+                    }
 
-            console.log("Fetched books:", data.books); // Debug log
-            const filtered = data.books.filter(book => book.grade_level.toLowerCase() === selectedGrade.toLowerCase());
+                    const filtered = data.books.filter(book => book.grade_level === selectedGrade);
 
-            if (filtered.length === 0) {
-                bookList.innerHTML = '<p>No books found for this grade level.</p>';
-                return;
-            }
+                    if (filtered.length === 0) {
+                        bookList.innerHTML = '<p>No books found for this grade level.</p>';
+                        return;
+                    }
 
-            filtered.forEach(book => {
-                const card = document.createElement('div');
-                card.className = 'tool-card';
-                card.innerHTML = `
-                    <h5>${book.title}</h5>
-                    <p>${book.description}</p>
-                    <small>${book.grade_level}</small>
+                    filtered.forEach(book => {
+                        const card = document.createElement('div');
+                        card.className = 'tool-card';
+                        card.innerHTML = `
+                <h5>${book.title}</h5>
+                <p>${book.description}</p>
+                <small>${book.grade_level}</small>
 
-                    <div class="d-flex gap-2 mt-2">
-                        <button class="btn btn-sm btn-outline-primary" onclick="openUnitModal(${book.id})">+ Add Unit</button>
-                        <button class="btn btn-sm btn-outline-success" onclick="redirectToChat(${book.id})">
-                            <i class="fa fa-brain me-1"></i> Open Tutor
-                        </button>
-                        <button class="btn btn-sm btn-outline-secondary" onclick="toggleUnits(${book.id})">
-                            <i class="fa fa-chevron-down me-1"></i> Show Units
-                        </button>
-                    </div>
+                <div class="d-flex gap-2 mt-2">
+                    <button class="btn btn-sm btn-outline-primary" onclick="openUnitModal(${book.id})">+ Add Unit</button>
+                    <button class="btn btn-sm btn-outline-success" onclick="redirectToChat(${book.id})">
+                        <i class="fa fa-brain me-1"></i> Open Tutor
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="toggleUnits(${book.id})">
+                        <i class="fa fa-chevron-down me-1"></i> Show Units
+                    </button>
+                </div>
 
-                    <div id="unit-container-${book.id}" class="mt-3 ps-3" style="display:none;"></div>
-                `;
-                bookList.appendChild(card);
-            });
-        })
-        .catch(err => {
-            console.error("Fetch error:", err);
-            bookList.innerHTML = '<p>Error loading books.</p>';
-        });
-}
+                <div id="unit-container-${book.id}" class="mt-3 ps-3" style="display:none;"></div>
+            `;
+                        bookList.appendChild(card);
+                    });
+                })
+                .catch(err => {
+                    console.error("Fetch error:", err);
+                    bookList.innerHTML = '<p>Error loading books.</p>';
+                });
+        }
 
         document.addEventListener('DOMContentLoaded', function() {
             document.getElementById("subjectSelect").addEventListener('change', loadBooks);
+
+            const notification = document.getElementById('notification');
+
         });
+
+        // Show notification
+    function showNotification(message) {
+        notification.textContent = message;
+        notification.classList.add('show');
+        setTimeout(() => {
+            notification.classList.remove('show');
+        }, 2000);
+    }
 
         function redirectToChat(bookId) {
             fetch(`/get-first-lesson?book_id=${bookId}`)
@@ -506,7 +561,8 @@ function loadBooks() {
                             `/virtual-tutor-chat?book_id=${book_id}&unit_id=${unit_id}&chapter_id=${chapter_id}&lesson_id=${lesson_id}`;
                         window.location.href = url;
                     } else {
-                        alert("No lessons found for this book.");
+                        showNotification(`No lessons found for this book.`);
+
                     }
                 });
         }
@@ -538,7 +594,8 @@ function loadBooks() {
                 .then(res => res.json())
                 .then(data => {
                     if (data.status === "success") {
-                        alert("Unit added!");
+                        showNotification(`Unit added!`);
+
                         bootstrap.Modal.getInstance(document.getElementById("addUnitModal")).hide();
                         this.reset();
                         loadUnits(form.get("book_id"));
@@ -559,7 +616,8 @@ function loadBooks() {
                 .then(res => res.json())
                 .then(data => {
                     if (data.status === "success") {
-                        alert("Chapter added!");
+                        showNotification(`Chapter added!`);
+
                         bootstrap.Modal.getInstance(document.getElementById("addChapterModal")).hide();
                         this.reset();
                         loadChapters(form.get("unit_id"));
@@ -658,26 +716,39 @@ function loadBooks() {
         }
 
         document.getElementById("addLessonForm").addEventListener("submit", function(e) {
-            e.preventDefault();
-            const form = new FormData(this);
+    e.preventDefault();
+    const form = new FormData(this);
 
-            fetch("/lessons", {
-                    method: "POST",
-                    headers: {
-                        "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content
-                    },
-                    body: form
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.status === "success") {
-                        alert("Lesson added!");
-                        bootstrap.Modal.getInstance(document.getElementById('addLessonModal')).hide();
-                        this.reset();
-                        loadLessons(form.get("chapter_id"));
-                    }
-                });
-        });
+    fetch("/lessons", {
+        method: "POST",
+        headers: {
+            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: form
+    })
+    .then(async res => {
+        const data = await res.json();
+
+        if (!res.ok || data.status !== "success") {
+            alert(data.message || "Something went wrong.");
+            console.error("FastAPI Error:", data.fastapi_error || data);
+            return;
+        }
+
+        // ✅ Success
+        // alert("Lesson added!");
+            showNotification(`Lesson added!`);
+
+        bootstrap.Modal.getInstance(document.getElementById('addLessonModal')).hide();
+        this.reset();
+        loadLessons(form.get("chapter_id"));
+    })
+    .catch(err => {
+        showNotification(`Unexpected error occurred.`);
+
+        console.error(err);
+    });
+});
     </script>
 
 @endsection

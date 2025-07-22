@@ -73,8 +73,6 @@
             padding: 12px 18px;
             border-radius: 10px;
             transition: background 0.3s ease, color 0.3s ease;
-            white-space: nowrap;
-            overflow: hidden;
         }
 
         .sidebar.collapsed a {
@@ -126,7 +124,9 @@
         body.sidebar-collapsed .content {
             /* margin-left: 70px; */
         }
-        html, body {
+
+        html,
+        body {
             height: 100%;
             margin: 0;
             padding: 0;
@@ -191,6 +191,24 @@
             font-weight: 600;
             border-left: 4px solid #d63384;
         }
+
+        .lesson-wrap {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            padding-right: 12px;
+        }
+
+        .lesson-wrap .lesson-icon {
+            flex-shrink: 0;
+            margin-top: 3px;
+        }
+
+        .lesson-wrap .lesson-text {
+            white-space: normal;
+            word-wrap: break-word;
+            flex: 1;
+        }
     </style>
 </head>
 
@@ -202,50 +220,49 @@
         $currentLessonId = request('lesson_id');
     @endphp
 
-    <!-- Toggle Sidebar Button -->
     <button id="toggleSidebar">☰</button>
 
     <div class="layout">
-        <!-- Sidebar -->
         <div class="sidebar" id="sidebar">
             <h2></h2>
-
             @foreach ($books as $book)
                 <div class="mb-2">
-                    <a href="javascript:void(0);" class="fw-bold {{ $book->id == $currentBookId ? 'glow' : '' }}"
-                        onclick="toggleUnits({{ $book->id }})">
+                    <a href="javascript:void(0);" class="fw-bold {{ $book->id == $currentBookId ? 'glow' : '' }}" onclick="toggleUnits({{ $book->id }})">
                         <i class="bi bi-journal-bookmark"></i>
                         <span class="link-text">{{ $book->title }}</span>
                     </a>
-                    <div id="units-{{ $book->id }}" class="ps-3"
-                        style="{{ $book->id == $currentBookId ? 'display:block;' : 'display:none;' }}">
-                        @php
-                            $units = DB::table('units')->where('book_id', $book->id)->orderBy('unit_number')->get();
-                        @endphp
+                    <div id="units-{{ $book->id }}" class="ps-3" style="{{ $book->id == $currentBookId ? 'display:block;' : 'display:none;' }}">
+                        @php $units = DB::table('units')->where('book_id', $book->id)->orderBy('unit_number')->get(); @endphp
                         @foreach ($units as $unit)
-                            <a href="javascript:void(0);" onclick="toggleChapters({{ $unit->id }})"
-                                class="text-muted d-block ps-3 {{ $unit->id == $currentUnitId ? 'glow' : '' }}">
+                            <a href="javascript:void(0);" onclick="toggleChapters({{ $unit->id }})" class="text-muted d-block ps-3 {{ $unit->id == $currentUnitId ? 'glow' : '' }}">
                                 ▸ Unit {{ $unit->unit_number }}: {{ $unit->title }}
                             </a>
                             <div id="chapters-{{ $unit->id }}" class="ps-4"
                                 style="{{ $unit->id == $currentUnitId ? 'display:block;' : 'display:none;' }}">
                                 @php
-                                    $chapters = DB::table('chapter')->where('unit_id', $unit->id)->orderBy('chapter_number')->get();
+                                    $chapters = DB::table('chapter')
+                                        ->where('unit_id', $unit->id)
+                                        ->orderBy('chapter_number')
+                                        ->get();
                                 @endphp
                                 @foreach ($chapters as $chapter)
-                                    <a href="javascript:void(0);" onclick="toggleLessons({{ $chapter->id }})"
-                                        class="d-block ps-2 text-secondary {{ $chapter->id == $currentChapterId ? 'glow' : '' }}">
+                                    <a href="javascript:void(0);" onclick="toggleLessons({{ $chapter->id }})" class="d-block ps-2 text-secondary {{ $chapter->id == $currentChapterId ? 'glow' : '' }}">
                                         ▹ Chapter {{ $chapter->chapter_number }}: {{ $chapter->chapter_title }}
                                     </a>
                                     <div id="lessons-{{ $chapter->id }}" class="ps-4"
                                         style="{{ $chapter->id == $currentChapterId ? 'display:block;' : 'display:none;' }}">
                                         @php
-                                            $lessons = DB::table('lesson')->where('chapter_id', $chapter->id)->orderBy('lesson_number')->get();
+                                            $lessons = DB::table('lesson')
+                                                ->where('chapter_id', $chapter->id)
+                                                ->orderBy('lesson_number')
+                                                ->get();
                                         @endphp
                                         @foreach ($lessons as $lesson)
-                                            <a href="{{ url('/virtual-tutor-chat') }}?book_id={{ $book->id }}&unit_id={{ $unit->id }}&chapter_id={{ $chapter->id }}&lesson_id={{ $lesson->id }}"
-                                                class="d-block text-muted ps-3 {{ $lesson->id == $currentLessonId ? 'glow' : '' }}">
-                                                📘 Lesson {{ $lesson->lesson_number }}: {{ $lesson->lesson_title }}
+                                            <a href="{{ url('/virtual-tutor-chat') }}?book_id={{ $book->id }}&unit_id={{ $unit->id }}&chapter_id={{ $chapter->id }}&lesson_id={{ $lesson->id }}" class="d-block text-muted ps-3 {{ $lesson->id == $currentLessonId ? 'glow' : '' }}">
+                                                <div class="lesson-wrap">
+                                                    <span class="lesson-icon">📘</span>
+                                                    <span class="lesson-text">Lesson {{ $lesson->lesson_number }}: {{ $lesson->lesson_title }}</span>
+                                                </div>
                                             </a>
                                         @endforeach
                                     </div>
@@ -257,36 +274,30 @@
             @endforeach
         </div>
 
-        <!-- Main Content -->
         <div class="content" id="mainContent">
             @yield('pdf')
         </div>
     </div>
 
-    <!-- Scripts -->
     <script>
         function toggleUnits(bookId) {
             const sidebar = document.getElementById('sidebar');
             const body = document.body;
 
-            // If sidebar is collapsed, expand it first
             if (sidebar.classList.contains('collapsed')) {
                 sidebar.classList.remove('collapsed');
                 body.classList.remove('sidebar-collapsed');
             }
 
-            // Collapse all other books' units
             document.querySelectorAll('[id^="units-"]').forEach(el => {
                 if (el.id !== `units-${bookId}`) {
                     el.style.display = 'none';
                 }
             });
 
-            // Toggle current book's units
             const el = document.getElementById(`units-${bookId}`);
             el.style.display = el.style.display === 'none' ? 'block' : 'none';
         }
-
 
         function toggleChapters(unitId) {
             const el = document.getElementById(`chapters-${unitId}`);
@@ -299,7 +310,7 @@
         }
 
         // Updated toggle logic to collapse all items
-        document.getElementById('toggleSidebar').addEventListener('click', function () {
+        document.getElementById('toggleSidebar').addEventListener('click', function() {
             const sidebar = document.getElementById('sidebar');
             const body = document.body;
 

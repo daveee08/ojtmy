@@ -5,31 +5,94 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title> Sentence Starters Agent</title>
+    <title>Sentence Starters Agent</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 
     {{------------------ Custom Style --------------}}
     <style>
+        :root {
+            --pink: #e91e63;
+            --white: #ffffff;
+            --dark: #191919;
+            --light-grey: #f5f5f5;
+        }
+
+        [data-bs-theme="dark"] {
+            --pink: #f06292;
+            --white: #333333; /* Lightened from #1e1e1e to #333333 for better visibility */
+            --dark: #d0d0d0; /* Lightened from #e0e0e0 to #d0d0d0 for contrast */
+            --light-grey: #444444; /* Adjusted to a slightly lighter gray */
+        }
+
         body {
             font-family: 'Poppins', sans-serif;
+            background: var(--white);
+            color: var(--dark);
         }
+
         .text-highlight {
-            color: #ec008c;
+            color: var(--pink);
             font-weight: 700;
         }
+
         .form-label {
-            color: #333;
+            color: var(--dark);
             font-weight: 600;
         }
+
         .btn-primary {
-            background-color: #ec008c;
-            border-color: #ec008c;
+            background-color: var(--pink);
+            border-color: var(--pink);
         }
+
         .btn-primary:hover {
             background-color: #c30074;
             border-color: #c30074;
         }
+
+        .card {
+            background-color: var(--white);
+            border: 1px solid var(--light-grey);
+        }
+
+        .bg-light {
+            background-color: var(--light-grey) !important;
+        }
+
+        .btn-outline-secondary {
+            color: var(--dark);
+            border-color: var(--light-grey);
+        }
+
+        .btn-outline-secondary:hover {
+            background-color: var(--light-grey);
+            color: var(--pink);
+        }
+
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        [data-bs-theme="dark"] .alert-danger {
+            background-color: #2c2c2c;
+            color: #f06292;
+        }
+
+        /* Style for new Clear Form button */
+        .btn-clear {
+            background-color: #6c757d;
+            border-color: #6c757d;
+            color: var(--white);
+        }
+
+        .btn-clear:hover {
+            background-color: #5a6268;
+            border-color: #5a6268;
+        }
+
+       
     </style>
 </head>
 <body>
@@ -57,44 +120,45 @@
 
                 <div class="mb-3">
                     <label for="topic" class="form-label">Describe what you're learning about (be specific):</label>
-                   <textarea class="form-control" name="topic" id="topic" rows="4" required>{{ old('topic', $old['topic'] ?? '') }}</textarea>
+                    <textarea class="form-control" name="topic" id="topic" rows="4" required>{{ old('topic', $old['topic'] ?? '') }}</textarea>
                 </div>
 
-                <div class="d-grid d-md-flex justify-content-md-end">
+                <div class="d-grid d-md-flex justify-content-md-end mb-3">
+                    <button type="button" id="clearBtn" class="btn btn-clear me-2">Clear Form</button>
                     <button type="submit" id="submitBtn" class="btn btn-primary">
                         <span id="btnText">Generate Starters</span>
                         <span id="btnSpinner" class="spinner-border spinner-border-sm d-none ms-2" role="status" aria-hidden="true"></span>
                     </button>
                 </div>
             </form>
-             {{-- ---------------- Output ---------------- --}}   
+            {{-- ---------------- Output ---------------- --}}   
             @if(isset($sentence_starters) && is_array($sentence_starters) && count($sentence_starters))
-    <div class="mt-5">
-        <h5 class="text-highlight">Sentence Starters:</h5>
+                <div class="mt-5">
+                    <h5 class="text-highlight">Sentence Starters:</h5>
 
-        @foreach($sentence_starters as $sentence)
-            <div class="d-flex justify-content-between align-items-start bg-light p-3 mb-3 rounded shadow-sm position-relative border border-1">
-                <p class="mb-0 me-3 flex-grow-1" style="word-break: break-word;">{{ $sentence }}</p>
-                <button onclick="copyToClipboard(this)" class="btn btn-sm btn-outline-secondary" title="Copy">
-                    📋
-                </button>
-            </div>
-        @endforeach
+                    {{-- @foreach($sentence_starters as $sentence)
+                        <div class="d-flex justify-content-between align-items-start bg-light p-3 mb-3 rounded shadow-sm position-relative border border-1">
+                            <p class="mb-0 me-3 flex-grow-1" style="word-break: break-word;">{{ $sentence }}</p>
+                            <button onclick="copyToClipboard(this)" class="btn btn-sm btn-outline-secondary" title="Copy">
+                                📋
+                            </button>
+                        </div>
+                    @endforeach --}}
 
-        {{-- One Follow-Up Box --}}
-        <form action="{{ route('sentencestarter.followup') }}" method="POST" class="mt-4">
-            @csrf
-            <input type="hidden" name="message_id" value="{{ $message_id ?? '' }}">
-            <input type="hidden" name="grade_level" value="{{ old('grade_level', $old['grade_level'] ?? 'college') }}">
+                    {{-- One Follow-Up Box --}}
+                    {{-- <form action="{{ route('sentencestarter.followup') }}" method="POST" class="mt-4">
+                        @csrf
+                        <input type="hidden" name="message_id" value="{{ $message_id ?? '' }}">
+                        <input type="hidden" name="grade_level" value="{{ old('grade_level', $old['grade_level'] ?? 'college') }}">
 
-            <label for="followup" class="form-label">Ask a follow-up question about the topic or one of the starters:</label>
-            <div class="input-group">
-                <input type="text" name="followup" id="followup" class="form-control" placeholder="Enter your follow-up question here..." required>
-                <button type="submit" class="btn btn-outline-primary">Ask</button>
-            </div>
-        </form>
-    </div>
-@endif
+                        <label for="followup" class="form-label">Ask a follow-up question about the topic or one of the starters:</label>
+                        <div class="input-group">
+                            <input type="text" name="followup" id="followup" class="form-control" placeholder="Enter your follow-up question here..." required>
+                            <button type="submit" class="btn btn-outline-primary">Ask</button>
+                        </div>
+                    </form> --}}
+                </div>
+            @endif
 
             {{-- ---------------- Error ---------------- --}}
             @if($errors->has('error'))
@@ -107,7 +171,7 @@
 </div>
 
 {{-- ------------ Loading Overlay ------------ --}}
-<div id="loadingOverlay" class="position-fixed top-0 start-0 w-100 h-100 d-flex d-none justify-content-center align-items-center bg-white bg-opacity-75" style="z-index: 9999;">
+<div id="loadingOverlay" class="position-fixed top-0 start-0 w-100 h-100 d-flex d-none justify-content-center align-items-center bg-white bg-opacity-75" style="z-index: 9999;" data-bs-theme="light">
     <div class="text-center">
         <div class="spinner-border text-highlight mb-3" role="status" style="width: 3rem; height: 3rem;"></div>
         <div class="fw-semibold text-highlight">Generating sentence starters...</div>
@@ -122,14 +186,20 @@
         document.getElementById('btnSpinner').classList.remove('d-none');
         document.getElementById('loadingOverlay').classList.remove('d-none');
     }
-    /*    * Copy text to clipboard */
-    function copyToClipboard(btn) {
-        const sentence = btn.parentElement.querySelector('p').innerText;
-        navigator.clipboard.writeText(sentence).then(() => {
-            btn.innerText = '✅';
-            setTimeout(() => btn.innerText = '📋', 1500);
-        });
-    }
+
+    // function copyToClipboard(btn) {
+    //     const sentence = btn.parentElement.querySelector('p').innerText;
+    //     navigator.clipboard.writeText(sentence).then(() => {
+    //         btn.innerText = '✅';
+    //         setTimeout(() => btn.innerText = '📋', 1500);
+    //     });
+    // }
+
+    // Clear Form functionality
+    document.getElementById('clearBtn').addEventListener('click', () => {
+        document.getElementById('grade_level').value = '';
+        document.getElementById('topic').value = '';
+    });
 </script>
 </body>
 </html>

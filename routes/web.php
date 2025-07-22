@@ -146,17 +146,19 @@ Route::post('/quizme/evaluate-answer', 'App\Http\Controllers\QuizMe\QuizmeContro
 Route::post('/quizme/chat', 'App\Http\Controllers\QuizMe\QuizmeController@chat');
 
 // ✅ Qoutes of the Day
-Route::get('/qotd', [QOTDController::class, 'showForm']);
+Route::get('/qotd', [QOTDController::class, 'showForm'])->name('qotd.form'); // ADDED name('qotd.form') here
 Route::post('/qotd', [QOTDController::class, 'generateQuote']);
 Route::post('/qotd/download', [QOTDController::class, 'downloadQuote'])->name('qotd.download');
+// NEW: Route for QOTD history/session display
+Route::get('/qotd/history/{message_id}', [QOTDController::class, 'showQuoteHistory'])->name('qotd.history');
 
 // ✅ Tongue Twister
 Route::get('/tonguetwister', [TongueTwistController::class, 'showForm']);
 Route::post('/tonguetwister', [TongueTwistController::class, 'processForm']);
 
 // ✅ Teacher Jokes
-Route::get('/teacherjokes', [TeacherJokesController::class, 'showForm'])->name('teacherjokes.form');
-Route::post('/teacherjokes', [TeacherJokesController::class, 'generateJoke'])->name('teacherjokes.generate');
+Route::get('/teacher-jokes', [TeacherJokesController::class, 'index'])->name('teacherjokes.index');
+Route::post('/teacher-jokes/generate', [TeacherJokesController::class, 'generateJoke'])->name('teacherjokes.generate');
 
 // ✅ Coach Sports Practice
 Route::get('/coachsportprac', [CoachSportsPracController::class, 'showForm']);

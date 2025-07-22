@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>CK Quiz Me!</title>
+    <title>CK Teacher Jokes!</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous" />
     <style>
@@ -140,7 +140,7 @@
     <!-- Header -->
     <nav class="navbar navbar-expand-lg navbar-light fixed-top navbar-custom">
         <div class="container-fluid px-4">
-            <a class="navbar-brand" href="#">CK Quiz Me!</a>
+            <a class="navbar-brand" href="#">CK Teacher Jokes!</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                 aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -173,11 +173,11 @@
 
     <!-- Main Content -->
     <div class="container">
-        <div class="section-title text-center">CK Quiz Me!</div>
+        <div class="section-title text-center">CK Teacher Jokes!</div>
         <div class="row">
             <div class="col-md-12 mb-4">
                 <div class="p-4 rounded shadow-sm bg-white tool-item">
-                    <form id="twisterForm" method="POST" action="/tonguetwister">
+                        <form method="POST" action="{{ route('teacherjokes.generate') }}" id="teacherjokesForm">
                         @csrf
                         <div class="mb-3">
                             <label for="topic" class="form-label">Topic:</label>
@@ -206,7 +206,7 @@
                                 <option value="Professional">Professional</option>
                             </select>
                         </div>
-                        <button type="submit" class="btn btn-pink">Generate Tongue Twister</button>
+                        <button type="submit" class="btn btn-pink">Generate Teacher Joke</button>
                         <button type="button" class="btn btn-info ms-2" id="loadExemplarBtn">Load Example</button>
                         <button type="button"
                             class="d-flex align-items-center ms-2"
@@ -222,8 +222,11 @@
                     </form>
 
                     <!-- Response alert (example placeholder) -->
-                    @if ($response)
-                    <div class="alert alert-success mt-4">{{ $response }}</div>
+                    @if(session('response'))
+                        <div class="alert alert-success mt-4">
+                            <strong>Here's your joke:</strong>
+                            <p>{{ session('response') }}</p>
+                         </div>
                     @endif
                 </div>
             </div>
@@ -268,7 +271,7 @@
             const quizSummary = document.getElementById('quiz-summary');
             const revealAnswersBtn = document.getElementById('reveal-answers-btn');
             const loadingOverlay = document.getElementById('loadingOverlay');
-            const twisterForm = document.getElementById('twisterForm');
+            const teacherjokesForm = document.getElementById('teacherjokesForm');
 
             function startInteractiveQuiz(quizQuestions, session_id) {
                 questions = quizQuestions;
@@ -322,7 +325,7 @@
             };
 
             revealAnswersBtn.onclick = function () {
-                fetch('/quizme/reveal-answers', {
+                fetch('/teacherjokes/reveal-answers', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ session_id: sessionId })
@@ -334,7 +337,7 @@
                             answersHtml += `<li>Q${i + 1}: ${q.question}<br><b>Answer:</b> ${q.answer}</li>`;
                         });
                         answersHtml += '</ul>';
-                        quizSummary.innerHTML = answersHtml;
+                        teacherjokesSummary.innerHTML = answersHtml;
                     });
             };
 
@@ -349,7 +352,7 @@
             });
 
             // Show loading overlay on form submit
-            twisterForm.addEventListener('submit', () => {
+            teacherjokesForm.addEventListener('submit', () => {
                 loadingOverlay.classList.remove('d-none');
             });
 

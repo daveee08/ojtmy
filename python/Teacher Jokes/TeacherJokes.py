@@ -82,7 +82,7 @@ async def generate_joke_api(form: JokeFormInput = Depends(JokeFormInput.as_form)
     try:
         print("Received form:", form.dict())
 
-        llm = OllamaLLM(model="gemma:2b")
+        llm = OllamaLLM(model="llama3")
         customization = f"Make it about: {form.additional_customization}." if form.additional_customization else ""
         raw = (prompt_template | llm).invoke({
             "grade_level": form.grade_level,

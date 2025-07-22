@@ -121,6 +121,18 @@
             width: 100%;
         }
 
+        body.sidebar-collapsed .content {
+            /* margin-left: 70px; */
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+
         .layout {
             display: flex;
             height: 100vh;
@@ -225,14 +237,26 @@
                             <a href="javascript:void(0);" onclick="toggleChapters({{ $unit->id }})" class="text-muted d-block ps-3 {{ $unit->id == $currentUnitId ? 'glow' : '' }}">
                                 ▸ Unit {{ $unit->unit_number }}: {{ $unit->title }}
                             </a>
-                            <div id="chapters-{{ $unit->id }}" class="ps-4" style="{{ $unit->id == $currentUnitId ? 'display:block;' : 'display:none;' }}">
-                                @php $chapters = DB::table('chapter')->where('unit_id', $unit->id)->orderBy('chapter_number')->get(); @endphp
+                            <div id="chapters-{{ $unit->id }}" class="ps-4"
+                                style="{{ $unit->id == $currentUnitId ? 'display:block;' : 'display:none;' }}">
+                                @php
+                                    $chapters = DB::table('chapter')
+                                        ->where('unit_id', $unit->id)
+                                        ->orderBy('chapter_number')
+                                        ->get();
+                                @endphp
                                 @foreach ($chapters as $chapter)
                                     <a href="javascript:void(0);" onclick="toggleLessons({{ $chapter->id }})" class="d-block ps-2 text-secondary {{ $chapter->id == $currentChapterId ? 'glow' : '' }}">
                                         ▹ Chapter {{ $chapter->chapter_number }}: {{ $chapter->chapter_title }}
                                     </a>
-                                    <div id="lessons-{{ $chapter->id }}" class="ps-4" style="{{ $chapter->id == $currentChapterId ? 'display:block;' : 'display:none;' }}">
-                                        @php $lessons = DB::table('lesson')->where('chapter_id', $chapter->id)->orderBy('lesson_number')->get(); @endphp
+                                    <div id="lessons-{{ $chapter->id }}" class="ps-4"
+                                        style="{{ $chapter->id == $currentChapterId ? 'display:block;' : 'display:none;' }}">
+                                        @php
+                                            $lessons = DB::table('lesson')
+                                                ->where('chapter_id', $chapter->id)
+                                                ->orderBy('lesson_number')
+                                                ->get();
+                                        @endphp
                                         @foreach ($lessons as $lesson)
                                             <a href="{{ url('/virtual-tutor-chat') }}?book_id={{ $book->id }}&unit_id={{ $unit->id }}&chapter_id={{ $chapter->id }}&lesson_id={{ $lesson->id }}" class="d-block text-muted ps-3 {{ $lesson->id == $currentLessonId ? 'glow' : '' }}">
                                                 <div class="lesson-wrap">
@@ -285,7 +309,8 @@
             el.style.display = el.style.display === 'none' ? 'block' : 'none';
         }
 
-        document.getElementById('toggleSidebar').addEventListener('click', function () {
+        // Updated toggle logic to collapse all items
+        document.getElementById('toggleSidebar').addEventListener('click', function() {
             const sidebar = document.getElementById('sidebar');
             const body = document.body;
 

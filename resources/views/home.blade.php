@@ -114,7 +114,7 @@
         border-radius: 12px;
         max-width: 500px;
         width: 100%;
-        box-shadow: 0 8px 20px rgba(190, 157, 157, 0.1);
+        box-shadow: 0 8px 20px rgba(17, 16, 16, 0.1);
     }
 
     .form-toggle {

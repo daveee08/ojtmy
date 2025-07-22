@@ -257,6 +257,30 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #e91e63;
+            color: #fff;
+            padding: 12px 24px; /* Slightly larger padding for better appearance */
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            z-index: 10000; /* Increased z-index to ensure it appears above all elements */
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .notification.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0)
+        }
+
     </style>
 
 @endsection
@@ -269,6 +293,8 @@
             {{ $errors->first('message') }}
         </div>
     @endif
+    <div id="notification" class="notification"></div>
+
     <div class="container">
         <div class="hero">
             <h1>Welcome to CK Virtual Tutor</h1>
@@ -435,17 +461,21 @@
                 .then(res => res.json())
                 .then(res => {
                     if (res.status === 'success') {
-                        alert("Book added successfully!");
+                        // alert("Book added successfully!");
+                        showNotification(`Book added successfully!`);
+
                         document.getElementById("uploadForm").reset();
                         bootstrap.Modal.getInstance(document.getElementById('uploadModal')).hide();
                         loadBooks(); // Reload books
                     } else {
-                        alert("Error adding book.");
+                        showNotification(`Error adding book.`);
+
                     }
                 })
                 .catch(err => {
                     console.error(err);
-                    alert("Something went wrong.");
+                    showNotification(`Something went wrong.`);
+
                 });
         });
 
@@ -502,7 +532,19 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             document.getElementById("subjectSelect").addEventListener('change', loadBooks);
+
+            const notification = document.getElementById('notification');
+
         });
+
+        // Show notification
+    function showNotification(message) {
+        notification.textContent = message;
+        notification.classList.add('show');
+        setTimeout(() => {
+            notification.classList.remove('show');
+        }, 2000);
+    }
 
         function redirectToChat(bookId) {
             fetch(`/get-first-lesson?book_id=${bookId}`)
@@ -519,7 +561,8 @@
                             `/virtual-tutor-chat?book_id=${book_id}&unit_id=${unit_id}&chapter_id=${chapter_id}&lesson_id=${lesson_id}`;
                         window.location.href = url;
                     } else {
-                        alert("No lessons found for this book.");
+                        showNotification(`No lessons found for this book.`);
+
                     }
                 });
         }
@@ -551,7 +594,8 @@
                 .then(res => res.json())
                 .then(data => {
                     if (data.status === "success") {
-                        alert("Unit added!");
+                        showNotification(`Unit added!`);
+
                         bootstrap.Modal.getInstance(document.getElementById("addUnitModal")).hide();
                         this.reset();
                         loadUnits(form.get("book_id"));
@@ -572,7 +616,8 @@
                 .then(res => res.json())
                 .then(data => {
                     if (data.status === "success") {
-                        alert("Chapter added!");
+                        showNotification(`Chapter added!`);
+
                         bootstrap.Modal.getInstance(document.getElementById("addChapterModal")).hide();
                         this.reset();
                         loadChapters(form.get("unit_id"));
@@ -691,13 +736,16 @@
         }
 
         // ✅ Success
-        alert("Lesson added!");
+        // alert("Lesson added!");
+            showNotification(`Lesson added!`);
+
         bootstrap.Modal.getInstance(document.getElementById('addLessonModal')).hide();
         this.reset();
         loadLessons(form.get("chapter_id"));
     })
     .catch(err => {
-        alert("Unexpected error occurred.");
+        showNotification(`Unexpected error occurred.`);
+
         console.error(err);
     });
 });

@@ -215,6 +215,7 @@
         quizToggle.addEventListener('click', () => {
             quizSection.classList.add('open');
             quizToggle.style.display = 'none';
+            toggleButton.style.display = 'none';
         });
 
         closeQuizButton.addEventListener('click', () => {

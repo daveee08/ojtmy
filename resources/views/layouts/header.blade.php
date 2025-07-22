@@ -1,19 +1,23 @@
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
 
-    :root {
-        --pink: #e91e63;
-        --white: #ffffff;
-        --dark: #191919;
-        --light-grey: #f5f5f5;
-    }
+    /* :root {
+            --pink: #e91e63;
+            --white: #ffffff;
+            --dark: #191919;
+            --light-grey: #f5f5f5;
+        } */
 
-    [data-bs-theme="dark"] {
-        --pink: #f06292;
-        --white: #333333; /* Lightened from #1e1e1e to #333333 for better visibility */
-        --dark: #d0d0d0; /* Lightened from #e0e0e0 to #d0d0d0 for contrast */
-        --light-grey: #444444; /* Adjusted to a slightly lighter gray */
-    }
+        [data-bs-theme="dark"] {
+            --pink: #d61f5c; /* Lighter pink for dark mode */
+            --white: #1e1e1e; /* Dark background */
+            --dark: #e0e0e0; /* Light text for dark mode */
+            --light-grey: #1e1e1e; /* Darker grey for backgrounds */
+            --filter-border:#5f5f5f;
+            --filter-background:#1e1e1e;
+            --tooltip-color:#ff0a4b;
+        }
+
 
     a {
         text-decoration: none;

@@ -1,180 +1,205 @@
 @extends('layouts.bootstrap')
 @extends('layouts.header')
 @extends('layouts.navbaragent')
-@section('content')
-@section('title', '5 Questions Agent') 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>5 Question Agent</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 
-<div id="loading-overlay">
-  <div class="spinner-border" role="status" style="width: 2.5rem; height: 2.5rem;" aria-hidden="true">
-    <span class="visually-hidden">Loading...</span>
-  </div>
-  <p class="mt-3 text-center fw-semibold" style="color: #ec008c;">Please wait...</p>
-</div>
+    {{------------------ Custom Style --------------}}
+    <style>
+        :root {
+            --pink: #e91e63;
+            --white: #ffffff;
+            --dark: #191919;
+            --light-grey: #f5f5f5;
+        }
 
-<style>
-  body {
-    background-color: #f5f7fa;
-    font-family: 'Poppins', sans-serif; /* Changed to match proofreader */
-  }
+        [data-bs-theme="dark"] {
+            --pink: #f06292;
+            --white: #333333; /* Lightened from #1e1e1e to #333333 for better visibility */
+            --dark: #d0d0d0; /* Lightened from #e0e0e0 to #d0d0d0 for contrast */
+            --light-grey: #444444; /* Adjusted to a slightly lighter gray */
+        }
 
-  .ck-card {
-    background: #ffffff;
-    border-radius: 14px;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06); /* Matches proofreader shadow */
-    padding: 40px;
-    border: none;
-  }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--white);
+            color: var(--dark);
+        }
 
-  .ck-title {
-    font-size: 1.9rem;
-    font-weight: 600;
-    color: #ec008c; /* Standardized to match proofreader .text-highlight */
-    text-align: center;
-    margin-bottom: 30px;
-  }
+        .text-highlight {
+            color: var(--pink);
+            font-weight: 700;
+        }
 
-  .ck-btn {
-    background-color: #ec008c; /* Matches proofreader .btn-primary */
-    color: white;
-    border: none;
-    padding: 12px 24px;
-    font-size: 15px;
-    font-weight: 500;
-    border-radius: 8px;
-    transition: all 0.25s ease;
-  }
+        .form-label {
+            color: var(--dark);
+            font-weight: 600;
+        }
 
-  .ck-btn:hover {
-    background-color: #c30074; /* Matches proofreader .btn-primary:hover */
-  }
+        .btn-primary {
+            background-color: var(--pink);
+            border-color: var(--pink);
+        }
 
-  .form-control {
-    border-radius: 8px;
-    font-size: 15px;
-  }
+        .btn-primary:hover {
+            background-color: #c30074;
+            border-color: #c30074;
+        }
 
-  .form-control:focus {
-    border-color: #ec008c; /* Matches proofreader focus border */
-    box-shadow: 0 0 0 0.2rem rgba(236, 41, 139, 0.2); /* Adjusted to match proofreader shadow color */
-  }
+        .card {
+            background-color: var(--white);
+            border: 1px solid var(--light-grey);
+        }
 
-  /* Specific styles for this page's content, maintaining the look */
-  .ck-card .text-muted {
-    font-size: 0.95rem;
-  }
+        .bg-light {
+            background-color: var(--light-grey) !important;
+        }
 
-  /* Styles for the loading overlay */
-  #loading-overlay {
-    display: none; /* Initially hidden */
-    position: fixed;
-    inset: 0;
-    background-color: rgba(255, 255, 255, 0.8);
-    z-index: 9999;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-  }
+        .btn-outline-secondary {
+            color: var(--dark);
+            border-color: var(--light-grey);
+        }
 
-  /* Style for generated questions, adapting the alert-success */
-  .alert-success .ck-title-small {
-    font-size: 1.25rem; /* Adjusted size for sub-title */
-    font-weight: 600;
-    color: #ec008c; /* Matches proofreader .text-highlight */
-  }
+        .btn-outline-secondary:hover {
+            background-color: var(--light-grey);
+            color: var(--pink);
+        }
 
-  .alert-success ol {
-      padding-left: 20px;
-  }
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
 
-  .alert-success ol li {
-      margin-bottom: 8px;
-      line-height: 1.6;
-  }
-</style>
+        [data-bs-theme="dark"] .alert-danger {
+            background-color: #2c2c2c;
+            color: #f06292;
+        }
 
-<div class="container py-5">
-  <div class="row justify-content-center">
-    <div class="col-md-10 col-lg-8">
-      <div class="ck-card">
-        <h2 class="ck-title">🧠 5 Questions Agent</h2>
-        <p class="text-muted text-center mb-4">
-            Use AI to ask you 5 questions to push your thinking on any topic or idea.
-        </p>
+        /* Style for new Clear Form button */
+        .btn-clear {
+            background-color: #6c757d;
+            border-color: #6c757d;
+            color: var(--white);
+        }
 
-        <form action="{{ route('fivequestions.process') }}" method="POST" id="questionForm">
-            @csrf
+        .btn-clear:hover {
+            background-color: #5a6268;
+            border-color: #5a6268;
+        }
 
-            <div class="mb-3">
-                <label for="grade_level" class="form-label">Select Grade Level</label>
-                <select class="form-select" name="grade_level" id="grade_level" required>
-                    <option value="">-- Choose --</option>
-                    <option value="kindergarten" {{ old('grade_level') == 'kindergarten' ? 'selected' : '' }}>Kindergarten</option>
-                    <option value="elementary" {{ old('grade_level') == 'elementary' ? 'selected' : '' }}>Elementary</option>
-                    <option value="junior_high" {{ old('grade_level') == 'junior_high' ? 'selected' : '' }}>Junior High</option>
-                    <option value="senior_high" {{ old('grade_level') == 'senior_high' ? 'selected' : '' }}>Senior High</option>
-                    <option value="college" {{ old('grade_level') == 'college' ? 'selected' : '' }}>College</option>
-                </select>
-                @error('grade_level')
-                    <small class="text-danger">{{ $message }}</small>
-                @enderror
-            </div>
+       
+    </style>
+</head>
+<body>
+<div class="container my-5">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h2 class="text-center text-highlight mb-3">🧠 5 Questions Agent</h2>
+            <p class="text-muted text-center mb-4">Use AI to ask you 5 questions to push your thinking on any topic or idea.</p>
 
-            <div class="mb-3">
-                <label for="topic" class="form-label">Ask me questions to push my thinking about:</label>
-                <textarea class="form-control" name="topic" id="topic" rows="4" placeholder="e.g. The importance of recycling..." required>{{ old('topic') }}</textarea>
-                @error('topic')
-                    <small class="text-danger">{{ $message }}</small>
-                @enderror
-            </div>
+            {{-- ---------------- Form ---------------- --}}
+            <form action="{{ route('sentencestarter.process') }}" method="POST" id="starterForm" onsubmit="showLoading()">
+                @csrf
 
-            <div class="text-center mt-4">
-                <button type="submit" id="submitBtn" class="ck-btn">
-                    <span id="btnText">Generate</span>
-                    <span id="btnSpinner" class="spinner-border spinner-border-sm d-none ms-2" role="status" aria-hidden="true"></span>
-                </button>
-            </div>
-        </form>
+                <div class="mb-3">
+                    <label for="grade_level" class="form-label">Select Grade Level:</label>
+                    <select class="form-select" name="grade_level" id="grade_level" required>
+                        <option value="">-- Choose --</option>
+                        <option value="kindergarten" {{ old('grade_level', $old['grade_level'] ?? '') === 'kindergarten' ? 'selected' : '' }}>Kindergarten</option>
+                        <option value="elementary" {{ old('grade_level', $old['grade_level'] ?? '') === 'elementary' ? 'selected' : '' }}>Elementary</option>
+                        <option value="junior high" {{ old('grade_level', $old['grade_level'] ?? '') === 'junior high' ? 'selected' : '' }}>Junior High</option>
+                        <option value="senior high" {{ old('grade_level', $old['grade_level'] ?? '') === 'senior high' ? 'selected' : '' }}>Senior High</option>
+                        <option value="college" {{ old('grade_level', $old['grade_level'] ?? '') === 'college' ? 'selected' : '' }}>College</option>
+                    </select>
+                </div>
 
-        @if(isset($questions))
-            <div class="alert alert-success mt-4">
-                <h5 class="ck-title-small">Here are your 5 AI-generated questions:</h5>
-                <ol>
-                    @foreach($questions as $q)
-                        <li>{{ $q }}</li>
-                    @endforeach
-                </ol>
-            </div>
-        @endif
+                <div class="mb-3">
+                    <label for="topic" class="form-label">Ask me questions to push my thinking about:</label>
+                    <textarea class="form-control" name="topic" id="topic" rows="4" required>{{ old('topic', $old['topic'] ?? '') }}</textarea>
+                </div>
 
-        @if($errors->has('error'))
-            <div class="alert alert-danger mt-4">
-                {{ $errors->first('error') }}
-            </div>
-        @endif
-      </div>
+                <div class="d-grid d-md-flex justify-content-md-end mb-3">
+                    <button type="button" id="clearBtn" class="btn btn-clear me-2">Clear Form</button>
+                    <button type="submit" id="submitBtn" class="btn btn-primary">
+                        <span id="btnText">Generate Questions</span>
+                        <span id="btnSpinner" class="spinner-border spinner-border-sm d-none ms-2" role="status" aria-hidden="true"></span>
+                    </button>
+                </div>
+            </form>
+            {{-- ---------------- Output ---------------- --}}   
+            @if(isset($sentence_starters) && is_array($sentence_starters) && count($sentence_starters))
+                <div class="mt-5">
+                    <h5 class="text-highlight">5 Questions:</h5>
+
+                    {{-- @foreach($sentence_starters as $sentence)
+                        <div class="d-flex justify-content-between align-items-start bg-light p-3 mb-3 rounded shadow-sm position-relative border border-1">
+                            <p class="mb-0 me-3 flex-grow-1" style="word-break: break-word;">{{ $sentence }}</p>
+                            <button onclick="copyToClipboard(this)" class="btn btn-sm btn-outline-secondary" title="Copy">
+                                📋
+                            </button>
+                        </div>
+                    @endforeach --}}
+
+                    {{-- One Follow-Up Box --}}
+                    {{-- <form action="{{ route('sentencestarter.followup') }}" method="POST" class="mt-4">
+                        @csrf
+                        <input type="hidden" name="message_id" value="{{ $message_id ?? '' }}">
+                        <input type="hidden" name="grade_level" value="{{ old('grade_level', $old['grade_level'] ?? 'college') }}">
+
+                        <label for="followup" class="form-label">Ask a follow-up question about the topic or one of the starters:</label>
+                        <div class="input-group">
+                            <input type="text" name="followup" id="followup" class="form-control" placeholder="Enter your follow-up question here..." required>
+                            <button type="submit" class="btn btn-outline-primary">Ask</button>
+                        </div>
+                    </form> --}}
+                </div>
+            @endif
+
+            {{-- ---------------- Error ---------------- --}}
+            @if($errors->has('error'))
+                <div class="alert alert-danger mt-4">
+                    {{ $errors->first('error') }}
+                </div>
+            @endif
+        </div>
     </div>
-  </div>
 </div>
 
+{{-- ------------ Loading Overlay ------------ --}}
+<div id="loadingOverlay" class="position-fixed top-0 start-0 w-100 h-100 d-flex d-none justify-content-center align-items-center bg-white bg-opacity-75" style="z-index: 9999;" data-bs-theme="light">
+    <div class="text-center">
+        <div class="spinner-border text-highlight mb-3" role="status" style="width: 3rem; height: 3rem;"></div>
+        <div class="fw-semibold text-highlight">Generating Five Questions...</div>
+    </div>
+</div>
+
+ {{-- ------------ Script------------ --}}
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const form = document.getElementById('questionForm');
-        const submitBtn = document.getElementById('submitBtn');
-        const btnText = document.getElementById('btnText');
-        const btnSpinner = document.getElementById('btnSpinner');
-        const loadingOverlay = document.getElementById('loading-overlay');
+    function showLoading() {
+        document.getElementById('submitBtn').disabled = true;
+        document.getElementById('btnText').textContent = 'Generating...';
+        document.getElementById('btnSpinner').classList.remove('d-none');
+        document.getElementById('loadingOverlay').classList.remove('d-none');
+    }
 
-        form.addEventListener('submit', function () {
-            loadingOverlay.style.display = 'flex';
-            submitBtn.disabled = true;
-            btnText.textContent = 'Generating...';
-            btnSpinner.classList.remove('d-none');
-        });
+    // function copyToClipboard(btn) {
+    //     const sentence = btn.parentElement.querySelector('p').innerText;
+    //     navigator.clipboard.writeText(sentence).then(() => {
+    //         btn.innerText = '✅';
+    //         setTimeout(() => btn.innerText = '📋', 1500);
+    //     });
+    // }
 
-        window.addEventListener('load', function() {
-            loadingOverlay.style.display = 'none';
-        });
+    // Clear Form functionality
+    document.getElementById('clearBtn').addEventListener('click', () => {
+        document.getElementById('grade_level').value = '';
+        document.getElementById('topic').value = '';
     });
 </script>
-
-@endsection
+</body>
+</html>

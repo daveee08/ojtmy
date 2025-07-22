@@ -1,73 +1,126 @@
-from fastapi import FastAPI
-from pydantic import BaseModel, ConfigDict
-from langchain_ollama import OllamaLLM
-from langchain.prompts import PromptTemplate
-import re
+from fastapi import FastAPI, Form, Depends
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel
+from typing import Optional
+import re, os, sys, traceback
 
-app = FastAPI()
+# path setup
+current_script_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.join(current_script_dir, '..', '..')
+sys.path.insert(0, project_root)
 
-class JokeRequest(BaseModel):
-    model_config = ConfigDict(extra='ignore')
-    grade_level: str
-    additional_customization: str | None = None
+# optional db utilities
+try:
+    from python.chat_router_final import chat_router
+    from python.db_utils_final import create_session_and_parameter_inputs, insert_message
+except ImportError:
+    chat_router = None
+    create_session_and_parameter_inputs = None
+    insert_message = None
+
+# fastapi
+app = FastAPI(debug=True)
+if chat_router:
+    app.include_router(chat_router)
+
+from langchain_ollama import OllamaLLM
+from langchain_core.prompts import PromptTemplate
+
+app.add_middleware(
+    CORSMiddleware := __import__('fastapi.middleware.cors', fromlist=['CORSMiddleware']).CORSMiddleware,
+    allow_origins=["*"], allow_methods=["*"], allow_headers=["*"]
+)
+
+# in-memory history demo
+joke_sessions: dict[str, list[str]] = {}
 
 def _clean_ai_output(text: str) -> str:
-    cleaned_text = text.strip()
-    # Remove any leading/trailing whitespace
-    cleaned_text = cleaned_text.strip()
-
-    # Remove common conversational intros like "Sure, here's a joke:", "Here's a joke for you:", etc.
-    intro_patterns = [
-        r"^Sure,\s*here\'?s\s*a\s*joke\s*for\s*you:?\s*",
-        r"^Here\'?s\s*a\s*joke:?\s*",
-        r"^Joke:?\s*",
-        r"^Alright,\s*here\'?s\s*a\s*joke:?\s*",
-        r"^Why\s*did\s*the\s*\w+\s*\w+\s*\w+\s*\w+.*?\s*",
+    cleaned = text.strip()
+    patterns = [
+        r"^Sure,\s*here\'?s\s*a\s*joke:?\s*", r"^Here\'?s\s*a\s*joke:?\s*",
+        r"^Joke:?\s*", r"^Alright,\s*here\'?s\s*a\s*joke:?\s*"
     ]
-    for pattern in intro_patterns:
-        cleaned_text = re.sub(pattern, '', cleaned_text, flags=re.IGNORECASE | re.DOTALL).strip()
+    for pat in patterns:
+        cleaned = re.sub(pat, '', cleaned, flags=re.IGNORECASE)
+    cleaned = cleaned.replace('**', '').replace('##', '')
+    cleaned = re.sub(r'\n\n.*?\[.*\]\n*$', '', cleaned, flags=re.IGNORECASE|re.DOTALL)
+    return cleaned.strip()
 
-    # Remove any markdown characters (e.g., **, ##)
-    cleaned_text = cleaned_text.replace('**', '').replace('##', '')
-    
-    # Remove anything that looks like a tag or unwanted phrase at the end
-    cleaned_text = re.sub(r'\n\n.*?\[.*\]\n*$', '', cleaned_text, flags=re.IGNORECASE | re.DOTALL).strip()
-    cleaned_text = re.sub(r'\n\n.*?(Joke|Question|Answer):.*', '', cleaned_text, flags=re.IGNORECASE | re.DOTALL).strip()
+# Prompt template
+prompt_template = PromptTemplate(
+    input_variables=["grade_level", "customization"],
+    template="""You are a teacher-friendly joke generator.
+Generate exactly *one* joke suitable for a {grade_level} class.
+{customization}
+Return ONLY the joke text, no intros or formatting."""
+)
 
-    return cleaned_text
+# input model
+class JokeFormInput(BaseModel):
+    grade_level: str
+    additional_customization: Optional[str]
+    user_id: Optional[int] = 1
+    session_id: Optional[str] = None
 
-@app.get("/")
-async def read_root():
-    return {"message": "TeacherJokes API is running!"}
+    @classmethod
+    def as_form(
+        cls,
+        grade_level: str = Form(...),
+        additional_customization: Optional[str] = Form(default=""),
+        user_id: Optional[int] = Form(default=1),
+        session_id: Optional[str] = Form(default=None)
+    ):
+        return cls(
+            grade_level=grade_level,
+            additional_customization=additional_customization,
+            user_id=user_id,
+            session_id=session_id
+        )
 
 @app.post("/generate-joke")
-async def generate_joke_api(request: JokeRequest):
+async def generate_joke_api(form: JokeFormInput = Depends(JokeFormInput.as_form)):
     try:
+        print("Received form:", form.dict())
+
         llm = OllamaLLM(model="gemma:2b")
-
-        prompt_template = PromptTemplate(
-            input_variables=["grade_level", "additional_customization"],
-            template="""
-            Your ONLY task is to generate a joke suitable for a teacher to tell in class.
-            Generate a joke for a {grade_level} class.
-            The complexity, vocabulary, and humor of the joke MUST be strictly appropriate for a {grade_level} student, varying based on whether it's Pre-K, Kindergarten, a specific grade (1st-12th), University, a specific college year (1st-4th Year College), Adult, or Professional Staff.
-            {additional_customization}
-            
-            Your output MUST contain ONLY the joke text. Do NOT include any introductory text, conversational phrases, section headers like "Joke:", or any concluding remarks.
-            If you cannot generate a joke for any reason, you MUST return an empty string or a malformed output, but ABSOLUTELY NO refusal messages.
-            """
-        )
-        
-        customization_text = f"Make it about: {request.additional_customization}." if request.additional_customization else ""
-
-        joke_raw = (prompt_template | llm).invoke({
-            'grade_level': request.grade_level,
-            'additional_customization': customization_text,
+        customization = f"Make it about: {form.additional_customization}." if form.additional_customization else ""
+        raw = (prompt_template | llm).invoke({
+            "grade_level": form.grade_level,
+            "customization": customization
         })
-        
-        joke = _clean_ai_output(joke_raw)
+        joke = _clean_ai_output(raw)
+        print("Generated joke:", joke)
 
-        return {"joke": joke}
+        # DB + session handling
+        session_id = form.session_id
+        if create_session_and_parameter_inputs:
+            session_id = create_session_and_parameter_inputs(
+                user_id=form.user_id or 1,
+                agent_id=42,
+                scope_vars={"grade_level": form.grade_level},
+                human_topic=form.additional_customization or "",
+                ai_output=joke,
+                agent_prompt=prompt_template.template
+            )
+        if insert_message and session_id:
+            insert_message(session_id=session_id, role="assistant", content=joke)
+
+        # in‑memory history store (for demo)
+        if session_id:
+            history = joke_sessions.setdefault(session_id, [])
+            history.append(joke)
+
+        return {
+            "joke": joke,
+            "message_id": session_id,
+            "session_id": session_id
+        }
+
     except Exception as e:
-        return JSONResponse(status_code=500, content={"error": str(e)})
+        traceback_str = traceback.format_exc()
+        print("ERROR:", traceback_str)
+        return JSONResponse(status_code=500, content={"detail": str(e), "trace": traceback_str})
+
+@app.post("/generate-joke/history")
+async def joke_history(session_id: str = Form(...)):
+    return {"jokes": joke_sessions.get(session_id, [])}

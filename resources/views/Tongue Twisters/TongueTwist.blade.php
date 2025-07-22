@@ -56,6 +56,30 @@
         #clearInputsBtn:active {
             color: #ad1457 !important;
         }
+        .btn-pink {
+            background-color: #e91e63 !important;
+            color: #fff !important;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            padding: 0.5rem 2rem;
+            transition: 0.3s;
+        }
+        .btn-pink:hover {
+            background-color: #d81b60 !important;
+        }
+        .twister-result {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #e91e63;
+            background: #fff3f8;
+            border-radius: 12px;
+            padding: 32px 24px;
+            text-align: center;
+            margin-top: 32px;
+            box-shadow: 0 2px 12px rgba(233, 30, 99, 0.08);
+            word-break: break-word;
+        }
     </style>
 </head>
 <body>
@@ -128,7 +152,9 @@
                         </button>
                     </form>
                     @if (isset($response) && $response)
-                        <div class="alert alert-success mt-4">{{ $response }}</div>
+                        <div class="twister-result mt-4">
+                            {{ $response }}
+                        </div>
                     @endif
                 </div>
             </div>

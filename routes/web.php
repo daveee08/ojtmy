@@ -13,7 +13,7 @@ use App\Http\Controllers\TutorController;
 use App\Http\Controllers\TextLeveler\LevelerController;
 use App\Http\Controllers\InformationalTexts\InformationalController;
 use App\Http\Controllers\Quoteoftheday\QOTDController;
-use App\Http\Controllers\TongueTwist\TongueTwistController;
+use App\Http\Controllers\TongueTwister\TongueTwistController;
 use App\Http\Controllers\TeacherJokes\TeacherJokesController;
 use App\Http\Controllers\Coachsportpractice\CoachSportsPracController;
 use App\Http\Controllers\BookSuggestionController;
@@ -155,8 +155,8 @@ Route::get('/tonguetwister', [TongueTwistController::class, 'showForm']);
 Route::post('/tonguetwister', [TongueTwistController::class, 'processForm']);
 
 // ✅ Teacher Jokes
-Route::get('/teacherjokes', [TeacherJokesController::class, 'showForm']);
-Route::post('/teacherjokes', [TeacherJokesController::class, 'generateJoke']);
+Route::get('/teacherjokes', [TeacherJokesController::class, 'showForm'])->name('teacherjokes.form');
+Route::post('/teacherjokes', [TeacherJokesController::class, 'generateJoke'])->name('teacherjokes.generate');
 
 // ✅ Coach Sports Practice
 Route::get('/coachsportprac', [CoachSportsPracController::class, 'showForm']);

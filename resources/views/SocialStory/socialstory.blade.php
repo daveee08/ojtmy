@@ -1,9 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Social Story Generator</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+@extends('layouts.bootstrap')
+@extends('layouts.header')
+@extends('layouts.navbaragent')
+
+@section('content')
     <style>
         body {
             background-color: #f4f7fb;
@@ -11,43 +11,56 @@
         }
 
         .ck-card {
-            background-color: #fff;
-            border-radius: 12px;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
-            padding: 40px;
-            border: 1px solid #e4e8f0;
-        }
-
-        .ck-btn {
-            background-color: #EC298B;
-            color: #fff;
+            background-color: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.06);
+            padding: 50px 40px;
             border: none;
-            padding: 12px 28px;
-            border-radius: 6px;
-            font-weight: 600;
-            font-size: 16px;
-        }
-
-        .ck-btn:hover {
-            background-color: #d32078;
         }
 
         .ck-title {
-            font-size: 1.8rem;
-            font-weight: 600;
+            font-size: 2rem;
+            font-weight: 700;
+            color: #EC298B;
             text-align: center;
             margin-bottom: 10px;
         }
 
         .ck-sub {
             text-align: center;
-            margin-bottom: 25px;
             color: #666;
+            font-size: 1rem;
+            margin-bottom: 30px;
+        }
+
+        .ck-btn {
+            background-color: #EC298B;
+            color: #fff;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        .ck-btn:hover {
+            background-color: #d32078;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 14px rgba(236, 41, 139, 0.15);
         }
 
         select,
         textarea {
-            border-radius: 8px;
+            border-radius: 10px !important;
+            font-size: 15px;
+            padding: 12px 15px;
+        }
+
+        textarea:focus,
+        select:focus {
+            border-color: #EC298B;
+            box-shadow: 0 0 0 0.2rem rgba(236, 41, 139, 0.1);
         }
 
         /* Spinner Overlay */
@@ -71,24 +84,31 @@
 
         .loading-text {
             margin-top: 1rem;
-            font-weight: bold;
+            font-weight: 600;
             color: #EC298B;
         }
 
         pre {
             background: #f8f9fa;
-            padding: 1rem;
-            border-radius: 8px;
+            padding: 1.5rem;
+            border-radius: 12px;
             white-space: pre-wrap;
+            font-size: 15px;
+            line-height: 1.7;
+        }
+
+        .alert {
+            border-radius: 10px;
         }
     </style>
-</head>
-<body>
 
 <!-- Loading Spinner -->
+<!-- Loading Overlay -->
 <div id="loading-overlay">
-    <div class="spinner-border" role="status"></div>
-    <div class="loading-text">Generating your story...</div>
+  <div class="spinner-border text-pink" role="status" style="width: 2.8rem; height: 2.8rem;">
+    <span class="visually-hidden">Loading...</span>
+  </div>
+  <p class="mt-3 fw-semibold" style="color:#EC298B;">Just a moment...</p>
 </div>
 
 <div class="container py-5">
@@ -101,8 +121,8 @@
                 <form method="POST" action="{{ route('socialstory.generate') }}" onsubmit="showLoading()">
                     @csrf
 
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Grade level: <span class="text-danger">*</span></label>
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Grade Level <span class="text-danger">*</span></label>
                         <select class="form-select" name="grade_level" required>
                             <option disabled selected>Select a grade level</option>
                             @foreach([
@@ -116,8 +136,8 @@
                         </select>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Describe the situation: <span class="text-danger">*</span></label>
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Describe the Situation <span class="text-danger">*</span></label>
                         <textarea class="form-control" name="situation" rows="4" placeholder="e.g. First day at a new school, giving a speech, office orientation…" required>{{ old('situation') }}</textarea>
                     </div>
 
@@ -127,13 +147,13 @@
                 </form>
 
                 @if(session('story'))
-                <hr class="my-4">
-                <h5 class="fw-bold" style="color:#EC298B;">Generated Story:</h5>
-                <pre class="mt-3">{{ session('story') }}</pre>
+                    <hr class="my-4">
+                    <h5 class="fw-bold" style="color:#EC298B;">Generated Story:</h5>
+                    <pre class="mt-3">{{ session('story') }}</pre>
                 @endif
 
                 @if(session('error'))
-                    <div class="alert alert-danger mt-3">{{ session('error') }}</div>
+                    <div class="alert alert-danger mt-4">{{ session('error') }}</div>
                 @endif
             </div>
         </div>
@@ -145,5 +165,5 @@
         document.getElementById('loading-overlay').style.display = 'flex';
     }
 </script>
-</body>
-</html>
+
+@endsection

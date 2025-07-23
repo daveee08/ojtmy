@@ -14,7 +14,7 @@ class SocialStoryController extends Controller
     public function fetchUserSessions()
     {
         $userId = Auth::id();
-        $response = Http::get("http://localhost:5001/sessions/$userId");
+        $response = Http::get("http://127.0.0.1:8021//sessions/$userId");
         return response()->json($response->json());
     }
     public function showForm()
@@ -38,7 +38,7 @@ class SocialStoryController extends Controller
         ];
 
         try {
-            $response = Http::asMultipart()->post('http://127.0.0.1:5001/generate-socialstory', $multipartData);
+            $response = Http::asMultipart()->post('http://127.0.0.1:8021/generate-socialstory', $multipartData);
 
             if ($response->failed()) {
             logger()->error('FastAPI Leveler error', ['body' => $response->body()]);

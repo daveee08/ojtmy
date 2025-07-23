@@ -12,17 +12,19 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 # from db_utils import insert_message, insert_dynamic_parameter_input, insert_session
 from db_utils_final import create_session_and_parameter_inputs
+from chat_router_final import chat_router
 from typing import Optional
 
 
 app = FastAPI(debug=True)
-
+# --- FastAPI App Initialization ---
+app.include_router(chat_router)
 
 # === CORS setup ===
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_methods=["POST"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 

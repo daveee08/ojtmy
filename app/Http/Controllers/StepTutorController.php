@@ -21,7 +21,7 @@ class StepTutorController extends Controller
     public function fetchUserSessions()
     {
         $userId = Auth::id();
-        $response = Http::get("http://localhost:5001/sessions/$userId");
+        $response = Http::get("http://127.0.0.1:8020/sessions/$userId");
         return response()->json($response->json());
     }
     public function showForm()
@@ -31,6 +31,8 @@ class StepTutorController extends Controller
 
     public function processForm(Request $request)
     {
+
+        set_time_limit(0);
         // Only validate topic, not grade_level
         $validated = $request->validate([
             'topic' => 'nullable|string',
@@ -45,7 +47,7 @@ class StepTutorController extends Controller
 
         $response = Http::timeout(0)
             ->asMultipart()
-            ->post('http://127.0.0.1:5002/explain_step_by_step', $multipartData);
+            ->post('http://127.0.0.1:8020/explain_step_by_step', $multipartData);
 
         if ($response->failed()) {
             logger()->error('FastAPI Leveler error', ['body' => $response->body()]);

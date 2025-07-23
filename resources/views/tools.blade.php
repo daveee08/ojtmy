@@ -1,3 +1,4 @@
+
 @extends('layouts.header')
 @extends('layouts.navbar')
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -323,7 +324,7 @@
             </a>
 
             {{-- Text Summarizer --}}
-            <a href="http://127.0.0.1:5001/summarize" target="_blank" class="tool-card-link" data-tool-id="text-summarizer">
+            <a href="http://127.0.0.1:8000/summarize" target="_blank" class="tool-card-link" data-tool-id="text-summarizer">
                 <div class="tool-card" data-category="reading writing">
                     <span class="tool-card-favorite" data-tool-id="text-summarizer"><i class="fas fa-star"></i></span>
                     <div class="tool-card-content">
@@ -339,7 +340,7 @@
             </a>
 
             {{-- Conceptual Understanding --}}
-            <a href="https://tse4.mm.bing.net/th/id/OIP.eEW3EGenj4Djze7zv31PKAHaLG?rs=1&pid=ImgDetMain&o=7&rm=3"
+            <a href="http://127.0.0.1:8000/tutor"
                 target="_blank" class="tool-card-link" data-tool-id="conceptual-understanding">
                 <div class="tool-card" data-category="reading study">
                     <span class="tool-card-favorite" data-tool-id="conceptual-understanding"><i class="fas fa-star"></i></span>
@@ -438,7 +439,7 @@
             </a>
 
             {{-- Step by Step --}}
-            <a href="http://127.0.0.1:5001/step-tutor" target="_blank" class="tool-card-link" data-tool-id="step-by-step">
+            <a href="http://localhost:8000/step-tutor" target="_blank" class="tool-card-link" data-tool-id="step-by-step">
                 <div class="tool-card" data-category="study">
                     <span class="tool-card-favorite" data-tool-id="step-by-step"><i class="fas fa-star"></i></span>
                     <div class="tool-card-content">
@@ -503,7 +504,7 @@
             </a>
 
             {{-- Text Translator --}}
-            <a href="https://tse4.mm.bing.net/th/id/OIP.eEW3EGenj4Djze7zv31PKAHaLG?rs=1&pid=ImgDetMain&o=7&rm=3"
+            <a href="http://127.0.0.1:8000/translator"
                 target="_blank" class="tool-card-link" data-tool-id="text-translator">
                 <div class="tool-card" data-category="reading">
                     <span class="tool-card-favorite" data-tool-id="text-translator"><i class="fas fa-star"></i></span>
@@ -570,7 +571,7 @@
             </a>
 
             {{-- Email Writer --}}
-            <a href="http://127.0.0.1:5001/5questions" target="_blank" class="tool-card-link" data-tool-id="email-writer">
+            <a href="http://127.0.0.1:8000/email-writer" target="_blank" class="tool-card-link" data-tool-id="email-writer">
                 <div class="tool-card" data-category="writing">
                     <span class="tool-card-favorite" data-tool-id="email-writer"><i class="fas fa-star"></i></span>
                     <div class="tool-card-content">
@@ -618,7 +619,7 @@
             </a>
 
             {{-- Thank You Note --}}
-            <a href="http://127.0.0.1:8001/generate-thankyou" target="_blank" class="tool-card-link" data-tool-id="thank-you-note">
+            <a href="http://127.0.0.1:8000/thankyou-note" target="_blank" class="tool-card-link" data-tool-id="thank-you-note">
                 <div class="tool-card" data-category="writing creative">
                     <span class="tool-card-favorite" data-tool-id="thank-you-note"><i class="fas fa-star"></i></span>
                     <div class="tool-card-content">
@@ -731,7 +732,7 @@
             </a>
 
             {{-- Character Chatbot --}}
-            <a href="http://127.0.0.1:5001/mathreview" target="_blank" class="tool-card-link" data-tool-id="character-chatbot">
+            <a href="http://127.0.0.1:8000/characterchat" target="_blank" class="tool-card-link" data-tool-id="character-chatbot">
                 <div class="tool-card" data-category="reading creative">
                     <span class="tool-card-favorite" data-tool-id="character-chatbot"><i class="fas fa-star"></i></span>
                     <div class="tool-card-content">
@@ -747,7 +748,7 @@
             </a>
 
             {{-- Idea Generator --}}
-            <a href="http://127.0.0.1:5001/mathreview" target="_blank" class="tool-card-link" data-tool-id="idea-generator">
+            <a href="http://127.0.0.1:8000/idea-generator" target="_blank" class="tool-card-link" data-tool-id="idea-generator">
                 <div class="tool-card" data-category="creative">
                     <span class="tool-card-favorite" data-tool-id="idea-generator"><i class="fas fa-star"></i></span>
                     <div class="tool-card-content">
@@ -763,7 +764,7 @@
             </a>
 
             {{-- Content Creator --}}
-            <a href="http://127.0.0.1:5001/mathreview" target="_blank" class="tool-card-link" data-tool-id="content-creator">
+            <a href="http://127.0.0.1:8000/contentcreator" target="_blank" class="tool-card-link" data-tool-id="content-creator">
                <div class="tool-card" data-category="writing creative">
                     <span class="tool-card-favorite" data-tool-id="content-creator"><i class="fas fa-star"></i></span>
                     <div class="tool-card-content">
@@ -779,7 +780,7 @@
             </a>
 
             {{-- Social Stories --}}
-            <a href="http://127.0.0.1:5001/mathreview" target="_blank" class="tool-card-link" data-tool-id="social-stories">
+            <a href="http://127.0.0.1:8000/socialstory" target="_blank" class="tool-card-link" data-tool-id="social-stories">
                 <div class="tool-card" data-category="reading creative">
                     <span class="tool-card-favorite" data-tool-id="social-stories"><i class="fas fa-star"></i></span>
                     <div class="tool-card-content">

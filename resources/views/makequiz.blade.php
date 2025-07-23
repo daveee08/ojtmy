@@ -5,7 +5,9 @@
     <meta charset="UTF-8">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>CK Virtual Tutor</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -155,9 +157,10 @@
                 <i class="fas fa-times"></i>
             </button>
         </div>
+
         <div class="chatbot-body" id="quiz-body">
             <div class="quiz-question-block">
-                <label for="quiz-type" style="font-weight: bold;">Quiz Type / Format:</label>
+                <label for="quiz-type"><strong>Quiz Type / Format:</strong></label>
                 <select id="quiz-type">
                     <option value="multiple choice">Multiple Choice</option>
                     <option value="true or false">True or False</option>
@@ -167,12 +170,12 @@
             </div>
 
             <div class="quiz-question-block">
-                <label for="num-questions" style="font-weight: bold;">Number of Questions:</label>
+                <label for="num-questions"><strong>Number of Questions:</strong></label>
                 <input type="number" id="num-questions" min="1" max="50" value="5">
             </div>
 
             <div class="quiz-question-block">
-                <label for="difficulty" style="font-weight: bold;">Difficulty Level:</label>
+                <label for="difficulty"><strong>Difficulty Level:</strong></label>
                 <select id="difficulty">
                     <option value="easy">Easy</option>
                     <option value="medium">Medium</option>
@@ -181,12 +184,12 @@
             </div>
 
             <div class="quiz-question-block">
-                <label for="grade-level" style="font-weight: bold;">Target Grade / Learner Level:</label>
+                <label for="grade-level"><strong>Target Grade / Learner Level:</strong></label>
                 <input type="text" id="grade-level" placeholder="e.g. Grade 6, High School">
             </div>
 
             <div class="quiz-question-block">
-                <label for="include-answers" style="font-weight: bold;">Include Answer Key:</label>
+                <label for="include-answers"><strong>Include Answer Key:</strong></label>
                 <select id="include-answers">
                     <option value="true">Yes</option>
                     <option value="false">No</option>
@@ -203,112 +206,149 @@
     </div>
 
     <script>
-        const quizToggle = document.querySelector('.quiz-toggle');
-        const quizSection = document.querySelector('.chatbot-quiz-section');
-        const closeQuizButton = document.querySelector('.chatbot-close-quiz');
-        const submitButton = document.getElementById('submit-quiz-btn');
-        const submitText = document.getElementById('submitText');
-        const loadingSpinner = document.getElementById('loadingSpinner');
-        const quizFooter = document.getElementById('quiz-footer');
-        const quizBody = document.getElementById('quiz-body');
+        const qs = (s) => document.querySelector(s);
+        const qsa = (s) => document.querySelectorAll(s);
+        const [quizSection, quizToggle, quizFooter, quizBody, submitBtn, submitText, spinner] = [
+            '.chatbot-quiz-section', '.quiz-toggle', '#quiz-footer', '#quiz-body', '#submit-quiz-btn', '#submitText',
+            '#loadingSpinner'
+        ].map(qs);
 
-        quizToggle.addEventListener('click', () => {
+        const bookId = "{{ request('book_id', 1) }}";
+        const unitId = "{{ request('unit_id', 1) }}";
+        const chapterId = "{{ request('chapter_id', 1) }}";
+
+        quizToggle.onclick = () => {
             quizSection.classList.add('open');
             quizToggle.style.display = 'none';
-            toggleButton.style.display = 'none';
-        });
+        };
 
-        closeQuizButton.addEventListener('click', () => {
+        qs('.chatbot-close-quiz').onclick = () => {
             quizSection.classList.remove('open');
             quizToggle.style.display = 'block';
-            toggleButton.style.display = 'block';
-        });
+        };
 
-        submitButton.addEventListener('click', async () => {
-            // Show loading
-            submitButton.disabled = true;
+        const fetchQuizCheck = () =>
+            fetch('http://localhost:5001/quiz-check', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    book_id: +bookId,
+                    chapter_number: +chapterId
+                })
+            }).then(res => res.json());
+
+        const displayQuiz = (quiz) => {
+            qsa('.quiz-question-block').forEach(b => b.style.display = 'none');
+            const msg = document.createElement('div');
+            msg.className = 'ai-message';
+            msg.innerHTML = marked.parse(quiz);
+
+            quizBody.appendChild(msg);
+            quizFooter.innerHTML = `
+            <button id="restart-btn" style="flex:1; background:#2196F3; color:white; border:none; padding:10px 16px; border-radius:6px; cursor:pointer;">
+                <i class="fas fa-rotate-left"></i> Restart
+            </button>
+            <button id="download-btn" style="flex:1; background:#4CAF50; color:white; border:none; padding:10px 16px; border-radius:6px; cursor:pointer;">
+                <i class="fas fa-download"></i> Download PDF
+            </button>`;
+
+            qs('#restart-btn').onclick = async () => {
+                try {
+                    await fetch('http://localhost:5001/delete-quiz', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            book_id: +bookId,
+                            chapter_number: +chapterId
+                        })
+                    });
+                } catch (err) {
+                    console.error("❌ Error deleting quiz:", err);
+                    alert("❌ Error deleting quiz.");
+                } finally {
+                    quizBody.innerHTML = '';
+                    location.reload();
+                }
+            };
+
+            qs('#download-btn').onclick = () => {
+                const quizContent = qs('.ai-message');
+                if (!quizContent) return alert("❌ No quiz to download.");
+
+                const opt = {
+                    margin: 0.5,
+                    filename: 'quiz.pdf',
+                    image: {
+                        type: 'jpeg',
+                        quality: 0.98
+                    },
+                    html2canvas: {
+                        scale: 2
+                    },
+                    jsPDF: {
+                        unit: 'in',
+                        format: 'letter',
+                        orientation: 'portrait'
+                    }
+                };
+
+                html2pdf().set(opt).from(quizContent).save();
+            };
+        };
+
+        submitBtn.onclick = async () => {
+            submitBtn.disabled = true;
             submitText.textContent = 'Generating...';
-            loadingSpinner.style.display = 'inline-block';
+            spinner.style.display = 'inline-block';
 
-            const quizType = document.getElementById('quiz-type').value;
-            const numQuestions = parseInt(document.getElementById('num-questions').value);
-            const difficulty = document.getElementById('difficulty').value;
-            const gradeLevel = document.getElementById('grade-level').value;
-            const includeAnswers = document.getElementById('include-answers').value === 'true';
-
-            const bookId = "{{ request('book_id') ?? 1 }}";
-            const unitId = "{{ request('unit_id') ?? 1 }}";
-            const chapterId = "{{ request('chapter_id') ?? 1 }}";
+            const data = {
+                quiz_type: qs('#quiz-type').value,
+                number_of_questions: +qs('#num-questions').value,
+                difficulty_level: qs('#difficulty').value,
+                grade_level: qs('#grade-level').value,
+                answer_key: qs('#include-answers').value === 'true',
+                book_id: bookId,
+                unit_id: unitId,
+                chapter_id: chapterId
+            };
 
             try {
-                const response = await fetch(`/generate-quiz`, {
+                const check = await fetchQuizCheck();
+                if (check.quiz) return displayQuiz(check.quiz);
+
+                const res = await fetch('/generate-quiz', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        'X-CSRF-TOKEN': qs('meta[name="csrf-token"]').content
                     },
-                    body: JSON.stringify({
-                        quiz_type: quizType,
-                        number_of_questions: numQuestions,
-                        difficulty_level: difficulty,
-                        grade_level: gradeLevel,
-                        answer_key: includeAnswers,
-                        book_id: bookId,
-                        unit_id: unitId,
-                        chapter_id: chapterId
-                    })
+                    body: JSON.stringify(data)
                 });
 
-                const result = await response.json();
-
-                submitButton.disabled = false;
-                submitText.textContent = 'Generate Quiz';
-                loadingSpinner.style.display = 'none';
-
-                if (!response.ok || !result.quiz) {
-                    alert("❌ Failed to generate quiz.");
-                    return;
-                }
-
-                document.querySelectorAll('.quiz-question-block').forEach(block => block.style.display =
-                    'none');
-
-                const message = document.createElement('div');
-                message.className = 'ai-message';
-                message.innerHTML = Array.isArray(result.quiz) ?
-                    result.quiz.map(q =>
-                        `<div>${q.question}${q.answer ? `<br><strong>Answer:</strong> ${q.answer}` : ''}</div>`)
-                    .join('<hr>') :
-                    result.quiz;
-                quizBody.appendChild(message);
-
-                quizFooter.innerHTML = `
-                    <button id="restart-btn" style="flex:1; background:#2196F3; color:white; border:none; padding:10px 16px; border-radius:6px; cursor:pointer;">
-                        <i class="fas fa-rotate-left"></i> Restart
-                    </button>
-                    <button id="download-btn" style="flex:1; background:#4CAF50; color:white; border:none; padding:10px 16px; border-radius:6px; cursor:pointer;">
-                        <i class="fas fa-download"></i> Download PDF
-                    </button>
-                `;
-
-                document.getElementById('restart-btn').addEventListener('click', () => {
-                    document.querySelectorAll('.quiz-question-block').forEach(block => block.style
-                        .display = 'block');
-                    message.remove();
-                    quizFooter.innerHTML = '';
-                    quizFooter.appendChild(submitButton);
-                });
-
-                document.getElementById('download-btn').addEventListener('click', () => {
-                    alert("📥 PDF download feature coming soon.");
-                });
+                const result = await res.json();
+                if (!res.ok || !result.quiz) return alert("❌ Failed to generate quiz.");
+                displayQuiz(result.quiz);
 
             } catch (err) {
-                console.error('❌ JS Error generating quiz:', err);
+                console.error('❌ Error:', err);
                 alert("❌ Error generating quiz.");
-                submitButton.disabled = false;
+            } finally {
+                submitBtn.disabled = false;
                 submitText.textContent = 'Generate Quiz';
-                loadingSpinner.style.display = 'none';
+                spinner.style.display = 'none';
+            }
+        };
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const check = await fetchQuizCheck();
+                if (check.quiz?.message) displayQuiz(check.quiz.message);
+            } catch (err) {
+                console.error("❌ Error checking quiz:", err);
             }
         });
     </script>

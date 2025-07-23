@@ -13,11 +13,7 @@ use App\Http\Controllers\TutorController;
 use App\Http\Controllers\TextLeveler\LevelerController;
 use App\Http\Controllers\InformationalTexts\InformationalController;
 use App\Http\Controllers\Quoteoftheday\QOTDController;
-<<<<<<< HEAD
 use App\Http\Controllers\TongueTwister\TongueTwistController;
-=======
-use App\Http\Controllers\TongueTwist\TongueTwistController;
->>>>>>> 074e8dffacfbb9951b315ed18c886c8ce4f55b18
 use App\Http\Controllers\TeacherJokes\TeacherJokesController;
 use App\Http\Controllers\Coachsportpractice\CoachSportsPracController;
 use App\Http\Controllers\BookSuggestionController;
@@ -150,30 +146,19 @@ Route::post('/quizme/evaluate-answer', 'App\Http\Controllers\QuizMe\QuizmeContro
 Route::post('/quizme/chat', 'App\Http\Controllers\QuizMe\QuizmeController@chat');
 
 // ✅ Qoutes of the Day
-<<<<<<< HEAD
 Route::get('/qotd', [QOTDController::class, 'showForm'])->name('qotd.form'); // ADDED name('qotd.form') here
 Route::post('/qotd', [QOTDController::class, 'generateQuote']);
 Route::post('/qotd/download', [QOTDController::class, 'downloadQuote'])->name('qotd.download');
 // NEW: Route for QOTD history/session display
 Route::get('/qotd/history/{message_id}', [QOTDController::class, 'showQuoteHistory'])->name('qotd.history');
-=======
-Route::get('/qotd', [QOTDController::class, 'showForm']);
-Route::post('/qotd', [QOTDController::class, 'generateQuote']);
-Route::post('/qotd/download', [QOTDController::class, 'downloadQuote'])->name('qotd.download');
->>>>>>> 074e8dffacfbb9951b315ed18c886c8ce4f55b18
 
 // ✅ Tongue Twister
 Route::get('/tonguetwister', [TongueTwistController::class, 'showForm']);
 Route::post('/tonguetwister', [TongueTwistController::class, 'processForm']);
 
 // ✅ Teacher Jokes
-<<<<<<< HEAD
 Route::get('/teacher-jokes', [TeacherJokesController::class, 'index'])->name('teacherjokes.index');
 Route::post('/teacher-jokes/generate', [TeacherJokesController::class, 'generateJoke'])->name('teacherjokes.generate');
-=======
-Route::get('/teacherjokes', [TeacherJokesController::class, 'showForm']);
-Route::post('/teacherjokes', [TeacherJokesController::class, 'generateJoke']);
->>>>>>> 074e8dffacfbb9951b315ed18c886c8ce4f55b18
 
 // ✅ Coach Sports Practice
 Route::get('/coachsportprac', [CoachSportsPracController::class, 'showForm']);

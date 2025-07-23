@@ -525,22 +525,12 @@
                 <option value="Grade 1">Grade 1</option>
                 <option value="Grade 2">Grade 2</option>
                 <option value="Grade 3">Grade 3</option>
-                <option value="Grade 3">Grade 3</option>
-                <option value="Grade 4">Grade 4</option>
-                <option value="Grade 5">Grade 5</option>
-                <option value="Grade 6">Grade 6</option>
-                <option value="Grade 7">Grade 7</option>
-                <option value="Grade 8">Grade 8</option>
-                <option value="Grade 9">Grade 9</option>
-                <option value="Grade 10">Grade 10</option>
-                <option value="Grade 11">Grade 11</option>
-                <option value="Grade 12">Grade 12</option>
             </select>
             {{-- A Font Awesome icon for dropdown arrow can be added here or via pseudo-element in CSS if JS handles it.
                  For now, CSS `appearance: none;` prepares the select for a custom arrow.
                  Example (requires JS to toggle classes): <i class="fas fa-chevron-down dropdown-arrow-icon"></i> --}}
             @auth
-            @if (auth()->user()->role ==='teacher')    
+            @if (auth()->user()->role ==='teacher')  
             <button class="btn btn-primary rounded-circle d-flex align-items-center justify-content-center"
                 style="width: 44px; height: 44px;" data-bs-toggle="modal" data-bs-target="#uploadModal" title="Add Book">
                 <i class="fas fa-plus"></i>
@@ -602,7 +592,6 @@
                         <input type="text" name="title" placeholder="Unit Title" class="form-control mb-2" required>
                         <input type="number" name="unit_number" placeholder="Unit Number" class="form-control mb-2"
                             required>
-                            
                         <button type="submit" class="btn btn-primary">Add Unit</button>
                     </div>
                 </form>
@@ -626,6 +615,11 @@
         </div>
 
         <div class="modal fade" id="addLessonModal" tabindex="-1" aria-hidden="true">
+            @if ($errors->any())
+                <div class="alert alert-danger">
+                    {{ $errors->first('message') }}
+                </div>
+            @endif
             <div class="modal-dialog">
                 <form id="addLessonForm" enctype="multipart/form-data">
                     <div class="modal-content p-3">
@@ -640,7 +634,7 @@
                             <input type="file" class="form-control" id="pdfFile" name="pdf_file"
                                 accept="application/pdf" required>
                         </div>
-                        <button type="submit" class="btn btn-primary" >Add Lesson</button>
+                        <button type="submit" class="btn btn-primary">Add Lesson</button>
                     </div>
                 </form>
             </div>
@@ -732,7 +726,7 @@
                         <h5>${book.title}</h5>
                         <p>${book.description}</p>
                         <div class="book-actions mt-3 d-flex justify-content-between align-items-center">
-                            <button class="btn btn-sm btn-add-unit" onclick="event.stopPropagation(); openUnitModal(${book.id})" style="{{ auth()->user()->role !== 'teacher' ? 'visibility: hidden;' : '' }}">>
+                            <button class="btn btn-sm btn-add-unit" onclick="event.stopPropagation(); openUnitModal(${book.id})" style="{{ auth()->user()->role !== 'teacher' ? 'visibility: hidden;' : '' }}">
                                 <i class="fas fa-plus-circle me-1"></i> Add Unit
                             </button>
                             <button class="btn btn-sm btn-open-tutor" onclick="event.stopPropagation(); redirectToChat(${book.id})">
@@ -873,7 +867,7 @@
                         unitDiv.innerHTML = `
                             <div class="d-flex align-items-center mb-2">
                                 <i class="text-primary"></i> <strong>Unit ${unit.unit_number}:</strong> ${unit.title}
-                                <button class="btn btn-sm btn-outline-info ms-auto" onclick="event.stopPropagation(); openChapterModal(${unit.id})" style="{{ auth()->user()->role !== 'teacher' ? 'visibility: hidden;' : '' }}">>
+                                <button class="btn btn-sm btn-outline-info ms-auto" onclick="event.stopPropagation(); openChapterModal(${unit.id})" style="{{ auth()->user()->role !== 'teacher' ? 'visibility: hidden;' : '' }}">
                                     <i class="fas fa-plus-circle me-1"></i> Add Chapter
                                 </button>
                                 <span class="ms-3 toggle-span" onclick="event.stopPropagation(); toggleVisibility('${unitId}', this)">

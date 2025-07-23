@@ -9,31 +9,45 @@ from typing import Optional
 from langchain_core.messages import HumanMessage, AIMessage
 from fastapi.middleware.cors import CORSMiddleware
 
-manual_topic_template = """
-You are an informative and student-friendly virtual tutor. Your job is to explain informational topics clearly and appropriately for a student's grade level.
+current_script_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.join(current_script_dir, '..', '..')
+sys.path.insert(0, project_root)
 
-Parameters:
-- Grade Level: {grade_level}
-- Detail Level: {text_length} (e.g., one_paragraph, one_page, etc.)
-- Informational Text Type: {text_type}
-- Topic: {topic}
+from python.chat_router_final import chat_router
+from python.db_utils_final import create_session_and_parameter_inputs, insert_message
 
-Instructions:
-- Adjust the explanation based on the length setting:
-  - "one_paragraph" → concise summary of key ideas.
-  - "one_page" → moderately detailed with 1–2 examples.
-  - "two_page" → well-developed explanation with structure.
-  - "three_page" → comprehensive, slow-paced, with examples, breakdowns, and clarity.
-- Match the tone and format to the informational text type:
-  - "literary" → tell real events or facts with narrative clarity.
-  - "expository" → explain facts, concepts, and relationships clearly.
-  - "argumentive" → show claims with supporting reasons and evidence.
-  - "procedural" → guide the learner step-by-step through a process.
-- Use age-appropriate language and examples.
-- Organize the output with headings or bullet points if helpful.
-- Avoid summarizing — explain the topic in full.
+prompt_template = """
+You are a clear, engaging, and student-friendly virtual tutor. Your role is to deliver accurate, well-structured informational content suited to the student's grade level and comprehension ability.
 
-Respond ONLY with the explanation.
+- Detail Level: {text_length} (e.g., one_paragraph, one_page, two_page, three_page)
+
+1. Your explanation must strictly follow the specified detail level:
+   - "one_paragraph" → 1 concise paragraph (4-6 sentences).
+   - "one_page" → enough content to fill a single page (approx. 250-300 words).
+   - "two_page" → structured explanation covering two pages (approx. 500-600 words).
+   - "three_page" → detailed explanation spanning three pages (approx. 750-900 words).
+   - Avoid commentary phrases such as:
+     - “Here is …”
+- Do **not** include any headings, introductions, summaries, or formatting explanations.
+- Do not exceed or fall short of the required length.
+
+2. Match the tone and structure to the selected **informational text type**:
+   - **Literary** → Present real events or factual information using a clear and engaging storytelling approach. Use descriptive language while maintaining accuracy.
+   - **Expository** → Explain facts, concepts, or systems logically, clearly, and in a structured format. Prioritize clarity and coherence.
+   - **Argumentative** → Present a central claim supported by logical reasoning and evidence. Clearly distinguish between claims, evidence, and counterpoints.
+   - **Procedural** → Provide step-by-step instructions that guide the learner through a process. Use precise, instructional language and logical sequencing.
+
+3. Tailor all content to the specified grade level:
+   - Use age-appropriate, clear, and academically polished language. The tone should be accessible and student-friendly, while reflecting high-quality informational writing.
+   - Break down complex ideas into understandable components without oversimplifying the content.
+   - Use relatable examples that match the student's developmental stage.
+
+4. Use formatting tools (headings, bullet points, steps, or short paragraphs) to improve readability, especially for longer texts.
+
+5. Focus on **full explanation** of the topic. Avoid mere summaries—develop the content thoroughly based on the required length and text type.
+
+
+ Your response must contain only the final informational text. 
 """
 
 pdf_topic_template = """
@@ -62,17 +76,55 @@ Instructions:
 Respond ONLY with the structured explanation.
 """
 
+app = FastAPI(debug=True)
+app.include_router(chat_router)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # or Laravel origin like "http://localhost:8000"
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 model = Ollama(model="llama3")
 manual_prompt = ChatPromptTemplate.from_template(manual_topic_template)
 pdf_prompt = ChatPromptTemplate.from_template(pdf_topic_template)
 
 class InformationalInput(BaseModel):
+    user_id: int
     input_type: str
     topic: str = ""
     pdf_path: str = ""
     grade_level: str
     text_length: str
     text_type: str
+    message_id: Optional[str] = None
+
+    @classmethod
+    def as_form(
+        cls,
+        user_id: int = Form(...),
+        input_type: str = Form(...),
+        topic: str = Form(""),
+        grade_level: str = Form(...),
+        text_length: str = Form(...),
+        text_type: str = Form(...),
+        message_id: Optional[str] = Form(default=None)
+    ):
+            return cls(
+                user_id=user_id,
+                input_type=input_type,
+                topic=topic,
+                grade_level=grade_level,
+                text_length=text_length,
+                text_type=text_type,
+                message_id=message_id
+            )
+    
+model = Ollama(model="llama3")
+prompt_template = ChatPromptTemplate.from_template(prompt_template)
+pdf_prompt = ChatPromptTemplate.from_template(pdf_topic_template)
 
 def load_pdf_content(pdf_path: str) -> str:
     if not os.path.exists(pdf_path):
@@ -98,7 +150,7 @@ async def generate_output(
 ):
     if input_type == "pdf":
         # Save PDF temporarily
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+        with tempfile.NamedTemp oraryFile(delete=False, suffix=".pdf") as tmp:
             content = await pdf_file.read()
             tmp.write(content)
             tmp_path = tmp.name
@@ -119,36 +171,50 @@ async def generate_output(
     "text_type": text_type
     }
     
-    chain = prompt | model
+    chain = prompt_template | model
     result = chain.invoke(prompt_input)
     return clean_output(result)
 
-app = FastAPI()
-
 @app.post("/informational")
 async def informational_api(
-    input_type: str = Form(...),
-    topic: str = Form(""),
-    pdf_file: UploadFile = File(None),
-    grade_level: str = Form(...),
-    text_length: str = Form(...),
-    text_type: str = Form(...),
+    form_data: InformationalInput = Depends(InformationalInput.as_form),
+    pdf_file: UploadFile = File(None)
 ):
-    
     try:
-        if input_type == "pdf" and not pdf_file:
+        if form_data.input_type == "pdf" and not pdf_file:
             raise HTTPException(status_code=400, detail="PDF file required for PDF input_type")
 
         output = await generate_output(
-            input_type=input_type,
-            topic=topic,
-            pdf_file=pdf_file,
-            grade_level=grade_level,
-            text_length=text_length,
-            text_type=text_type,
+            input_type=form_data.input_type,
+            topic=form_data.topic,
+            grade_level=form_data.grade_level,
+            text_length=form_data.text_length,
+            text_type=form_data.text_type,
         )
 
-        return {"output": output}
+        scope_vars = {
+            "grade_level": form_data.grade_level,
+            "text_length": form_data.text_length,
+            "text_type": form_data.text_type,
+        }
+
+        filled_prompt = prompt_template.format(
+            topic=form_data.topic.strip(), 
+            grade_level=form_data.grade_level.strip(), 
+            text_length=form_data.text_length.strip(),
+            text_type=form_data.text_type.strip(),
+        )
+
+        session_id = create_session_and_parameter_inputs(
+            user_id=form_data.user_id,
+            agent_id=6,
+            scope_vars=scope_vars,
+            human_topic=form_data.topic,
+            ai_output=output,
+            agent_prompt=filled_prompt
+        )
+
+        return {"output": output, "message_id": session_id}
     except Exception as e:
         traceback_str = traceback.format_exc()
         print(traceback_str)

@@ -10,27 +10,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 
     <style>
-       <style>
-        :root {
-            --pink: #e91e63;
-            --white: #ffffff;
-            --dark: #191919;
-            --light-grey: #f5f5f5;
-        }
-
-        [data-bs-theme="dark"] {
-            --pink: #f06292;
-            --white: #333333; /* Lightened from #1e1e1e to #333333 for better visibility */
-            --dark: #d0d0d0; /* Lightened from #e0e0e0 to #d0d0d0 for contrast */
-            --light-grey: #444444; /* Adjusted to a slightly lighter gray */
-        }
-
-        body {
-            font-family: 'Poppins', sans-serif;
-            background: var(--white);
-            color: var(--dark);
-        }
-
         .text-highlight {
             color: var(--pink);
             font-weight: 700;
@@ -50,12 +29,6 @@
             background-color: #c30074;
             border-color: #c30074;
         }
-
-        .card {
-            background-color: var(--white);
-            border: 1px solid var(--light-grey);
-        }
-
         .bg-light {
             background-color: var(--light-grey) !important;
         }

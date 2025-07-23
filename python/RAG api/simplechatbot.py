@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, Form, File
+from fastapi import FastAPI, HTTPException, UploadFile, Form, File
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from sentence_transformers import SentenceTransformer
@@ -13,6 +13,7 @@ import requests
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import closing
 import re 
+import json
 
 app = FastAPI()
 
@@ -440,12 +441,77 @@ def make_quiz(input: QuizInput):
         if not input.answer_key:
             answers = [{"question": qa["question"]} for qa in answers]
 
-        save_generated_quiz_to_db(input.book_id, input.chapter_number, str(answers))
-        return {"quiz": answers}
+        # ✅ Format output as Markdown
+        formatted = "\n\n".join([
+            f"**Q{i+1}.** {qa['question'].strip()}\n\n**Answer:** {qa.get('answer', 'N/A').strip()}"
+            for i, qa in enumerate(answers)
+        ])
 
+        # ✅ Save raw JSON for record, send Markdown to frontend
+        markdown_quiz = format_quiz_to_markdown(answers)
+        save_generated_quiz_to_db(input.book_id, input.chapter_number, markdown_quiz)
+
+        return {"quiz": markdown_quiz}
     except Exception as e:
         import traceback
-        return JSONResponse(status_code=500, content={"error": str(e), "details": traceback.format_exc()})
+        return JSONResponse(
+            status_code=500,
+            content={"error": str(e), "details": traceback.format_exc()}
+        )
+class QuizExist(BaseModel):
+    book_id: int
+    chapter_number: int
+
+@app.post("/quiz-check")
+def quiz_check(input: QuizExist):
+    try:
+        with closing(mysql.connector.connect(**DB_CONFIG)) as conn:
+            with conn.cursor(dictionary=True, buffered=True) as cursor:
+                cursor.execute("""
+                    SELECT * FROM generated_quiz
+                    WHERE book_id = %s AND chapter_id = %s
+                """, (input.book_id, input.chapter_number))
+                quiz = cursor.fetchone()
+
+                if quiz:
+                    return JSONResponse(content={
+                        "quiz": {
+                            "message": quiz["message"],
+                        }
+                    })
+                else:
+                    return JSONResponse(content={
+                        "status": "success",
+                        "exists": False,
+                        "quiz": None
+                    })
+    except mysql.connector.Error as err:
+        raise HTTPException(status_code=500, detail=f"MySQL Error: {err}")
+    
+@app.post("/delete-quiz")
+def quiz_delete(input: QuizExist):
+    try:
+        with closing(mysql.connector.connect(**DB_CONFIG)) as conn:
+            with conn.cursor(buffered=True) as cursor:
+                cursor.execute("""
+                    DELETE FROM generated_quiz
+                    WHERE book_id = %s AND chapter_id = %s
+                """, (input.book_id, input.chapter_number))
+                conn.commit()
+
+                if cursor.rowcount == 0:
+                    return JSONResponse(content={
+                        "status": "fail",
+                        "message": "No quiz found to delete for the given book_id and chapter_number."
+                    }, status_code=404)
+
+                return JSONResponse(content={
+                    "status": "success",
+                    "message": "Quiz deleted successfully."
+                })
+
+    except mysql.connector.Error as err:
+        raise HTTPException(status_code=500, detail=f"MySQL Error: {err}")
 
 def validate_faiss_index(book_id, chapter_number):
     index_path = f"{book_id}_chapter_{chapter_number}.faiss"
@@ -464,12 +530,21 @@ def fetch_chunks(book_id, chapter, unit):
 
 def generate_questions_with_ollama(context, input):
     prompt = f"""
-Using the following context from a PDF, generate {input.number_of_questions} {input.quiz_type} questions.
-Difficulty: {input.difficulty_level}, Grade: {input.grade_level}.
-Return only numbered questions in the format "1. Question text".
-Do NOT include answers.
-Context:
+You are a quiz generator for educational material.
+
+Generate {input.number_of_questions} **{input.quiz_type.lower()}** questions based on the context below.
+- Target difficulty: **{input.difficulty_level.capitalize()}**
+- Intended grade level: **{input.grade_level}**
+- Use only information found in the context.
+- Questions should assess comprehension and be relevant to the content.
+- Format each item clearly as:
+  1. Question text
+
+⚠️ Do **not** add any explanations.
+
+--- BEGIN CONTEXT ---
 {context}
+--- END CONTEXT ---
 """
     return send_ollama_prompt(prompt)
 
@@ -523,163 +598,24 @@ def save_generated_quiz_to_db(book_id, chapter_id, message):
             """, (book_id, chapter_id, message))
         conn.commit()
 
+def format_quiz_to_markdown(qa_list):
+    question_parts = []
+    answer_key = []
 
-## strict mode chat (if preffered)
-#<---------------------------------->
-# def get_top_chunk_similarity(
-#     faiss_index, top_idx: int, query_vector: np.ndarray,
-#     book_id: int, chapter_id: int, unit_id: int, lesson_id: int
-# ) -> float:
-#     """Re-encodes the top matched chunk and returns cosine similarity to query vector."""
-#     # Fetch chunk text
-#     conn = mysql.connector.connect(**DB_CONFIG)
-#     try:
-#         cursor = conn.cursor()
-#         cursor.execute("""
-#             SELECT text FROM chunks
-#             WHERE global_faiss_id = %s
-#               AND book_id = %s AND chapter_id = %s AND unit_id = %s AND lesson_id = %s
-#             LIMIT 1
-#         """, (top_idx, book_id, chapter_id, unit_id, lesson_id))
-#         result = cursor.fetchone()
-#     finally:
-#         cursor.close()
-#         conn.close()
+    for idx, qa in enumerate(qa_list, 1):
+        lines = [f"{idx}. {qa['question'].strip()}"]
+        options = qa.get("options", [])
+        for i, option in enumerate(options):
+            letter = chr(97 + i)  # a, b, c, ...
+            lines.append(f"   {letter}. {option.strip()}")
 
-#     if not result:
-#         return -1.0  # signal failure
+        question_parts.append("\n".join(lines))
 
-#     matched_text = result[0]
-#     matched_vector = EMBED_MODEL.encode([matched_text])[0]
+        if qa.get("answer"):
+            answer_key.append(f"{idx}. {qa['answer'].strip()}")
 
-#     # Cosine similarity function
-#     def cosine_similarity(a, b):
-#         return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
+    markdown = "\n\n".join(question_parts)
+    if answer_key:
+        markdown += "\n\n**Answer Key**\n" + "\n".join(answer_key)
 
-#     return cosine_similarity(query_vector, matched_vector)
-
-# @app.post("/chat")
-# def chat(input: ChatInput):
-#     try:
-#         session_id = input.session_id
-#         user_prompt = input.prompt.strip()
-#         book_id = input.book_id
-#         chapter_id = input.chapter_id
-#         unit_id = input.unit_id
-#         lesson_id = input.lesson_id
-
-#         # Save user message to DB first
-#         save_chat_to_db(session_id, "user", user_prompt)
-
-#         # === Step 1: Retrieve chat history ===
-#         history = get_recent_chat_context(session_id)
-
-
-#         # Step 2: Determine if it's the first message (i.e., only 1 in history = user message just saved)
-#         is_first_message = len(history) <= 1
-
-#         print("Is it first message?", is_first_message)
-
-#         # Step 3: Rewrite prompt conditionally
-#         rewritten_prompt = get_standalone_question(history, user_prompt, is_first_message)
-
-#         print(f"[Rewritten Prompt] {rewritten_prompt}")
-
-#         # === Step 3: Retrieve FAISS context using rewritten prompt ===
-#         index_path = f"{book_id}_chapter_{chapter_id}.faiss"
-#         if not os.path.exists(index_path):
-#             return JSONResponse(status_code=404, content={"error": "FAISS index not found for this chapter."})
-
-#         index = faiss.read_index(index_path)
-#         embedding = EMBED_MODEL.encode([rewritten_prompt]).astype("float32")
-#         D, I = index.search(embedding, k=10)
-
-#         # Retrieve the actual chunk vectors for similarity checking
-#         query_vector = embedding[0]
-#         top_idx = int(I[0][0])
-#         similarity = get_top_chunk_similarity(index, top_idx, query_vector, book_id, chapter_id, unit_id, lesson_id)
-
-#         if similarity < 0:
-#             ai_reply = "Sorry, I couldn't find the relevant content chunk for similarity checking."
-#             save_chat_to_db(session_id, "ai", ai_reply)
-#             return {"response": ai_reply}
-
-#         print(f"[Cosine similarity to top chunk] {similarity:.4f}")
-#         SIMILARITY_THRESHOLD = 0.40  # You can tune this based on your dataset
-
-
-#         if similarity < SIMILARITY_THRESHOLD:
-#             ai_reply = (
-#                 "Sorry, your question appears to be outside the scope of this chapter. "
-#                 "Please ask something related to the current material."
-#             )
-#             save_chat_to_db(session_id, "ai", ai_reply)
-#             return {"response": ai_reply}
-
-#         raw_matches = [(int(idx), float(dist)) for idx, dist in zip(I[0], D[0]) if idx != -1]
-
-#         if not raw_matches:
-#             rag_context = "No relevant content found for this chapter."
-#         else:
-#             # Fetch matched chunks
-#             conn = mysql.connector.connect(**DB_CONFIG)
-#             try:
-#                 cursor = conn.cursor(dictionary=True)
-#                 ids = [idx for idx, _ in raw_matches]
-#                 placeholder = ','.join(['%s'] * len(ids))
-#                 cursor.execute(f"""
-#                     SELECT global_faiss_id, text FROM chunks
-#                     WHERE book_id = %s AND chapter_id = %s AND unit_id = %s AND lesson_id = %s
-#                     AND global_faiss_id IN ({placeholder})
-#                 """, (book_id, chapter_id, unit_id, lesson_id, *ids))
-#                 chunks = cursor.fetchall()
-#             finally:
-#                 cursor.close()
-#                 conn.close()
-
-#             # Hybrid reranking: keyword overlap
-#             def keyword_score(chunk_text):
-#                 chunk_tokens = set(chunk_text.lower().split())
-#                 prompt_tokens = set(rewritten_prompt.lower().split())
-#                 return len(chunk_tokens & prompt_tokens)
-
-#             reranked_chunks = sorted(
-#                 chunks,
-#                 key=lambda c: keyword_score(c["text"]),
-#                 reverse=True
-#             )
-
-#             top_k = min(10, len(reranked_chunks))
-#             rag_context = "\n".join([c["text"] for c in reranked_chunks[:top_k]])
-
-#         # === Step 4: Prepare chat history for final prompt ===
-#         chat_context = ""
-#         for turn in history:
-#             role_label = "User" if turn['role'] == 'user' else "AI"
-#             chat_context += f"{role_label}: {turn['message']}\n"
-
-#         # === Step 5: Final prompt construction ===
-#         final_prompt = (
-#             f"Use the following context to answer the user's question:\n"
-#             f"{rag_context}\n\n"
-#             f"{chat_context}AI:"
-#         )
-
-#         # === Step 6: Send to Ollama ===
-#         payload = {
-#             "model": OLLAMA_MODEL,
-#             "prompt": final_prompt,
-#             "stream": False
-#         }
-
-#         response = requests.post(OLLAMA_URL, json=payload, headers=HEADERS)
-#         response.raise_for_status()
-#         ai_reply = response.json().get("response", "").strip()
-
-#         # Save AI response to DB
-#         save_chat_to_db(session_id, "ai", ai_reply)
-
-#         return {"response": ai_reply}
-
-#     except Exception as e:
-#         return {"error": str(e)}
+    return markdown.strip()

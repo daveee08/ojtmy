@@ -1,9 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Content Creator</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+@extends('layouts.bootstrap')
+@extends('layouts.header')
+@extends('layouts.navbaragent')
+
+@section('content')
     <style>
         body {
             background-color: #f4f7fb;
@@ -32,8 +31,7 @@
             border-radius: 8px;
         }
     </style>
-</head>
-<body>
+
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-lg-8">
@@ -96,5 +94,5 @@
         </div>
     </div>
 </div>
-</body>
-</html>
+
+@endsection

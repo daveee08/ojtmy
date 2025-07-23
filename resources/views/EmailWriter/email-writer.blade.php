@@ -1,9 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Email Writer</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+@extends('layouts.bootstrap')
+@extends('layouts.header')
+@extends('layouts.navbaragent')
+
+
+@section('content')
+
     <style>
         body {
             background-color: #f4f7fb;
@@ -83,8 +84,7 @@
             flex-direction: column;
         }
     </style>
-</head>
-<body>
+
 
 <!-- loading spinner -->
 <div id="loading-overlay">
@@ -133,5 +133,4 @@ document.getElementById('email-writer-form').addEventListener('submit', function
 });
 </script>
 
-</body>
-</html>
+@endsection

@@ -121,12 +121,18 @@ async def generate_social_story(data: SocialStoryInput = Depends(SocialStoryInpu
                 "grade_level": data.grade_level
             }
         
+        filled_prompt= prompt_template.format(
+            grade_level=data.grade_level.strip(), 
+            situation=cleaned_input.strip()
+        )
+        
         session_id = create_session_and_parameter_inputs(
                 user_id=data.user_id,
                 agent_id=21,  # Default agent_id for step tutor
                 scope_vars=scope_vars,
                 human_topic=data.situation,
-                ai_output=result.strip()
+                ai_output=result.strip(),
+                agent_prompt=filled_prompt
             )
         return {"story": result.strip(), "message_id": session_id}
     except Exception as e:

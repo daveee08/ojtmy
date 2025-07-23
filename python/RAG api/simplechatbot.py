@@ -530,17 +530,54 @@ def fetch_chunks(book_id, chapter, unit):
 
 def generate_questions_with_ollama(context, input):
     prompt = f"""
-You are a quiz generator for educational material.
+You are a strict quiz generator.
 
-Generate {input.number_of_questions} **{input.quiz_type.lower()}** questions based on the context below.
-- Target difficulty: **{input.difficulty_level.capitalize()}**
-- Intended grade level: **{input.grade_level}**
-- Use only information found in the context.
-- Questions should assess comprehension and be relevant to the content.
-- Format each item clearly as:
-  1. Question text
+🎯 TASK:
+Based ONLY on the context provided below, generate exactly **{input.number_of_questions} {input.quiz_type.lower()}** questions.
+- Grade Level: {input.grade_level}
+- Difficulty: {input.difficulty_level.capitalize()}
 
-⚠️ Do **not** add any explanations.
+📌 RULES:
+- All questions must strictly derive from the given context.
+- Each question must be numbered starting from 1.
+- Each question must be followed by exactly **4 options**, labeled **A) to D)**.
+- Each option must be on its own line.
+- No explanations, hints, or reasoning after any question.
+- Separate each full question block (Q + 4 options) with a **single blank line**.
+- Do NOT repeat or paraphrase the context.
+- Do NOT include the correct answers directly after the questions.
+
+📌 FINAL SECTION:
+After all questions, include a section labeled exactly:
+**Answer Key:**  
+- List the answers on separate lines, in the format:  
+  `1. A`  
+  `2. C`  
+  `3. D`  
+  (Use only the number and the correct option letter. No extra text.)
+
+✅ OUTPUT FORMAT EXAMPLE:
+
+1. What is the capital of France?  
+A) Berlin  
+B) Madrid  
+C) Paris  
+D) Rome  
+
+2. What color do you get by mixing red and blue?  
+A) Yellow  
+B) Purple  
+C) Green  
+D) Orange  
+
+Answer Key:  
+1. C  
+2. B  
+
+❌ DO NOT:
+- Do not include explanations.
+- Do not generate content outside the context.
+- Do not change formatting or answer key structure.
 
 --- BEGIN CONTEXT ---
 {context}
@@ -599,23 +636,7 @@ def save_generated_quiz_to_db(book_id, chapter_id, message):
         conn.commit()
 
 def format_quiz_to_markdown(qa_list):
-    question_parts = []
-    answer_key = []
-
-    for idx, qa in enumerate(qa_list, 1):
-        lines = [f"{idx}. {qa['question'].strip()}"]
-        options = qa.get("options", [])
-        for i, option in enumerate(options):
-            letter = chr(97 + i)  # a, b, c, ...
-            lines.append(f"   {letter}. {option.strip()}")
-
-        question_parts.append("\n".join(lines))
-
-        if qa.get("answer"):
-            answer_key.append(f"{idx}. {qa['answer'].strip()}")
-
-    markdown = "\n\n".join(question_parts)
-    if answer_key:
-        markdown += "\n\n**Answer Key**\n" + "\n".join(answer_key)
-
-    return markdown.strip()
+    lines = [f"{i+1}. {q['question'].strip()}" for i, q in enumerate(qa_list)]
+    lines.append("\nAnswer Key:")
+    lines.extend(f"{i+1}. {q['answer'].strip()}" for i, q in enumerate(qa_list) if q.get("answer", "").strip())
+    return "\n".join(lines)

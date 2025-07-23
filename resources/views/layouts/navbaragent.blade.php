@@ -23,12 +23,12 @@
 <button id="toggleSidebar">☰</button>
 
 <style>
-    :root {
+    /* :root {
         --pink: #e91e63;
         --white: #ffffff;
         --dark: #191919;
         --light-grey: #f5f5f5;
-    }
+    } */
 
     .sidebar {
         position: fixed;

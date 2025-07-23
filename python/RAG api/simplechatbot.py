@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, Form, File
+from fastapi import FastAPI, HTTPException, UploadFile, Form, File
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from sentence_transformers import SentenceTransformer
@@ -13,6 +13,7 @@ import requests
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import closing
 import re 
+import json
 
 app = FastAPI()
 
@@ -51,17 +52,25 @@ def chunk_text_token_based(text: str, max_tokens: int = 512) -> list:
     return chunks
 
 # === Step 2: Rewrite user query using LLM (Ollama) ===
-def get_standalone_question(history: list, user_prompt: str) -> str:
+def get_standalone_question(history: list, user_prompt: str, first: bool) -> str:
+    
+    if first:
+        return user_prompt
+
     conversation = ""
     for turn in history[-5:]:  # Limit to last 5 messages
         role = "User" if turn["role"] == "user" else "AI"
         conversation += f"{role}: {turn['message']}\n"
 
-    prompt = (
-        "Rewrite the user's latest message into a standalone question based on the conversation history.\n\n"
-        f"Conversation:\n{conversation}\nUser: {user_prompt}\n\n"
-        "Rewritten Question:"
-    )
+    prompt = f"""You are a helpful assistant. Your task is to rewrite the user's latest message into a standalone question or query that is context-independent and complete on its own.
+
+This is critical for retrieval systems that use semantic similarity. Avoid using vague pronouns like "it", "this", "that" — be specific. Include relevant context from the conversation, but only what’s necessary to make the question clear and self-contained.
+
+Conversation history:
+{conversation.strip()}
+User: {user_prompt.strip()}
+
+Standalone version:"""
 
     payload = {
         "model": OLLAMA_MODEL,
@@ -156,17 +165,26 @@ def save_chat_to_db(session_id: int, role: str, message: str):
     conn = mysql.connector.connect(**DB_CONFIG)
     try:
         cursor = conn.cursor()
+
+        # Step 1: Get latest turn
+        cursor.execute("""
+            SELECT IFNULL(MAX(turn), 0) + 1 AS next_turn
+            FROM chat_rag_history
+            WHERE session_id = %s
+        """, (session_id,))
+        next_turn = cursor.fetchone()[0]
+
+        # Step 2: Insert new message with next turn
         cursor.execute("""
             INSERT INTO chat_rag_history (session_id, turn, role, message)
-            VALUES (%s, 
-                (SELECT IFNULL(MAX(turn), 0) + 1 FROM chat_rag_history WHERE session_id = %s),
-                %s, %s
-            )
-        """, (session_id, session_id, role, message))
+            VALUES (%s, %s, %s, %s)
+        """, (session_id, next_turn, role, message))
+
         conn.commit()
     finally:
         cursor.close()
         conn.close()
+
 
 def get_recent_chat_context(session_id: str, limit: int = 10):
     conn = mysql.connector.connect(**DB_CONFIG)
@@ -297,7 +315,13 @@ def chat(input: ChatInput):
         history = get_recent_chat_context(session_id)
 
 
-        rewritten_prompt = get_standalone_question(history, user_prompt)
+        # Step 2: Determine if it's the first message (i.e., only 1 in history = user message just saved)
+        is_first_message = len(history) <= 1
+
+        print("Is it first message?", is_first_message)
+
+        # Step 3: Rewrite prompt conditionally
+        rewritten_prompt = get_standalone_question(history, user_prompt, is_first_message)
 
         print(f"[Rewritten Prompt] {rewritten_prompt}")
 
@@ -353,10 +377,18 @@ def chat(input: ChatInput):
 
         # === Step 5: Final prompt construction ===
         final_prompt = (
-            f"Use the following context to answer the user's question:\n"
-            f"{rag_context}\n\n"
-            f"{chat_context}AI:"
-        )
+        "You are a helpful educational assistant. You are only allowed to answer questions "
+        "based on the context provided from the current chapter. If the user's question is not answerable "
+        "using the context below, you must respond by saying that the question is outside the scope of this chapter.\n\n"
+        "Only answer based on the context. Do not guess or add outside information.\n\n"
+
+        "Context:\n"
+        f"{rag_context}\n\n"
+        "Conversation so far:\n"
+        f"{chat_context}"
+        "AI:"
+    )
+
 
         # === Step 6: Send to Ollama ===
         payload = {
@@ -409,12 +441,77 @@ def make_quiz(input: QuizInput):
         if not input.answer_key:
             answers = [{"question": qa["question"]} for qa in answers]
 
-        save_generated_quiz_to_db(input.book_id, input.chapter_number, str(answers))
-        return {"quiz": answers}
+        # ✅ Format output as Markdown
+        formatted = "\n\n".join([
+            f"**Q{i+1}.** {qa['question'].strip()}\n\n**Answer:** {qa.get('answer', 'N/A').strip()}"
+            for i, qa in enumerate(answers)
+        ])
 
+        # ✅ Save raw JSON for record, send Markdown to frontend
+        markdown_quiz = format_quiz_to_markdown(answers)
+        save_generated_quiz_to_db(input.book_id, input.chapter_number, markdown_quiz)
+
+        return {"quiz": markdown_quiz}
     except Exception as e:
         import traceback
-        return JSONResponse(status_code=500, content={"error": str(e), "details": traceback.format_exc()})
+        return JSONResponse(
+            status_code=500,
+            content={"error": str(e), "details": traceback.format_exc()}
+        )
+class QuizExist(BaseModel):
+    book_id: int
+    chapter_number: int
+
+@app.post("/quiz-check")
+def quiz_check(input: QuizExist):
+    try:
+        with closing(mysql.connector.connect(**DB_CONFIG)) as conn:
+            with conn.cursor(dictionary=True, buffered=True) as cursor:
+                cursor.execute("""
+                    SELECT * FROM generated_quiz
+                    WHERE book_id = %s AND chapter_id = %s
+                """, (input.book_id, input.chapter_number))
+                quiz = cursor.fetchone()
+
+                if quiz:
+                    return JSONResponse(content={
+                        "quiz": {
+                            "message": quiz["message"],
+                        }
+                    })
+                else:
+                    return JSONResponse(content={
+                        "status": "success",
+                        "exists": False,
+                        "quiz": None
+                    })
+    except mysql.connector.Error as err:
+        raise HTTPException(status_code=500, detail=f"MySQL Error: {err}")
+    
+@app.post("/delete-quiz")
+def quiz_delete(input: QuizExist):
+    try:
+        with closing(mysql.connector.connect(**DB_CONFIG)) as conn:
+            with conn.cursor(buffered=True) as cursor:
+                cursor.execute("""
+                    DELETE FROM generated_quiz
+                    WHERE book_id = %s AND chapter_id = %s
+                """, (input.book_id, input.chapter_number))
+                conn.commit()
+
+                if cursor.rowcount == 0:
+                    return JSONResponse(content={
+                        "status": "fail",
+                        "message": "No quiz found to delete for the given book_id and chapter_number."
+                    }, status_code=404)
+
+                return JSONResponse(content={
+                    "status": "success",
+                    "message": "Quiz deleted successfully."
+                })
+
+    except mysql.connector.Error as err:
+        raise HTTPException(status_code=500, detail=f"MySQL Error: {err}")
 
 def validate_faiss_index(book_id, chapter_number):
     index_path = f"{book_id}_chapter_{chapter_number}.faiss"
@@ -433,12 +530,21 @@ def fetch_chunks(book_id, chapter, unit):
 
 def generate_questions_with_ollama(context, input):
     prompt = f"""
-Using the following context from a PDF, generate {input.number_of_questions} {input.quiz_type} questions.
-Difficulty: {input.difficulty_level}, Grade: {input.grade_level}.
-Return only numbered questions in the format "1. Question text".
-Do NOT include answers.
-Context:
+You are a quiz generator for educational material.
+
+Generate {input.number_of_questions} **{input.quiz_type.lower()}** questions based on the context below.
+- Target difficulty: **{input.difficulty_level.capitalize()}**
+- Intended grade level: **{input.grade_level}**
+- Use only information found in the context.
+- Questions should assess comprehension and be relevant to the content.
+- Format each item clearly as:
+  1. Question text
+
+⚠️ Do **not** add any explanations.
+
+--- BEGIN CONTEXT ---
 {context}
+--- END CONTEXT ---
 """
     return send_ollama_prompt(prompt)
 
@@ -491,3 +597,25 @@ def save_generated_quiz_to_db(book_id, chapter_id, message):
                 VALUES (%s, %s, %s, NOW(), NOW())
             """, (book_id, chapter_id, message))
         conn.commit()
+
+def format_quiz_to_markdown(qa_list):
+    question_parts = []
+    answer_key = []
+
+    for idx, qa in enumerate(qa_list, 1):
+        lines = [f"{idx}. {qa['question'].strip()}"]
+        options = qa.get("options", [])
+        for i, option in enumerate(options):
+            letter = chr(97 + i)  # a, b, c, ...
+            lines.append(f"   {letter}. {option.strip()}")
+
+        question_parts.append("\n".join(lines))
+
+        if qa.get("answer"):
+            answer_key.append(f"{idx}. {qa['answer'].strip()}")
+
+    markdown = "\n\n".join(question_parts)
+    if answer_key:
+        markdown += "\n\n**Answer Key**\n" + "\n".join(answer_key)
+
+    return markdown.strip()

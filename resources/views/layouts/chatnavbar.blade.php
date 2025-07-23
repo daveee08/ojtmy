@@ -16,9 +16,19 @@
     <style>
         :root {
             --pink: #e91e63;
+            --pink-light-tint: rgba(233, 30, 99, 0.1);
             --white: #ffffff;
             --dark: #191919;
             --light-grey: #f5f5f5;
+            --text-dark-grey: #333333;
+            --text-medium-grey: #555555;
+            --text-light-grey: #888888;
+
+            --indent-base: 18px;
+            --indent-level-1: 36px;
+            --indent-level-2: 54px;
+            --indent-level-3: 72px;
+            --active-border-width: 4px;
         }
 
         a {
@@ -41,7 +51,25 @@
             padding: 40px 20px;
             box-shadow: 2px 0 10px rgba(0, 0, 0, 0.08);
             z-index: 1000;
-            transition: width 0.3s ease;
+            transition: width 0.3s ease-in-out, padding 0.3s ease-in-out;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--pink-light-tint) var(--light-grey);
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: var(--light-grey);
+            border-radius: 10px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background-color: var(--pink-light-tint);
+            border-radius: 10px;
+            border: 2px solid var(--light-grey);
         }
 
         .sidebar.collapsed {
@@ -50,7 +78,7 @@
         }
 
         .sidebar h2 {
-            font-size: 1.5rem;
+            font-size: 1.6rem;
             font-weight: 700;
             color: var(--pink);
             margin-bottom: 50px;
@@ -66,28 +94,31 @@
             display: flex;
             align-items: center;
             justify-content: flex-start;
-            color: var(--dark);
+            color: var(--text-dark-grey);
             text-decoration: none;
-            margin: 12px 0;
-            font-size: 1rem;
-            padding: 12px 18px;
-            border-radius: 10px;
-            transition: background 0.3s ease, color 0.3s ease;
+            margin: 8px 0;
+            font-size: 0.95rem;
+            padding: 10px 15px;
+            border-radius: 8px;
+            transition: background 0.25s ease, color 0.25s ease, transform 0.25s ease, border-left 0.25s ease;
+            position: relative;
+            will-change: transform;
         }
 
         .sidebar.collapsed a {
             justify-content: center;
-            padding-left: 12px;
-            padding-right: 12px;
+            padding-left: 10px;
+            padding-right: 10px;
         }
 
         .sidebar a i {
             margin-right: 12px;
-            font-size: 1.2rem;
-            min-width: 24px;
-            width: 24px;
+            font-size: 1.1rem;
+            min-width: 20px;
+            width: 20px;
             text-align: center;
-            transition: margin 0.3s ease, font-size 0.3s ease;
+            color: var(--text-medium-grey);
+            transition: margin 0.3s ease, font-size 0.3s ease, color 0.25s ease, transform 0.25s ease;
         }
 
         .sidebar.collapsed a i {
@@ -99,13 +130,16 @@
             opacity: 1;
             width: auto;
             max-width: 200px;
+            white-space: nowrap;
             transition: opacity 0.3s ease, max-width 0.3s ease;
             overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .sidebar.collapsed .link-text {
             opacity: 0;
             max-width: 0;
+            padding: 0;
         }
 
         .sidebar:not(.collapsed) a[data-bs-toggle="tooltip"] .link-text {
@@ -122,7 +156,7 @@
         }
 
         body.sidebar-collapsed .content {
-            /* margin-left: 70px; */
+
         }
 
         html,
@@ -132,24 +166,20 @@
             padding: 0;
         }
 
-
         .layout {
             display: flex;
             height: 100vh;
             width: 100%;
         }
 
-        .sidebar a.active-link {
-            background-color: rgba(221, 175, 198, 0.15);
-        }
-
-        .sidebar a.active-link i {
-            color: inherit !important;
-        }
-
         .sidebar a:hover {
-            background-color: rgba(221, 175, 198, 0.15);
-            color: var(--dark);
+            background-color: var(--pink-light-tint);
+            color: var(--text-dark-grey);
+            transform: translateX(3px);
+        }
+
+        .sidebar a:hover i {
+            color: var(--pink);
         }
 
         #toggleSidebar {
@@ -167,6 +197,8 @@
 
         #toggleSidebar:hover {
             color: var(--pink);
+            background-color: var(--pink-light-tint);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
         }
 
         .sidebar .form-select {
@@ -185,11 +217,52 @@
             display: none !important;
         }
 
-        .glow {
-            background-color: #ffe3f0 !important;
-            color: #d63384 !important;
+        .glow {background-color: var(--pink-light-tint) !important;
+            color: var(--text-dark-grey) !important;
             font-weight: 600;
-            border-left: 4px solid #d63384;
+            border-left: var(--active-border-width) solid var(--pink);
+            transform: none !important;
+        }
+
+        .glow i {
+            color: var(--pink) !important;
+        }
+
+        .sidebar .book-link {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .sidebar .book-link i {
+            font-size: 1.4rem;
+            color: var(--text-medium-grey);
+        }
+
+        .sidebar .unit-link {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-medium-grey);
+        }
+
+        .sidebar .unit-link i,
+        .sidebar .chapter-link i {
+            font-size: 0.9rem;
+            margin-right: 8px;
+            transition: transform 0.25s ease, color 0.25s ease;
+            color: var(--text-medium-grey);
+        }
+
+        .sidebar .chapter-link {
+            font-size: 0.95rem;
+            font-weight: 400;
+            color: var(--text-medium-grey);
+        }
+
+        .sidebar .lesson-link {
+            font-size: 0.9rem;
+            color: var(--text-light-grey);
+            margin: 6px 0;
         }
 
         .lesson-wrap {
@@ -197,11 +270,21 @@
             align-items: flex-start;
             gap: 8px;
             padding-right: 12px;
+            flex-grow: 1;
         }
 
         .lesson-wrap .lesson-icon {
             flex-shrink: 0;
-            margin-top: 3px;
+            margin-top: 5px;
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background-color: var(--text-light-grey);
+            transition: background-color 0.25s ease;
+        }
+
+        .lesson-link.glow .lesson-icon {
+            background-color: var(--pink) !important;
         }
 
         .lesson-wrap .lesson-text {
@@ -209,6 +292,55 @@
             word-wrap: break-word;
             flex: 1;
         }
+
+        .sidebar .bi-chevron-right.rotated {
+            transform: rotate(90deg);
+        }
+
+        .book-level-item {
+            padding-left: var(--indent-base);
+        }
+        .unit-level-item {
+            padding-left: var(--indent-level-1);
+        }
+        .chapter-level-item {
+            padding-left: var(--indent-level-2);
+        }
+        .lesson-level-item {
+            padding-left: var(--indent-level-3);
+        }
+
+        .book-level-item.glow {
+            padding-left: calc(var(--indent-base) - var(--active-border-width));
+        }
+        .unit-level-item.glow {
+            padding-left: calc(var(--indent-level-1) - var(--active-border-width));
+        }
+        .chapter-level-item.glow {
+            padding-left: calc(var(--indent-level-2) - var(--active-border-width));
+        }
+        .lesson-level-item.glow {
+            padding-left: calc(var(--indent-level-3) - var(--active-border-width));
+        }
+
+        .sidebar .ps-3, .sidebar .ps-4 {
+            padding-left: 0 !important;
+        }
+        .sidebar .unit-container,
+        .sidebar .chapter-container,
+        .sidebar .lesson-container {
+            margin-left: 18px;
+        }
+        .sidebar .unit-container {
+            margin-left: 18px;
+        }
+        .sidebar .chapter-container {
+            margin-left: 18px;
+        }
+        .sidebar .lesson-container {
+            margin-left: 18px;
+        }
+
     </style>
 </head>
 
@@ -227,17 +359,23 @@
             <h2></h2>
             @foreach ($books as $book)
                 <div class="mb-2">
-                    <a href="javascript:void(0);" class="fw-bold {{ $book->id == $currentBookId ? 'glow' : '' }}" onclick="toggleUnits({{ $book->id }})">
+                    <a href="javascript:void(0);"
+                        class="book-link book-level-item {{ $book->id == $currentBookId ? 'glow' : '' }}"
+                        onclick="toggleUnits({{ $book->id }}, this)">
                         <i class="bi bi-journal-bookmark"></i>
                         <span class="link-text">{{ $book->title }}</span>
                     </a>
-                    <div id="units-{{ $book->id }}" class="ps-3" style="{{ $book->id == $currentBookId ? 'display:block;' : 'display:none;' }}">
+                    <div id="units-{{ $book->id }}" class="collapse unit-container"
+                        style="{{ $book->id == $currentBookId ? 'display:block;' : 'display:none;' }}">
                         @php $units = DB::table('units')->where('book_id', $book->id)->orderBy('unit_number')->get(); @endphp
                         @foreach ($units as $unit)
-                            <a href="javascript:void(0);" onclick="toggleChapters({{ $unit->id }})" class="text-muted d-block ps-3 {{ $unit->id == $currentUnitId ? 'glow' : '' }}">
-                                ▸ Unit {{ $unit->unit_number }}: {{ $unit->title }}
+                            <a href="javascript:void(0);"
+                                onclick="toggleChapters({{ $unit->id }}, this)"
+                                class="unit-link unit-level-item {{ $unit->id == $currentUnitId ? 'glow' : '' }}">
+                                <i class="bi bi-chevron-right unit-chapter-icon {{ $unit->id == $currentUnitId ? 'rotated' : '' }}"></i>
+                                <span class="link-text">Unit {{ $unit->unit_number }}: {{ $unit->title }}</span>
                             </a>
-                            <div id="chapters-{{ $unit->id }}" class="ps-4"
+                            <div id="chapters-{{ $unit->id }}" class="collapse chapter-container"
                                 style="{{ $unit->id == $currentUnitId ? 'display:block;' : 'display:none;' }}">
                                 @php
                                     $chapters = DB::table('chapter')
@@ -246,10 +384,13 @@
                                         ->get();
                                 @endphp
                                 @foreach ($chapters as $chapter)
-                                    <a href="javascript:void(0);" onclick="toggleLessons({{ $chapter->id }})" class="d-block ps-2 text-secondary {{ $chapter->id == $currentChapterId ? 'glow' : '' }}">
-                                        ▹ Chapter {{ $chapter->chapter_number }}: {{ $chapter->chapter_title }}
+                                    <a href="javascript:void(0);"
+                                        onclick="toggleLessons({{ $chapter->id }}, this)"
+                                        class="chapter-link chapter-level-item {{ $chapter->id == $currentChapterId ? 'glow' : '' }}">
+                                        <i class="bi bi-chevron-right unit-chapter-icon {{ $chapter->id == $currentChapterId ? 'rotated' : '' }}"></i>
+                                        <span class="link-text">Chapter {{ $chapter->chapter_number }}: {{ $chapter->chapter_title }}</span>
                                     </a>
-                                    <div id="lessons-{{ $chapter->id }}" class="ps-4"
+                                    <div id="lessons-{{ $chapter->id }}" class="collapse lesson-container"
                                         style="{{ $chapter->id == $currentChapterId ? 'display:block;' : 'display:none;' }}">
                                         @php
                                             $lessons = DB::table('lesson')
@@ -258,9 +399,10 @@
                                                 ->get();
                                         @endphp
                                         @foreach ($lessons as $lesson)
-                                            <a href="{{ url('/virtual-tutor-chat') }}?book_id={{ $book->id }}&unit_id={{ $unit->id }}&chapter_id={{ $chapter->id }}&lesson_id={{ $lesson->id }}" class="d-block text-muted ps-3 {{ $lesson->id == $currentLessonId ? 'glow' : '' }}">
+                                            <a href="{{ url('/virtual-tutor-chat') }}?book_id={{ $book->id }}&unit_id={{ $unit->id }}&chapter_id={{ $chapter->id }}&lesson_id={{ $lesson->id }}"
+                                                class="lesson-link lesson-level-item {{ $lesson->id == $currentLessonId ? 'glow' : '' }}">
                                                 <div class="lesson-wrap">
-                                                    <span class="lesson-icon">📘</span>
+                        
                                                     <span class="lesson-text">Lesson {{ $lesson->lesson_number }}: {{ $lesson->lesson_title }}</span>
                                                 </div>
                                             </a>
@@ -279,37 +421,45 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        function toggleUnits(bookId) {
-            const sidebar = document.getElementById('sidebar');
-            const body = document.body;
+        function toggleContent(elementId, clickedElement) {
+            const el = document.getElementById(elementId);
+            const isCurrentlyVisible = el.style.display === 'block';
 
-            if (sidebar.classList.contains('collapsed')) {
-                sidebar.classList.remove('collapsed');
-                body.classList.remove('sidebar-collapsed');
+            const parent = el.closest('.unit-container, .chapter-container, .sidebar');
+            if (parent) {
+                Array.from(parent.children).forEach(child => {
+                    if (child.classList.contains('collapse') && child.id !== elementId) {
+                        child.style.display = 'none';
+                        const siblingIcon = child.previousElementSibling ? child.previousElementSibling.querySelector('.unit-chapter-icon') : null;
+                        if (siblingIcon) {
+                            siblingIcon.classList.remove('rotated');
+                        }
+                    }
+                });
             }
 
-            document.querySelectorAll('[id^="units-"]').forEach(el => {
-                if (el.id !== `units-${bookId}`) {
-                    el.style.display = 'none';
-                }
-            });
+            el.style.display = isCurrentlyVisible ? 'none' : 'block';
 
-            const el = document.getElementById(`units-${bookId}`);
-            el.style.display = el.style.display === 'none' ? 'block' : 'none';
+            const icon = clickedElement.querySelector('.unit-chapter-icon');
+            if (icon) {
+                icon.classList.toggle('rotated', !isCurrentlyVisible);
+            }
         }
 
-        function toggleChapters(unitId) {
-            const el = document.getElementById(`chapters-${unitId}`);
-            el.style.display = el.style.display === 'none' ? 'block' : 'none';
+        function toggleUnits(bookId, clickedElement) {
+            toggleContent(`units-${bookId}`, clickedElement);
         }
 
-        function toggleLessons(chapterId) {
-            const el = document.getElementById(`lessons-${chapterId}`);
-            el.style.display = el.style.display === 'none' ? 'block' : 'none';
+        function toggleChapters(unitId, clickedElement) {
+            toggleContent(`chapters-${unitId}`, clickedElement);
         }
 
-        // Updated toggle logic to collapse all items
+        function toggleLessons(chapterId, clickedElement) {
+            toggleContent(`lessons-${chapterId}`, clickedElement);
+        }
+
         document.getElementById('toggleSidebar').addEventListener('click', function() {
             const sidebar = document.getElementById('sidebar');
             const body = document.body;
@@ -318,13 +468,43 @@
             body.classList.toggle('sidebar-collapsed');
 
             if (sidebar.classList.contains('collapsed')) {
-                const allUnits = sidebar.querySelectorAll('[id^="units-"]');
-                const allChapters = sidebar.querySelectorAll('[id^="chapters-"]');
-                const allLessons = sidebar.querySelectorAll('[id^="lessons-"]');
+                const allCollapsibles = sidebar.querySelectorAll('.collapse');
+                allCollapsibles.forEach(item => {
+                    item.style.display = 'none';
+                });
 
-                allUnits.forEach(unit => unit.style.display = 'none');
-                allChapters.forEach(chapter => chapter.style.display = 'none');
-                allLessons.forEach(lesson => lesson.style.display = 'none');
+                const allIcons = sidebar.querySelectorAll('.unit-chapter-icon');
+                allIcons.forEach(icon => {
+                    icon.classList.remove('rotated');
+                });
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const currentLessonLink = document.querySelector('.lesson-link.glow');
+            if (currentLessonLink) {
+                let currentElement = currentLessonLink;
+                while (currentElement) {
+                    currentElement = currentElement.parentElement;
+                    if (currentElement && currentElement.classList.contains('collapse')) {
+                        currentElement.style.display = 'block';
+                        const parentLink = currentElement.previousElementSibling;
+                        if (parentLink) {
+                            const icon = parentLink.querySelector('.unit-chapter-icon');
+                            if (icon) {
+                                icon.classList.add('rotated');
+                            }
+                        }
+                    } else if (currentElement && currentElement.classList.contains('book-link')) {
+                        const bookId = currentElement.onclick.toString().match(/toggleUnits\((\d+)/)?.[1];
+                        if (bookId) {
+                            const unitsContainer = document.getElementById(`units-${bookId}`);
+                            if (unitsContainer) {
+                                unitsContainer.style.display = 'block';
+                            }
+                        }
+                    }
+                }
             }
         });
     </script>

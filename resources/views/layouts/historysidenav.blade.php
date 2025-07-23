@@ -1,12 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="en" data-bs-theme="light">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>CK AI Tools</title>
+    <title>CK AI Tools - History</title>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous" />
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
 
@@ -19,11 +18,20 @@
             --hover-grey: #f1f3f5;
         }
 
+        [data-bs-theme="dark"] {
+            --pink: #d61f5c;
+            --white: #1e1e1e;
+            --dark: #e0e0e0;
+            --light-grey: #2c2c2c;
+            --hover-grey: #3a3a3a;
+        }
+
         body {
             font-family: 'Poppins', system-ui, sans-serif;
             background-color: var(--light-grey);
             color: var(--dark);
             margin: 0;
+            overflow-x: hidden;
         }
 
         .sidebar {
@@ -53,7 +61,7 @@
         .sidebar h2 {
             font-size: 1.2rem;
             font-weight: 700;
-            color: black;
+            color: var(--dark);
             margin-bottom: 20px;
             text-align: center;
             transition: opacity 0.2s ease;
@@ -69,7 +77,7 @@
             flex-grow: 1;
             padding-right: 1px;
             scrollbar-width: thin;
-            scrollbar-color: #f5f5f5 transparent;
+            scrollbar-color: var(--light-grey) transparent;
         }
 
         .session-link {
@@ -96,7 +104,7 @@
         }
 
         .session-link.active {
-            background-color: #F5F5F5;
+            background-color: var(--light-grey);
         }
 
         .session-link .delete-btn {
@@ -121,38 +129,33 @@
             display: none;
         }
 
-        .content {
-            margin-left: 240px;
-            padding: 30px;
-            transition: margin-left 0.3s ease;
-        }
-
-        .content.expanded {
-            margin-left: 70px;
-        }
-
         #toggleSidebar {
             position: fixed;
             top: 20px;
             left: 20px;
             z-index: 1100;
             background: var(--white);
-            border: 1px solid #dee2e6;
+            border: none;
             padding: 8px 12px;
             border-radius: 5px;
             font-size: 1.1rem;
-            color: var(--dark);
-            cursor: pointer;
-            transition: all 0.2s ease;
+            color: #5a5959;
+            /* cursor: pointer; */
+            /* transition: all 0.2s ease; */
         }
-
+        
         #toggleSidebar:hover {
-            background-color: var(--hover-grey);
+            /* background-color: var(--hover-grey); */
+            color: var(--pink);
         }
 
         #sessionList p {
             font-size: 0.95rem;
             color: #6c757d;
+        }
+
+        [data-bs-theme="dark"] #sessionList p {
+            color: #a0a0a0;
         }
     </style>
 </head>
@@ -167,15 +170,15 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js" integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q" crossorigin="anonymous"></script>
+
     <script>
         const toggleBtn = document.getElementById("toggleSidebar");
         const sidebar = document.getElementById("sidebar");
-        const content = document.querySelector(".content");
         const sessionList = document.getElementById("sessionList");
 
         toggleBtn.addEventListener("click", () => {
             sidebar.classList.toggle("collapsed");
-            if (content) content.classList.toggle("expanded");
             document.body.classList.toggle("sidebar-collapsed");
         });
 
@@ -197,64 +200,64 @@
                     sessionList.innerHTML = '<p>No sessions yet.</p>';
                 } else {
                     data.reverse().forEach(session => {
-                    const sessionId = session.message_id;
-                    const sessionTitle = session.title || `Session ${sessionId}`;
+                        const sessionId = session.message_id;
+                        const sessionTitle = session.title || `Session ${sessionId}`;
 
-                    const link = document.createElement('a');
-                    link.href = `/chat/history/${sessionId}`;
-                    link.className = 'session-link';
+                        const link = document.createElement('a');
+                        link.href = `/chat/history/${sessionId}`;
+                        link.className = 'session-link';
 
-                    link.innerHTML = `
-                        <div style="display: flex; align-items: center;">
-                            <i class="bi bi-chat-dots"></i>
-                            <span class="link-text">${sessionTitle}</span>
-                        </div>
-                        <button class="delete-btn" title="Delete session"><i class="bi bi-trash"></i></button>
-                    `;
+                        link.innerHTML = `
+                            <div style="display: flex; align-items: center;">
+                                <i class="bi bi-chat-dots"></i>
+                                <span class="link-text">${sessionTitle}</span>
+                            </div>
+                            <button class="delete-btn" title="Delete session"><i class="bi bi-trash"></i></button>
+                        `;
 
-                    if (currentPath.includes(`/chat/history/${sessionId}`)) {
-                        link.classList.add('active');
-                        setTimeout(() => {
-                            link.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        }, 0);
-                    }
+                        if (currentPath.includes(`/chat/history/${sessionId}`)) {
+                            link.classList.add('active');
+                            setTimeout(() => {
+                                link.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            }, 0);
+                        }
 
-                    const deleteBtn = link.querySelector('.delete-btn');
-                    deleteBtn.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        fetch(`/api/sessions/${sessionId}`, {
-                            method: 'DELETE',
-                            headers: {
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                'Content-Type': 'application/json'
-                            }
-                        })
-                        .then(res => {
-                            if (res.ok) {
-                                link.remove();
-                                if (currentPath.includes(`/chat/history/${sessionId}`)) {
-                                    fetch(`{{ route('api.user_sessions') }}`)
-                                        .then(res => res.json())
-                                        .then(newSessions => {
-                                            if (newSessions.length) {
-                                                const latestId = newSessions[newSessions.length - 1].message_id;
-                                                window.location.href = `/chat/history/${latestId}`;
-                                            } else {
-                                                window.location.href = `/tools`;
-                                            }
-                                        });
+                        const deleteBtn = link.querySelector('.delete-btn');
+                        deleteBtn.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            fetch(`/api/sessions/${sessionId}`, {
+                                method: 'DELETE',
+                                headers: {
+                                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                    'Content-Type': 'application/json'
                                 }
-                            } else {
-                                console.error("Failed to delete session", res.statusText);
-                            }
-                        })
-                        .catch(err => {
-                            console.error("Delete error:", err);
+                            })
+                            .then(res => {
+                                if (res.ok) {
+                                    link.remove();
+                                    if (currentPath.includes(`/chat/history/${sessionId}`)) {
+                                        fetch(`{{ route('api.user_sessions') }}`)
+                                            .then(res => res.json())
+                                            .then(newSessions => {
+                                                if (newSessions.length) {
+                                                    const latestId = newSessions[newSessions.length - 1].message_id;
+                                                    window.location.href = `/chat/history/${latestId}`;
+                                                } else {
+                                                    window.location.href = `/tools`;
+                                                }
+                                            });
+                                    }
+                                } else {
+                                    console.error("Failed to delete session", res.statusText);
+                                }
+                            })
+                            .catch(err => {
+                                console.error("Delete error:", err);
+                            });
                         });
-                    });
 
-                    sessionList.appendChild(link);
-                });
+                        sessionList.appendChild(link);
+                    });
                 }
             })
             .catch(error => {
@@ -269,5 +272,4 @@
             });
     </script>
 </body>
-
 </html>

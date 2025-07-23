@@ -186,7 +186,7 @@ Route::post('/realworld', [RealWorldController::class, 'processForm'])->name('re
 // Sentence Starter Agent
 Route::get('/sentencestarter', [SentenceStarterController::class, 'showForm'])->name('sentencestarter.form');
 Route::post('/sentencestarter', [SentenceStarterController::class, 'processForm'])->name('sentencestarter.process');
-Route::post('/sentence-starter/followup', [SentenceStarterController::class, 'followupForm'])->name('sentencestarter.followup');
+// Route::post('/sentence-starter/followup', [SentenceStarterController::class, 'followupForm'])->name('sentencestarter.followup');
 
 
 // Translator Agent

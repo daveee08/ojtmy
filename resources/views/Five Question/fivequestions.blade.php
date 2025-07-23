@@ -75,7 +75,7 @@
             <p class="text-muted text-center mb-4">Use AI to ask you 5 questions to push your thinking on any topic or idea.</p>
 
             {{-- ---------------- Form ---------------- --}}
-            <form action="{{ route('sentencestarter.process') }}" method="POST" id="starterForm" onsubmit="showLoading()">
+            <form action="{{ route('fivequestions.process') }}" method="POST" id="starterForm" onsubmit="showLoading()">
                 @csrf
 
                 <div class="mb-3">
@@ -104,9 +104,9 @@
                 </div>
             </form>
             {{-- ---------------- Output ---------------- --}}   
-            @if(isset($sentence_starters) && is_array($sentence_starters) && count($sentence_starters))
+            {{-- @if(isset($sentence_starters) && is_array($sentence_starters) && count($sentence_starters))
                 <div class="mt-5">
-                    <h5 class="text-highlight">5 Questions:</h5>
+                    <h5 class="text-highlight">5 Questions:</h5> --}}
 
                     {{-- @foreach($sentence_starters as $sentence)
                         <div class="d-flex justify-content-between align-items-start bg-light p-3 mb-3 rounded shadow-sm position-relative border border-1">
@@ -129,8 +129,8 @@
                             <button type="submit" class="btn btn-outline-primary">Ask</button>
                         </div>
                     </form> --}}
-                </div>
-            @endif
+                {{-- </div>
+            @endif --}}
 
             {{-- ---------------- Error ---------------- --}}
             @if($errors->has('error'))

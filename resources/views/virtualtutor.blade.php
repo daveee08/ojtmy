@@ -939,7 +939,7 @@
                         const lessonDiv = document.createElement('div');
                         lessonDiv.className = 'lesson-item d-flex align-items-center'; // Added d-flex and align-items-center
                         lessonDiv.innerHTML = `
-                            <i class="fas fa-book-reader me-2 text-info"></i> <div>
+                            <i class="text-info"></i> <div>
                                 <strong>Lesson ${lesson.lesson_number}:</strong> ${lesson.lesson_title}
                             </div>
                         `;
@@ -994,28 +994,23 @@
         e.preventDefault();
         const form = new FormData(this);
 
-        fetch("/lessons", {
-                method: "POST",
-                headers: {
-                    "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content
-                },
-                body: form
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.status === "success") {
-                    alert("Lesson added!");
-                    bootstrap.Modal.getInstance(document.getElementById('addLessonModal')).hide();
-                    this.reset();
-                    loadLessons(form.get("chapter_id")); // Reload lessons for the specific chapter
-                } else {
-                    alert("Error adding lesson.");
-                }
-            })
-            .catch(err => {
-                console.error("Error adding lesson:", err);
-                alert("Something went wrong while adding lesson.");
-            });
-    });
-</script>
+            fetch("/lessons", {
+                    method: "POST",
+                    headers: {
+                        "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: form
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === "success") {
+                        alert("Lesson added!");
+                        bootstrap.Modal.getInstance(document.getElementById('addLessonModal')).hide();
+                        this.reset();
+                        loadLessons(form.get("chapter_id"));
+                    }
+                });
+        });
+    </script>
+
 @endsection

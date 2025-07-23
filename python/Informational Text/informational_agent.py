@@ -1,10 +1,13 @@
-from fastapi import FastAPI, HTTPException, UploadFile, Form, File # type: ignore
-from fastapi.responses import JSONResponse # type: ignore
-from pydantic import BaseModel, ValidationError # type: ignore
-from langchain_community.llms import Ollama # type: ignore
-from langchain_core.prompts import ChatPromptTemplate # type: ignore
-from langchain_community.document_loaders.pdf import PyPDFLoader # type: ignore
-import shutil, os, re, tempfile, uvicorn, traceback # type: ignore
+from fastapi import FastAPI, HTTPException, UploadFile, Form, File, Depends
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
+from langchain_community.llms import Ollama
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_community.document_loaders.pdf import PyPDFLoader
+import shutil, os, re, tempfile, uvicorn, traceback, sys
+from typing import Optional
+from langchain_core.messages import HumanMessage, AIMessage
+from fastapi.middleware.cors import CORSMiddleware
 
 manual_topic_template = """
 You are an informative and student-friendly virtual tutor. Your job is to explain informational topics clearly and appropriately for a student's grade level.

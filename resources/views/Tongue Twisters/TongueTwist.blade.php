@@ -56,6 +56,7 @@
         #clearInputsBtn:active {
             color: #ad1457 !important;
         }
+<<<<<<< HEAD
         .btn-pink {
             background-color: #e91e63 !important;
             color: #fff !important;
@@ -80,6 +81,8 @@
             box-shadow: 0 2px 12px rgba(233, 30, 99, 0.08);
             word-break: break-word;
         }
+=======
+>>>>>>> 074e8dffacfbb9951b315ed18c886c8ce4f55b18
     </style>
 </head>
 <body>
@@ -152,9 +155,13 @@
                         </button>
                     </form>
                     @if (isset($response) && $response)
+<<<<<<< HEAD
                         <div class="twister-result mt-4">
                             {{ $response }}
                         </div>
+=======
+                        <div class="alert alert-success mt-4">{{ $response }}</div>
+>>>>>>> 074e8dffacfbb9951b315ed18c886c8ce4f55b18
                     @endif
                 </div>
             </div>

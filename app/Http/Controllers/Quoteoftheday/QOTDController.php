@@ -1,5 +1,6 @@
 <?php
 
+<<<<<<< HEAD
 namespace App\Http\Controllers\Quoteoftheday;
 
 use Illuminate\Http\Request;
@@ -56,10 +57,28 @@ class QOTDController extends Controller
 
         // Validate the incoming request data to ensure required fields are present.
         $validated = $request->validate([
+=======
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
+
+class QOTDController extends Controller
+{
+    public function showForm()
+    {
+        return view('layouts.QOTD');
+    }
+
+    public function generateQuote(Request $request)
+    {
+        $request->validate([
+>>>>>>> 074e8dffacfbb9951b315ed18c886c8ce4f55b18
             'topic' => 'required|string',
             'grade' => 'required|string',
         ]);
 
+<<<<<<< HEAD
         $topic = $validated['topic'];
         $grade = $validated['grade'];
         // Get the authenticated user's ID. Default to 1 if not authenticated.
@@ -117,12 +136,38 @@ class QOTDController extends Controller
         // This return statement is a final fallback and should only be reached if
         // the FastAPI call failed and no redirection occurred.
         return view('Quote of the Day.QOTD', [
+=======
+        $topic = $request->input('topic');
+        $grade = $request->input('grade');
+
+        try {
+            $response = Http::post('http://127.0.0.1:5006/generate-quote', [
+                'topic' => $topic,
+                'grade_level' => $grade,
+            ]);
+
+            if ($response->successful()) {
+                $quoteData = $response->json();
+                $quote = $quoteData['quote'] ?? 'Error: Could not retrieve quote.';
+            } else {
+                $quote = 'Error contacting quote generation service.';
+                // Log the error response for debugging
+                \Illuminate\Support\Facades\Log::error('QOTD API Error: ' . $response->body());
+            }
+        } catch (\Exception $e) {
+            $quote = 'Error: Could not connect to the quote generation service.';
+            \Illuminate\Support\Facades\Log::error('QOTD connection error: ' . $e->getMessage());
+        }
+
+        return view('layouts.QOTD', [
+>>>>>>> 074e8dffacfbb9951b315ed18c886c8ce4f55b18
             'quote' => $quote,
             'topic' => $topic,
             'grade' => $grade,
         ]);
     }
 
+<<<<<<< HEAD
     /**
      * Handles the download of the generated quote in TXT or PDF format.
      *
@@ -133,6 +178,10 @@ class QOTDController extends Controller
     {
         set_time_limit(0); 
 
+=======
+    public function downloadQuote(Request $request)
+    {
+>>>>>>> 074e8dffacfbb9951b315ed18c886c8ce4f55b18
         $request->validate([
             'content' => 'required|string',
             'filename' => 'required|string',
@@ -149,8 +198,12 @@ class QOTDController extends Controller
                 ->header('Content-Disposition', 'attachment; filename="' . $filename . '.txt"');
         } elseif ($format === 'pdf') {
             try {
+<<<<<<< HEAD
                 // --- PORT CHANGED TO 5000 ---
                 $response = Http::timeout(0)->post('http://127.0.0.1:5000/generate-pdf', [
+=======
+                $response = Http::post('http://127.0.0.1:5006/generate-pdf', [
+>>>>>>> 074e8dffacfbb9951b315ed18c886c8ce4f55b18
                     'content' => $content,
                     'filename' => $filename,
                 ]);
@@ -160,6 +213,7 @@ class QOTDController extends Controller
                         ->header('Content-Type', 'application/pdf')
                         ->header('Content-Disposition', 'attachment; filename="' . $filename . '.pdf"');
                 } else {
+<<<<<<< HEAD
                     Log::error('QOTD PDF API Error:', [
                         'status' => $response->status(),
                         'body' => $response->body()
@@ -168,6 +222,11 @@ class QOTDController extends Controller
                 }
             } catch (\Exception $e) {
                 Log::error('QOTD PDF connection error: ' . $e->getMessage());
+=======
+                    return back()->withErrors(['download' => 'Error generating PDF: ' . ($response->json()['error'] ?? 'Unknown error')]);
+                }
+            } catch (\Exception $e) {
+>>>>>>> 074e8dffacfbb9951b315ed18c886c8ce4f55b18
                 return back()->withErrors(['download' => 'Error connecting to PDF generation service: ' . $e->getMessage()]);
             }
         }

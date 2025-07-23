@@ -1,10 +1,15 @@
+<<<<<<< HEAD
 from fastapi import FastAPI, Request, Form
+=======
+from fastapi import FastAPI, Request
+>>>>>>> 074e8dffacfbb9951b315ed18c886c8ce4f55b18
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from langchain_community.llms import Ollama
 from langchain_core.prompts import ChatPromptTemplate
 import os, sys, traceback
 from fastapi.middleware.cors import CORSMiddleware
+<<<<<<< HEAD
 
 current_script_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.join(current_script_dir, '..', '..')
@@ -17,11 +22,14 @@ except ImportError:
     chat_router = None
     create_session_and_parameter_inputs = None
     insert_message = None
+=======
+>>>>>>> 074e8dffacfbb9951b315ed18c886c8ce4f55b18
 
 app = FastAPI()
 
 # --- Prompt Template ---
 twister_prompt = """
+<<<<<<< HEAD
 You are a master of creating tongue twisters.
 Your job is to generate a short, fun, and challenging tongue twister that is difficult to say quickly and repeatedly.
 It should use alliteration and wordplay, and be tricky to pronounce.
@@ -29,6 +37,13 @@ Do NOT just make a simple sentence—make it a real tongue twister!
 Topic: {topic}
 Grade Level: {grade_level}
 Tongue Twister (no explanation, just the twister):
+=======
+You are a creative AI that generates fun, challenging tongue twisters.
+Topic: {topic}
+Difficulty: {difficulty}
+Grade Level: {grade_level}
+Generate a unique tongue twister. Do not add explanations.
+>>>>>>> 074e8dffacfbb9951b315ed18c886c8ce4f55b18
 """
 
 model = Ollama(model="llama3")
@@ -40,12 +55,20 @@ twister_sessions = {}
 class TwisterRequest(BaseModel):
     session_id: str
     topic: str = ""
+<<<<<<< HEAD
+=======
+    difficulty: str = "medium"
+>>>>>>> 074e8dffacfbb9951b315ed18c886c8ce4f55b18
     grade_level: str = "All Levels"
 
 @app.post("/tonguetwister/start")
 async def start_twister(req: TwisterRequest):
     prompt_input = {
         "topic": req.topic or "any",
+<<<<<<< HEAD
+=======
+        "difficulty": req.difficulty or "medium",
+>>>>>>> 074e8dffacfbb9951b315ed18c886c8ce4f55b18
         "grade_level": req.grade_level or "All Levels"
     }
     chain = prompt_template | model
@@ -53,6 +76,10 @@ async def start_twister(req: TwisterRequest):
     twister_sessions[req.session_id] = {
         "twisters": [twister],
         "topic": req.topic,
+<<<<<<< HEAD
+=======
+        "difficulty": req.difficulty,
+>>>>>>> 074e8dffacfbb9951b315ed18c886c8ce4f55b18
         "grade_level": req.grade_level
     }
     return {"twister": twister}
@@ -61,6 +88,10 @@ async def start_twister(req: TwisterRequest):
 async def next_twister(req: TwisterRequest):
     prompt_input = {
         "topic": req.topic or twister_sessions[req.session_id]["topic"] or "any",
+<<<<<<< HEAD
+=======
+        "difficulty": req.difficulty or twister_sessions[req.session_id]["difficulty"] or "medium",
+>>>>>>> 074e8dffacfbb9951b315ed18c886c8ce4f55b18
         "grade_level": req.grade_level or twister_sessions[req.session_id]["grade_level"] or "All Levels"
     }
     chain = prompt_template | model
@@ -73,6 +104,7 @@ async def twister_history(req: TwisterRequest):
     session = twister_sessions.get(req.session_id, {})
     return {"twisters": session.get("twisters", [])}
 
+<<<<<<< HEAD
 @app.post("/tonguetwister")
 async def generate_tongue_twister(
     topic: str = Form(...),
@@ -113,12 +145,17 @@ async def generate_tongue_twister(
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": str(e)})
 
+=======
+>>>>>>> 074e8dffacfbb9951b315ed18c886c8ce4f55b18
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
+<<<<<<< HEAD
 
 if chat_router:
     app.include_router(chat_router)
+=======
+>>>>>>> 074e8dffacfbb9951b315ed18c886c8ce4f55b18

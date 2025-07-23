@@ -1,8 +1,9 @@
 <?php
+
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Summarizer\SummarizeController;
 use App\Http\Controllers\Proofreader\ProofreaderController;
-use App\Http\Controllers\QuizMe\QuizmeController;
+use App\Http\Controllers\QuizmeController;
 use App\Http\Controllers\StepTutorController;
 use App\Http\Controllers\FiveQuestion\FiveQuestionsController;
 use App\Http\Controllers\EmailWriter\EmailWriterController;
@@ -138,12 +139,18 @@ Route::get('/proofreader', [ProofreaderController::class, 'showForm'])->name('pr
 Route::post('/proofreader', [ProofreaderController::class, 'processForm'])->name('proofreader.process');
 
 // ✅ QuizMe Tool
-Route::get('/quizme', [QuizmeController::class, 'showForm']);
-Route::post('/quizme', [QuizmeController::class, 'processForm']);
-Route::post('/quizme/download', [QuizmeController::class, 'downloadPracticePlan'])->name('quizme.download');
-Route::post('/quizme/download-pdf', [QuizmeController::class, 'downloadPdf']);
-Route::post('/quizme/evaluate-answer', 'App\Http\Controllers\QuizMe\QuizmeController@evaluateAnswer');
-Route::post('/quizme/chat', 'App\Http\Controllers\QuizMe\QuizmeController@chat');
+Route::get('/quizme', [QuizMe\QuizmeController::class, 'showQuizForm'])->name('quizme.showForm');
+Route::get('/quizme', [QuizmeController::class, 'showQuizForm'])->name('quizme.showForm');
+Route::post('/quizme/generate', [QuizmeController::class, 'processForm'])->name('quizme.generate'); // Or whatever name you've given it
+Route::post('/quizme/submit-answer', [QuizmeController::class, 'submitAnswer'])->name('quizme.submitAnswer');
+Route::get('/quizme/reveal-answers', [QuizmeController::class, 'revealAnswers'])->name('quizme.revealAnswers');
+Route::post('/quizme/download/practice-plan', [QuizmeController::class, 'downloadPracticePlan'])->name('quizme.download.practicePlan');
+Route::post('/quizme/download/pdf', [QuizmeController::class, 'downloadPdf'])->name('quizme.download.pdf');
+Route::post('/quizme/start', function() { /* Logic for starting quiz */ })->name('quizme.start');
+Route::post('/quizme/answer', function() { /* Logic for submitting answer */ })->name('quizme.answer');
+Route::post('/quizme/reveal-answers', function() { /* Logic for revealing answers */ })->name('quizme.reveal.answers');
+Route::get('/sessions/{userId}', [QuizmeController::class, 'fetchUserSessions']); 
+Route::post('/quizme/reveal-answers', [QuizmeController::class, 'revealAnswers'])->name('quizme.reveal-answers');
 
 // ✅ Qoutes of the Day
 Route::get('/qotd', [QOTDController::class, 'showForm'])->name('qotd.form'); // ADDED name('qotd.form') here
@@ -157,8 +164,9 @@ Route::get('/tonguetwister', [TongueTwistController::class, 'showForm']);
 Route::post('/tonguetwister', [TongueTwistController::class, 'processForm']);
 
 // ✅ Teacher Jokes
-Route::get('/teacher-jokes', [TeacherJokesController::class, 'index'])->name('teacherjokes.index');
-Route::post('/teacher-jokes/generate', [TeacherJokesController::class, 'generateJoke'])->name('teacherjokes.generate');
+Route::get('/teacher-jokes', [TeacherJokesController::class, 'showForm'])->name('teacherjokes.show');
+Route::post('/teacher-jokes', [TeacherJokesController::class, 'generateJoke'])->name('teacherjokes.generate');
+Route::post('/teacher-jokes/download', [TeacherJokesController::class, 'downloadJoke'])->name('teacherjokes.download');
 
 // ✅ Coach Sports Practice
 Route::get('/coachsportprac', [CoachSportsPracController::class, 'showForm']);

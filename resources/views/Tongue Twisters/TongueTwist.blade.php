@@ -155,13 +155,7 @@
                         </button>
                     </form>
                     @if (isset($response) && $response)
-<<<<<<< HEAD
-                        <div class="twister-result mt-4">
-                            {{ $response }}
-                        </div>
-=======
                         <div class="alert alert-success mt-4">{{ $response }}</div>
->>>>>>> 074e8dffacfbb9951b315ed18c886c8ce4f55b18
                     @endif
                 </div>
             </div>

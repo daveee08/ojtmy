@@ -1,155 +1,189 @@
 <?php
 
-namespace App\Http\Controllers\QuizMe;
+use App\Http\Controllers\QuizMe\QuizmeController; // Your current namespace, if you moved the file
 
+use App\Http\Controllers\Controller; // Crucial for extending the base Controller class
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
-use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class QuizmeController extends Controller
 {
-    public function fetchUserSessions()
+    /**
+     * Displays the quiz generation form.
+     * This method is called via a GET request to /quizme.
+     */
+    public function showQuizForm()
     {
-        $userId = Auth::id();
-        $response = Http::get("http://localhost:5000/sessions/$userId");
-        return response()->json($response->json());
-    }
-
-    public function showForm()
-    {
-        return view('Quiz Me.quizbot', [
-            'cleanContent' => '',
-            'response' => '',
-            'currentTopic' => '',
-            'currentGrade' => '',
-            'example' => [
-                'topic' => 'Photosynthesis',
-                'grade_level' => '6th Grade',
-                'num_questions' => 5
-            ]
-        ]);
+        // --- FIX IS HERE ---
+        // Changed 'QuizMe.Quizbot' to 'Quiz Me.quizbot'
+        // This matches the suggested path 'Quiz Me\quizbot' from the error message.
+        return view('Quiz Me.quizbot'); // Ensure this view exists with the correct folder and file name
     }
 
     public function processForm(Request $request)
     {
-        set_time_limit(0);
+        // Log the incoming request data for debugging
+        Log::info('Incoming QuizMe form request:', $request->all());
 
+        // 1. Validation
         $validated = $request->validate([
             'input_type' => 'required|in:topic',
-            'topic' => 'required|string|max:255',
-            'grade_level' => 'required|string|max:255',
-            'num_questions' => 'required|integer|min:1',
+            'topic' => 'required|string|min:3|max:500',
+            'grade_level' => 'required|string|max:50',
+            'num_questions' => 'nullable|integer|min:1|max:300', // Made nullable and added min/max
+            'quiz_types' => 'required|array',
+            'quiz_types.*' => 'in:multiple_choice,fill_in_the_blanks,identification',
         ]);
 
-        $multipartData = [
-            ['name' => 'input_type', 'contents' => $validated['input_type']],
-            ['name' => 'topic', 'contents' => $validated['topic']],
-            ['name' => 'grade_level', 'contents' => $validated['grade_level']],
-            ['name' => 'num_questions', 'contents' => $validated['num_questions']],
-            ['name' => 'user_id', 'contents' => Auth::id() ?? 1],
-            ['name' => 'question_types', 'contents' => $request->input('question_types', 'multiple choice')],
-        ];
+        $topic = $validated['topic'];
+        $gradeLevel = $validated['grade_level'];
+        $numQuestions = $validated['num_questions']; // Will be null if not provided
+        $quizTypes = $validated['quiz_types'];
 
-        $response = Http::timeout(0)
-            ->asMultipart()
-            ->post('http://127.0.0.1:5000/quizme', $multipartData);
+        // Generate a unique session ID for this quiz instance
+        $sessionId = Str::uuid()->toString();
 
-        if ($response->failed()) {
-            logger()->error('FastAPI QuizMe error', ['body' => $response->body()]);
-            return back()->withErrors(['error' => 'Python API failed: ' . $response->body()]);
+        try {
+            // 2. Prepare payload for FastAPI
+            $fastApiUrl = env('FASTAPI_BASE_URL', 'http://127.0.0.1:5000') . '/quizme';
+
+            $payload = [
+                'session_id' => $sessionId,
+                'topic' => $topic,
+                'grade_level' => $gradeLevel,
+                'quiz_types' => $quizTypes,
+            ];
+
+            // Only add num_questions to payload if it's not null
+            if (!is_null($numQuestions)) {
+                $payload['num_questions'] = $numQuestions;
+            }
+
+            Log::info('Payload sent to FastAPI for QuizMe:', $payload);
+
+            // 3. Make HTTP request to FastAPI
+            $response = Http::timeout(60)->post($fastApiUrl, $payload);
+
+            // 4. Handle response from FastAPI
+            if ($response->successful()) {
+                $fastApiResponse = $response->json();
+                Log::info('FastAPI QuizMe response:', $fastApiResponse);
+
+                if (isset($fastApiResponse['questions']) && is_array($fastApiResponse['questions'])) {
+                    // Store the *entire quiz* data in the Laravel session
+                    $request->session()->put('quiz_data_' . $sessionId, $fastApiResponse['questions']);
+
+                    // Return a JSON response for AJAX calls
+                    return response()->json([
+                        'message' => 'Quiz questions generated successfully.',
+                        'session_id' => $sessionId,
+                        'questions' => $fastApiResponse['questions']
+                    ]);
+                } else {
+                    Log::error('FastAPI QuizMe response missing "questions" or not an array.', ['response' => $fastApiResponse]);
+                    return response()->json(['message' => 'Failed to generate quiz questions: Invalid response from AI.', 'error' => $fastApiResponse], 500);
+                }
+            } else {
+                $errorMessage = 'Error from AI service: ' . $response->status() . ' - ' . ($response->json()['detail'] ?? $response->body());
+                Log::error('FastAPI QuizMe request failed:', ['status' => $response->status(), 'response' => $response->body()]);
+                return response()->json(['message' => $errorMessage], $response->status());
+            }
+
+        } catch (\Illuminate\Http\Client\ConnectionException $e) {
+            Log::error('Could not connect to FastAPI QuizMe service:', ['error' => $e->getMessage()]);
+            return response()->json(['message' => 'Failed to connect to the quiz generation service. Please ensure the AI backend is running.', 'error' => $e->getMessage()], 503);
+        } catch (\Exception $e) {
+            Log::error('An unexpected error occurred during QuizMe generation:', ['error' => $e->getMessage()]);
+            return response()->json(['message' => 'An unexpected error occurred: ' . $e->getMessage()], 500);
         }
-
-        $responseData = $response->json();
-        logger($responseData);
-
-        $messageId = $responseData['message_id'] ?? null;
-
-        if ($messageId) {
-            return redirect()->to("/chat/history/{$messageId}");
-        }
-
-        $responseText = $responseData['output'] ?? 'No output (no message ID)';
-        // Clean up for display and download
-        $cleanContent = preg_replace('/^[\*\+]\s?/m', '', $responseText); // Remove * and + at line start
-        $cleanContent = preg_replace('/[_\*]/', '', $cleanContent); // Remove all _ and * anywhere
-        $cleanContent = preg_replace('/\n{2,}/', "\n\n", $cleanContent); // Normalize newlines
-
-        $topic = $request->input('topic', 'Quiz');
-        $grade = $request->input('grade_level', 'All Levels');
-
-        return view('Quiz Me.quizbot', [
-            'response' => $responseText,
-            'cleanContent' => $cleanContent,
-            'currentTopic' => $topic,
-            'currentGrade' => $grade,
-            'example' => [
-                'topic' => 'Photosynthesis',
-                'grade_level' => '6th Grade',
-                'num_questions' => 5
-            ]
-        ]);
     }
 
-    public function downloadPracticePlan(Request $request)
+    /**
+     * Handles submission of a single answer during an interactive quiz.
+     */
+    public function submitAnswer(Request $request)
     {
-        set_time_limit(0);
-        $content = $request->input('content');
-        $topic = $request->input('topic', 'Quiz');
-        $grade = $request->input('grade_level', 'All Levels');
+        $validated = $request->validate([
+            'session_id' => 'required|string',
+            'question_index' => 'required|integer|min:0',
+            'user_answer' => 'nullable|string',
+            'question_type' => 'required|string',
+            'correct_answer' => 'required',
+        ]);
 
-        $topic_clean = preg_replace('/[^A-Za-z0-9 ]/', '', $topic);
-        $grade_clean = preg_replace('/[^A-Za-z0-9 ]/', '', $grade);
-        $filename = trim($topic_clean) . ' Quiz for ' . trim($grade_clean) . ' Level';
+        $sessionId = $validated['session_id'];
+        $questionIndex = $validated['question_index'];
+        $userAnswer = $validated['user_answer'];
+        $questionType = $validated['question_type'];
+        $correctAnswer = $validated['correct_answer'];
 
-        $format = $request->input('format', 'txt');
+        // Retrieve quiz data from session
+        $quizData = $request->session()->get('quiz_data_' . $sessionId);
 
-        $cleanContent = preg_replace('/^[\*\+]\s?/m', '', $content);
-        $cleanContent = preg_replace('/[_\*]/', '', $cleanContent);
-        $cleanContent = preg_replace('/\n{2,}/', "\n\n", $cleanContent);
+        if (!$quizData || !isset($quizData[$questionIndex])) {
+            Log::warning('Invalid session ID or question index for submitAnswer.', ['session_id' => $sessionId, 'question_index' => $questionIndex]);
+            return response()->json(['message' => 'Quiz session expired or invalid question.'], 404);
+        }
 
-        if ($format === 'txt') {
-            return response($cleanContent)
-                ->header('Content-Type', 'text/plain')
-                ->header('Content-Disposition', 'attachment; filename="'.$filename.'.txt"');
-        } elseif ($format === 'pdf') {
-            $response = Http::timeout(0)
-                ->asMultipart()
-                ->post('http://127.0.0.1:5000/generate-pdf', [
-                    ['name' => 'content', 'contents' => $cleanContent],
-                    ['name' => 'filename', 'contents' => $filename],
-                ]);
-            if ($response->successful()) {
-                return response($response->body())
-                    ->header('Content-Type', 'application/pdf')
-                    ->header('Content-Disposition', 'attachment; filename="'.$filename.'.pdf"');
+        $currentQuestion = $quizData[$questionIndex];
+
+        // Perform basic answer checking (can be more sophisticated)
+        $isCorrect = false;
+        $feedback = "Incorrect.";
+
+        // Normalize answers for comparison (case-insensitive, trim whitespace)
+        $normalizedUserAnswer = Str::lower(trim($userAnswer));
+        $normalizedCorrectAnswer = Str::lower(trim($correctAnswer));
+
+        if ($questionType === 'multiple_choice') {
+            if ($normalizedUserAnswer === $normalizedCorrectAnswer) {
+                $isCorrect = true;
+                $feedback = "Correct!";
             } else {
-                return back()->withErrors(['download' => 'Error generating PDF: ' . $response->body()]);
+                $feedback = "Incorrect. The correct answer was: " . $correctAnswer;
+            }
+        } else {
+            // For fill-in-the-blanks and identification
+            if ($normalizedUserAnswer === $normalizedCorrectAnswer) {
+                $isCorrect = true;
+                $feedback = "Correct!";
+            } else {
+                $feedback = "Incorrect. The correct answer was: " . $correctAnswer;
             }
         }
+
+        // Update the session quiz_data with user's answer and correctness
+        $quizData[$questionIndex]['user_answer'] = $userAnswer;
+        $quizData[$questionIndex]['is_correct'] = $isCorrect;
+        $request->session()->put('quiz_data_' . $sessionId, $quizData);
+
+
+        return response()->json([
+            'feedback' => $feedback,
+            'is_correct' => $isCorrect,
+            'done' => ($questionIndex + 1 >= count($quizData))
+        ]);
     }
 
-    public function downloadPdf(Request $request)
+    /**
+     * Retrieves all answers for a given quiz session.
+     */
+    public function revealAnswers(Request $request)
     {
-        $content = $request->input('content', '');
-        $topic = $request->input('topic', 'Quiz');
-        $grade = $request->input('grade_level', 'All Levels');
-        $filename = trim($topic) . ' Quiz for ' . trim($grade) . ' Level.pdf';
-        $filename = preg_replace('/\s+/', ' ', $filename);
-        $filename = str_replace(['/', '\\', ':', '*', '?', '"', '<', '>', '|'], '', $filename);
+        $validated = $request->validate([
+            'session_id' => 'required|string',
+        ]);
 
-        $response = Http::timeout(0)
-            ->asForm()
-            ->post('http://127.0.0.1:5000/generate-pdf', [
-                'content' => $content,
-            ]);
+        $sessionId = $validated['session_id'];
 
-        if ($response->failed()) {
-            return back()->withErrors(['error' => 'Failed to generate PDF: ' . $response->body()]);
+        $quizData = $request->session()->get('quiz_data_' . $sessionId);
+
+        if (!$quizData) {
+            return response()->json(['message' => 'Quiz session expired or invalid.'], 404);
         }
 
-        return response($response->body(), 200)
-            ->header('Content-Type', 'application/pdf')
-            ->header('Content-Disposition', 'attachment; filename="' . $filename . '"');
+        return response()->json(['answers' => $quizData]);
     }
 }

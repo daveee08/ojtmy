@@ -1,365 +1,247 @@
-<!DOCTYPE html>
-<html lang="en">
+@extends('layouts.app') {{-- Assuming you have a layouts.app like QOTD.blade.php's structure --}}
 
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>CK Teacher Jokes!</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous" />
-    <style>
-        body {
-            background: linear-gradient(to right, #ffe6ec, #ffffff);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: #2c2c2c;
-            padding-top: 80px;
-        }
+@section('content')
+<style>
+    body {
+        background: linear-gradient(to right, #ffe6ec, #ffffff);
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        color: #2c2c2c;
+    }
+    .container-tj {
+        background: #ffffff;
+        max-width: 700px;
+        padding: 32px;
+        border-radius: 18px;
+        box-shadow: 0 2px 16px rgba(80, 60, 200, 0.08);
+        margin: 40px auto;
+    }
+    .h2-tj {
+        text-align:center;
+        font-weight:600;
+        margin-bottom:8px;
+        color: #e91e63;
+    }
+    .p-tj {
+        text-align:center;
+        color:#555;
+        margin-bottom:32px;
+    }
+    .btn-primary-tj {
+        background:#e91e63;
+        border:none;
+        font-weight:600;
+        font-size:1.1em;
+        border-radius:30px;
+        padding: 10px 20px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+    .btn-primary-tj:hover {
+        background-color: #d81b60;
+    }
+    .form-control-tj {
+        border-color: #ddd;
+        padding: 10px 15px;
+        border-radius: 8px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    .joke-display-tj {
+        margin-top: 32px;
+        padding: 24px;
+        background: #f7f7ff;
+        border-radius: 12px;
+        text-align:center;
+        font-size:1.2em;
+        color:#333;
+        word-wrap: break-word;
+    }
+    .btn-sm-outline-secondary-tj,
+    .btn-sm-outline-danger-tj {
+        border:1px solid #e91e63;
+        color:#e91e63;
+        background:transparent;
+        padding: 8px 16px;
+        border-radius: 20px;
+        cursor: pointer;
+        transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    .btn-sm-outline-secondary-tj:hover,
+    .btn-sm-outline-danger-tj:hover {
+        background-color: #e91e63;
+        color: #fff;
+        border-color: #e91e63;
+    }
+    .alert-danger {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+        padding: 15px;
+        margin-bottom: 20px;
+        border-radius: 8px;
+    }
+    .loading-spinner {
+        display: none;
+        border: 4px solid rgba(0, 0, 0, 0.1);
+        border-left-color: #e91e63;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        animation: spin 1s linear infinite;
+        margin-left: 10px;
+    }
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    .button-content {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .btn-info {
+        background-color: #6c757d;
+        color: #fff;
+        border: none;
+        font-weight: 600;
+        padding: 10px 20px;
+        border-radius: 30px;
+        transition: background-color 0.3s ease;
+    }
+    .btn-info:hover {
+        background-color: #5a6268;
+    }
+    #clearInputsBtn {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+</style>
 
-        .navbar-custom {
-            background-color: #ffffff;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        }
+<div class="container-tj">
+    <h2 class="h2-tj">CK Teacher Jokes!</h2>
+    <p class="p-tj">Generate teacher-friendly jokes based on any topic and grade level.</p>
 
-        .navbar-brand {
-            font-weight: 700;
-            color: #e91e63 !important;
-        }
+    {{-- Display validation errors and general errors --}}
+    @if ($errors->any() || (isset($errorMessage) && $errorMessage))
+        <div class="alert alert-danger">
+            <ul>
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+                {{-- Only display custom errorMessage if it's set and not empty --}}
+                @if (isset($errorMessage) && $errorMessage)
+                    <li>{{ $errorMessage }}</li>
+                @endif
+            </ul>
+        </div>
+    @endif
 
-        .nav-link {
-            color: #2c2c2c !important;
-            font-weight: 500;
-            margin-right: 1rem;
-        }
-
-        .nav-link:hover {
-            color: #e91e63 !important;
-        }
-
-        .container {
-            background: #ffffff;
-            max-width: 900px;
-            padding: 3rem 2rem;
-            border-radius: 16px;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
-            margin-top: 2rem;
-        }
-
-        .hero {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-
-        .hero h1 {
-            font-size: 2.5rem;
-            font-weight: 800;
-            color: #e91e63;
-        }
-
-        .hero p {
-            font-size: 1rem;
-            color: #555;
-            margin-top: 1rem;
-        }
-
-        .section-title {
-            font-weight: 700;
-            font-size: 1.5rem;
-            color: #e91e63;
-            margin-top: 2.5rem;
-            margin-bottom: 1.25rem;
-        }
-
-        .tool-item h5 {
-            font-weight: 700;
-            color: #2c2c2c;
-        }
-
-        .tool-item p {
-            color: #555;
-        }
-
-        .footer {
-            margin-top: 60px;
-            padding-top: 20px;
-            border-top: 1px solid #ddd;
-            text-align: center;
-            font-size: 0.9rem;
-            color: #777;
-        }
-
-        .btn-pink {
-            background-color: #e91e63;
-            color: #fff;
-            font-weight: 600;
-            padding: 0.5rem 2rem;
-            border-radius: 8px;
-            border: none;
-            transition: 0.3s ease;
-        }
-
-        .btn-pink:hover {
-            background-color: #d81b60;
-        }
-
-        .text-pink {
-            color: #e91e63 !important;
-        }
-
-        .text-highlight {
-            color: #e91e63 !important; /* Specific color for fullscreen spinner */
-        }
-
-        ul.list-group li {
-            border: none;
-            padding-left: 0;
-            background: transparent;
-        }
-
-        #clearInputsBtn {
-            transition: color 0.2s;
-        }
-
-        #clearInputsBtn:hover,
-        #clearInputsBtn:focus {
-            color: #d81b60 !important;
-        }
-
-        #clearInputsBtn:hover i,
-        #clearInputsBtn:focus i {
-            color: #d81b60 !important;
-        }
-
-        #clearInputsBtn:active {
-            color: #ad1457 !important;
-        }
-    </style>
-</head>
-
-<body>
-
-    <!-- Header -->
-    <nav class="navbar navbar-expand-lg navbar-light fixed-top navbar-custom">
-        <div class="container-fluid px-4">
-            <a class="navbar-brand" href="#">CK Teacher Jokes!</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
+    <form method="POST" action="{{ route('teacherjokes.generate') }}" id="teacherjokes-form">
+        @csrf
+        <div style="margin-bottom: 18px;">
+            <label for="topic" style="font-weight:500;">Topic: <span style="color:red">*</span></label>
+            {{-- Use null coalesce operator (??) to provide empty string default if variables are not set --}}
+            <textarea id="topic" name="topic" class="form-control form-control-tj" rows="2" placeholder="Natural sciences: Biology, chemistry, physics, astronomy, and Earth science." required>{{ old('topic', $topic ?? '') }}</textarea>
+        </div>
+        <div style="margin-bottom: 18px;">
+            <label for="grade_level" style="font-weight:500;">Grade level: <span style="color:red">*</span></label>
+            <select id="grade_level" name="grade_level" class="form-control form-control-tj" required>
+                {{-- Use null coalesce operator for $grade_level --}}
+                <option value="Pre-K" {{ (old('grade_level', $grade_level ?? '') == 'Pre-K') ? 'selected' : '' }}>Pre-K</option>
+                <option value="Kindergarten" {{ (old('grade_level', $grade_level ?? '') == 'Kindergarten') ? 'selected' : '' }}>Kindergarten</option>
+                <option value="1st Grade" {{ (old('grade_level', $grade_level ?? '') == '1st Grade') ? 'selected' : '' }}>1st Grade</option>
+                <option value="2nd Grade" {{ (old('grade_level', $grade_level ?? '') == '2nd Grade') ? 'selected' : '' }}>2nd Grade</option>
+                <option value="3rd Grade" {{ (old('grade_level', $grade_level ?? '') == '3rd Grade') ? 'selected' : '' }}>3rd Grade</option>
+                <option value="4th Grade" {{ (old('grade_level', $grade_level ?? '') == '4th Grade') ? 'selected' : '' }}>4th Grade</option>
+                <option value="5th Grade" {{ (old('grade_level', $grade_level ?? '') == '5th Grade') ? 'selected' : '' }}>5th Grade</option>
+                <option value="6th Grade" {{ (old('grade_level', $grade_level ?? '') == '6th Grade') ? 'selected' : '' }}>6th Grade</option>
+                <option value="7th Grade" {{ (old('grade_level', $grade_level ?? '') == '7th Grade') ? 'selected' : '' }}>7th Grade</option>
+                <option value="8th Grade" {{ (old('grade_level', $grade_level ?? '') == '8th Grade') ? 'selected' : '' }}>8th Grade</option>
+                <option value="9th Grade" {{ (old('grade_level', $grade_level ?? '') == '9th Grade') ? 'selected' : '' }}>9th Grade</option>
+                <option value="10th Grade" {{ (old('grade_level', $grade_level ?? '') == '10th Grade') ? 'selected' : '' }}>10th Grade</option>
+                <option value="11th Grade" {{ (old('grade_level', $grade_level ?? '') == '11th Grade') ? 'selected' : '' }}>11th Grade</option>
+                <option value="12th Grade" {{ (old('grade_level', $grade_level ?? '') == '12th Grade') ? 'selected' : '' }}>12th Grade</option>
+                <option value="University" {{ (old('grade_level', $grade_level ?? '') == 'University') ? 'selected' : '' }}>University</option>
+                <option value="College" {{ (old('grade_level', $grade_level ?? '') == 'College') ? 'selected' : '' }}>College</option>
+                <option value="Professional" {{ (old('grade_level', $grade_level ?? '') == 'Professional') ? 'selected' : '' }}>Professional</option>
+            </select>
+        </div>
+        <div style="display:flex; gap:16px; align-items:center; margin-bottom: 24px;">
+            <button type="submit" class="btn btn-primary-tj" id="generate-btn">
+                <span class="button-content">
+                    Generate Teacher Joke
+                    <span class="loading-spinner" id="loading-spinner"></span>
+                </span>
             </button>
-            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link" href="/">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">About</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Support</a>
-                    </li>
-                </ul>
+            <button type="button" class="btn btn-info" id="loadExemplarBtn">Load Example</button>
+            <button type="button" class="btn btn-secondary" id="clearInputsBtn" style="background: transparent; border: none; color: #e91e63; font-weight: 600; box-shadow: none;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#e91e63"
+                    class="bi bi-arrow-clockwise me-1" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd"
+                        d="M8 3a5 5 0 1 1-4.546 2.914.5.5 0 1 1 .908-.418A4 4 0 1 0 8 4V1.5a.5.5 0 0 1 1 0v3A.5.5 0 0 1 8.5 5h-3a.5.5 0 0 1 0-1H8z" />
+                </svg>
+                <span style="color: #e91e63;">Clear Inputs</span>
+            </button>
+        </div>
+    </form>
+
+    {{-- Display the generated joke (if available) --}}
+    @if(isset($joke) && $joke)
+        <div class="joke-display-tj">
+            <strong>Here's your Teacher Joke:</strong><br>
+            <em>{{ $joke }}</em>
+            <div style="margin-top: 20px;">
+                <form action="{{ route('teacherjokes.download') }}" method="POST" style="display:inline;">
+                    @csrf
+                    <input type="hidden" name="content" value="{{ $joke }}">
+                    <input type="hidden" name="filename" value="teacher_joke">
+                    <input type="hidden" name="format" value="txt">
+                    <button type="submit" class="btn btn-sm-outline-secondary-tj">Save as Text</button>
+                </form>
+                <form action="{{ route('teacherjokes.download') }}" method="POST" style="display:inline; margin-left: 10px;">
+                    @csrf
+                    <input type="hidden" name="content" value="{{ $joke }}">
+                    <input type="hidden" name="filename" value="teacher_joke">
+                    <input type="hidden" name="format" value="pdf">
+                    <button type="submit" class="btn btn-sm-outline-danger-tj">Save as PDF</button>
+                </form>
             </div>
         </div>
-    </nav>
+    @endif
+</div>
 
-    <!-- Fullscreen loading overlay -->
-    <div id="loadingOverlay"
-        class="position-fixed top-0 start-0 w-100 h-100 d-none justify-content-center align-items-center bg-white bg-opacity-75"
-        style="z-index: 9999;">
-        <div class="text-center">
-            <div class="spinner-border text-highlight mb-3" role="status" style="width: 3rem; height: 3rem;"></div>
-            <div class="fw-semibold text-highlight" aria-live="polite">Generating Response..</div>
-        </div>
-    </div>
+{{-- The script remains the same for button/spinner control --}}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const teacherjokesForm = document.getElementById('teacherjokes-form');
+        const generateBtn = document.getElementById('generate-btn');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const topicInput = document.getElementById('topic');
+        const gradeLevelSelect = document.getElementById('grade_level');
 
-    <!-- Main Content -->
-    <div class="container">
-        <div class="section-title text-center">CK Teacher Jokes!</div>
-        <div class="row">
-            <div class="col-md-12 mb-4">
-                <div class="p-4 rounded shadow-sm bg-white tool-item">
-                        <form method="POST" action="{{ route('teacherjokes.generate') }}" id="teacherjokesForm">
-                        @csrf
-                        <div class="mb-3">
-                            <label for="topic" class="form-label">Topic:</label>
-                            <input type="text" class="form-control" id="topic" name="topic" value="{{ old('topic') }}"
-                                required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="grade_level" class="form-label">Grade Level:</label>
-                            <select class="form-select" id="grade_level" name="grade_level" required>
-                                <option value="Pre-K">Pre-K</option>
-                                <option value="Kindergarten">Kindergarten</option>
-                                <option value="1st Grade">1st Grade</option>
-                                <option value="2nd Grade">2nd Grade</option>
-                                <option value="3rd Grade">3rd Grade</option>
-                                <option value="4th Grade">4th Grade</option>
-                                <option value="5th Grade">5th Grade</option>
-                                <option value="6th Grade">6th Grade</option>
-                                <option value="7th Grade">7th Grade</option>
-                                <option value="8th Grade">8th Grade</option>
-                                <option value="9th Grade">9th Grade</option>
-                                <option value="10th Grade">10th Grade</option>
-                                <option value="11th Grade">11th Grade</option>
-                                <option value="12th Grade">12th Grade</option>
-                                <option value="University">University</option>
-                                <option value="College">College</option>
-                                <option value="Professional">Professional</option>
-                            </select>
-                        </div>
-                        <button type="submit" class="btn btn-pink">Generate Teacher Joke</button>
-                        <button type="button" class="btn btn-info ms-2" id="loadExemplarBtn">Load Example</button>
-                        <button type="button"
-                            class="d-flex align-items-center ms-2"
-                            id="clearInputsBtn"
-                            style="background: transparent; border: none; color: #e91e63; font-weight: 600; box-shadow: none;">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#e91e63"
-                                class="bi bi-arrow-clockwise me-1" viewBox="0 0 16 16">
-                                <path fill-rule="evenodd"
-                                    d="M8 3a5 5 0 1 1-4.546 2.914.5.5 0 1 1 .908-.418A4 4 0 1 0 8 4V1.5a.5.5 0 0 1 1 0v3A.5.5 0 0 1 8.5 5h-3a.5.5 0 0 1 0-1H8z" />
-                            </svg>
-                            <span style="color: #e91e63;">Clear Inputs</span>
-                        </button>
-                    </form>
-
-                    <!-- Response alert (example placeholder) -->
-                    @if(session('response'))
-                        <div class="alert alert-success mt-4">
-                            <strong>Here's your joke:</strong>
-                            <p>{{ session('response') }}</p>
-                         </div>
-                    @endif
-                </div>
-            </div>
-        </div>
-
-        <!-- Quiz interactive area -->
-        <div id="quiz-area" class="mt-4" style="display:none;">
-            <div class="card p-3 shadow-sm">
-                <div id="question-text" class="h5 mb-3"></div>
-                <div id="options-list" class="mb-3"></div>
-                <input type="text" id="user-answer" class="form-control mb-3" placeholder="Type your answer here..." />
-                <button id="submit-answer" class="btn btn-pink mb-3">Submit Answer</button>
-                <div id="feedback" class="fw-semibold" aria-live="polite"></div>
-            </div>
-        </div>
-
-        <div id="quiz-summary" class="mt-4" style="display:none;"></div>
-        <button id="reveal-answers-btn" class="btn btn-info mt-3" style="display:none;">Reveal Answers</button>
-
-        <div class="footer">
-            &copy; {{ date('Y') }} CK Children's Publishing. All rights reserved.
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
-        crossorigin="anonymous" defer></script>
-
-    <script defer>
-        document.addEventListener('DOMContentLoaded', () => {
-            // Variables
-            let sessionId = null;
-            let questions = []; // Fill this with your quiz questions after generation
-
-            // Elements
-            const quizArea = document.getElementById('quiz-area');
-            const questionText = document.getElementById('question-text');
-            const optionsList = document.getElementById('options-list');
-            const userAnswerInput = document.getElementById('user-answer');
-            const submitAnswerBtn = document.getElementById('submit-answer');
-            const feedbackEl = document.getElementById('feedback');
-            const quizSummary = document.getElementById('quiz-summary');
-            const revealAnswersBtn = document.getElementById('reveal-answers-btn');
-            const loadingOverlay = document.getElementById('loadingOverlay');
-            const teacherjokesForm = document.getElementById('teacherjokesForm');
-
-            function startInteractiveQuiz(quizQuestions, session_id) {
-                questions = quizQuestions;
-                sessionId = session_id;
-                fetch('/quizme/start', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ session_id: sessionId, questions: questions })
-                })
-                    .then(res => res.json())
-                    .then(data => {
-                        quizArea.style.display = 'block';
-                        revealAnswersBtn.style.display = 'inline-block';
-                        showQuestion(data.question, data.options, data.index);
-                    });
-            }
-
-            function showQuestion(question, options, index) {
-                questionText.innerText = `Question ${index + 1}: ${question}`;
-                let opts = '';
-                for (let i = 0; i < options.length; i++) {
-                    opts += `<div>${options[i]}</div>`;
-                }
-                optionsList.innerHTML = opts;
-                userAnswerInput.value = '';
-                feedbackEl.innerText = '';
-                userAnswerInput.focus();
-            }
-
-            submitAnswerBtn.onclick = function () {
-                const answer = userAnswerInput.value.trim();
-                if (!answer) return;
-                fetch('/quizme/answer', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ session_id: sessionId, answer: answer })
-                })
-                    .then(res => res.json())
-                    .then(data => {
-                        feedbackEl.innerText = data.feedback;
-                        if (!data.done) {
-                            setTimeout(() => {
-                                showQuestion(data.next_question, data.options, data.index);
-                            }, 1500);
-                        } else {
-                            quizArea.style.display = 'none';
-                            quizSummary.style.display = 'block';
-                            quizSummary.innerText = "Quiz complete! See your results in the history.";
-                        }
-                    });
-            };
-
-            revealAnswersBtn.onclick = function () {
-                fetch('/teacherjokes/reveal-answers', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ session_id: sessionId })
-                })
-                    .then(res => res.json())
-                    .then(data => {
-                        let answersHtml = '<h5>All Answers:</h5><ul>';
-                        data.answers.forEach((q, i) => {
-                            answersHtml += `<li>Q${i + 1}: ${q.question}<br><b>Answer:</b> ${q.answer}</li>`;
-                        });
-                        answersHtml += '</ul>';
-                        teacherjokesSummary.innerHTML = answersHtml;
-                    });
-            };
-
-            document.getElementById('loadExemplarBtn').addEventListener('click', function () {
-                document.getElementById('topic').value = 'Silly Snakes';
-                document.getElementById('grade_level').value = '1st Grade';
-            });
-
-            document.getElementById('clearInputsBtn').addEventListener('click', function () {
-                document.getElementById('topic').value = '';
-                document.getElementById('grade_level').value = 'Pre-K';
-            });
-
-            // Show loading overlay on form submit
-            teacherjokesForm.addEventListener('submit', () => {
-                loadingOverlay.classList.remove('d-none');
-            });
-
-            // Optional: Hide loading overlay after some delay or on page reload as needed.
+        teacherjokesForm.addEventListener('submit', function() {
+            loadingSpinner.style.display = 'inline-block';
+            generateBtn.setAttribute('disabled', 'disabled');
+            generateBtn.style.opacity = '0.7';
         });
-    </script>
 
-</body>
+        document.getElementById('loadExemplarBtn').addEventListener('click', () => {
+            topicInput.value = 'Natural sciences: Biology, chemistry, physics, astronomy, and Earth science.';
+            gradeLevelSelect.value = 'University';
+        });
 
-</html>
+        document.getElementById('clearInputsBtn').addEventListener('click', () => {
+            topicInput.value = '';
+            gradeLevelSelect.value = 'Pre-K';
+        });
+
+        // Ensure the button is re-enabled if there's an error on page load
+        @if (isset($errorMessage) && $errorMessage || $errors->any())
+            generateBtn.removeAttribute('disabled');
+            generateBtn.style.opacity = '1';
+            loadingSpinner.style.display = 'none';
+        @endif
+    });
+</script>
+@endsection

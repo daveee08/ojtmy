@@ -1,202 +1,202 @@
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, Request, Form
 from fastapi.responses import JSONResponse, StreamingResponse
-from pydantic import BaseModel, ConfigDict
-from langchain_ollama import OllamaLLM
-from langchain.prompts import PromptTemplate
+from pydantic import BaseModel
+import re, os, sys, traceback
 from fpdf import FPDF
 from io import BytesIO
-from typing import Optional, Dict, Any
-import os
-import sys
-import traceback
-
-# Import CORS middleware for handling cross-origin requests
+from langchain_community.llms import Ollama
+from langchain_core.prompts import ChatPromptTemplate
 from fastapi.middleware.cors import CORSMiddleware
 
-# Conditional imports for database utilities, mirroring the reference code's approach.
-# This allows the application to run even if these modules are not present.
+
+# path setup
 current_script_dir = os.path.dirname(os.path.abspath(__file__))
-project_root = os.path.join(current_script_dir, '..', '..')
+project_root = os.path.join(current_script_dir, '..', '..') # Adjust as necessary
 sys.path.insert(0, project_root)
 
-try:
-    # Assuming these are shared utility functions for session and message management
-    # get_session_details is assumed to be a function that retrieves session data by message_id
-    from python.chat_router_final import chat_router
-    from python.db_utils_final import create_session_and_parameter_inputs, get_session_details 
-except ImportError:
-    chat_router = None
-    create_session_and_parameter_inputs = None
-    get_session_details = None 
-    print("Warning: chat_router_final or db_utils_final not found. Session management features will be disabled.")
+from typing import Optional, Dict, Any, List
+from python.chat_router_final import chat_router
+from python.db_utils_final import create_session_and_parameter_inputs, insert_message
 
+#Add the python/ directory to sys.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-# --- FastAPI App Initialization ---
+# FastAPI app initialization
 app = FastAPI(debug=True)
+app.include_router(chat_router)  # Assuming chat_router is defined in your project
 
-# Include chat router if available (from reference)
-if chat_router:
-    app.include_router(chat_router)
-
-# Add CORS middleware to allow requests from any origin (similar to reference)
+class QOTDRequest(BaseModel):
+    session_id: str
+    topic: str
+    grade_level: str
+    user_id: Optional[int] = None  # Optional for simplicity if not authenticating=
+# Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allows all origins
-    allow_methods=["*"],  # Allows all methods (GET, POST, PUT, DELETE, etc.)
-    allow_headers=["*"],  # Allows all headers
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # --- Pydantic Models ---
-class QuoteRequest(BaseModel):
+class QOTDRequest(BaseModel):
     topic: str
     grade_level: str
-    user_id: Optional[int] = None # Added user_id to match Laravel controller's input
+    user_id: Optional[int] = None # Optional for simplicity if not authenticating
+
+class QOTDResponse(BaseModel):
+    QOTD: str
+    message_id: Optional[int] = None # Optional as it might not be saved to DB always
 
 class PdfRequest(BaseModel):
     content: str
     filename: str
 
-# --- Root Endpoint ---
-@app.get("/")
-async def read_root():
-    return {"message": "QOTD API is running!"}
+class MessageDetail(BaseModel):
+    id: int # Corresponds to message_id/session_id
+    user_id: int
+    session_id: int
+    message_title: Optional[str] = None
+    user_message: str
+    ai_message: str
+    timestamp: str
 
-# --- Quote Generation Endpoint ---
-@app.post("/generate-quote")
-async def generate_quote_api(request: QuoteRequest):
+class GetMessageDetailsRequest(BaseModel):
+    message_id: int
+
+class UserSessionTitle(BaseModel):
+    session_id: int
+    latest_message_title: str
+    latest_message_id: int
+
+class GetAllUserSessionsRequest(BaseModel):
+    user_id: int
+
+# Helper function to clean AI output
+def _clean_ai_output(text: str) -> str:
+    cleaned = text.strip()
+    patterns = [
+        r"^Sure,\s*here\'?s\s*a\s*QOTD:?\s*", r"^Here\'?s\s*a\s*QOTD:?\s*",
+        r"^QOTD:?\s*", r"^Alright,\s*here\'?s\s*a\s*QOTD:?\s*"
+    ]
+    for pat in patterns:
+        cleaned = re.sub(pat, '', cleaned, flags=re.IGNORECASE)
+    cleaned = cleaned.replace('**', '').replace('##', '')
+    cleaned = re.sub(r'\n\n.*?\[.*\]\n*$', '', cleaned, flags=re.IGNORECASE|re.DOTALL)
+    return cleaned.strip()
+
+# --- QOTD Prompt Template ---
+qotd_prompt = """You are a QOTD (Quote of the Day) generator.
+Generate exactly *one* QOTD suitable for a {grade_level} class.
+Make it inspirational, thought-provoking, and relevant to the topic.
+Topic: {topic}
+Grade Level: {grade_level}
+Return Only QOTD text, no intros or formatting."""
+
+model = Ollama(model="llama3")
+prompt_template = ChatPromptTemplate.from_template(qotd_prompt)
+
+# In-memory session state (for demo)
+qotd_sessions = {}
+
+class QOTDRequest(BaseModel):
+    session_id: str
+    topic: str = ""
+    grade_level: str = "All Levels"
+
+# Prompt template - updated to use 'topic'
+@app.post("/qotd/start")
+async def generate_qotd(req: QOTDRequest):
+    prompt_input = {
+        "topic": req.topic or "any",
+        "grade_level": req.grade_level or "All Levels"
+    }
+    chain = prompt_template | model
+    qotd = chain.invoke(prompt_input).strip()
+    qotd_sessions[req.session_id] = {
+        "qotds": [qotd],
+        "topic": req.topic,
+            "grade_level": req.grade_level
+    }
+    return {"qotd": qotd}
+
+@app.post("/qotd/next")
+async def next_qotd(req: QOTDRequest):
+    prompt_input = {
+        "topic": req.topic or qotd_sessions[req.session_id]["topic"] or "any",
+        "grade_level": req.grade_level or qotd_sessions[req.session_id]["grade_level"] or "All Levels"
+    }
+    chain = qotd_prompt | model
+    qotd = chain.invoke(prompt_input).strip()
+    qotd_sessions[req.session_id] = {
+    }
+    return {"qotd": qotd}
+    
+@app.post("/qotd/history")
+async def qotd_history(req: QOTDRequest):
+    session = qotd_sessions.get(req.session_id, {})
+    return {"qotds": session.get("qotds", [])}
+    
+@app.post("/qotd")
+async def generate_qotd(
+    topic: str = Form(...),
+    grade_level: str = Form(...),
+    user_id: int = Form(...),
+): 
     try:
-        llm = OllamaLLM(model="gemma:2b")
-
-        prompt_template = PromptTemplate(
-            input_variables=["topic", "grade_level"],
-            template="""
-            You are an AI assistant that generates quotes.
-            Generate a quote about {topic} suitable for a {grade_level} student.
-            Provide only the quote text, without any introductory or concluding remarks, or attribution.
-            """
-        )
-
-        # Generate the quote using the LLM
-        quote = (prompt_template | llm).invoke({'topic': request.topic, 'grade_level': request.grade_level})
-        quote = quote.strip()
-
+        prompt_input = {
+            "topic": topic,
+            "grade_level": grade_level
+        }
+        chain = prompt_template | model
+        qotd = chain.invoke(prompt_input).strip()
+    
+        #save to db and get session_id
+        scope_vars = {
+            "topic": topic,
+            "grade_level": grade_level
+        }
+        filled_prompt = qotd_prompt.format(topic=topic, grade_level=grade_level)
         session_id = None
-        # If database utilities are available, create a session and store parameters
         if create_session_and_parameter_inputs:
-            # Define scope variables for the session, similar to the quizme tool
-            scope_vars: Dict[str, Any] = {
-                "topic": request.topic,
-                "grade_level": request.grade_level,
-            }
+           try:
+               if create_session_and_parameter_inputs:
+                   user_id_to_use = user_id if user_id is not None else 1
+                   scope_vars = {
+                       "topic": topic.strip(),
+                       "grade_level": grade_level.strip()
+                   }
+                   filled_prompt = qotd_prompt.format(
+                       topic=topic.strip(), 
+                       grade_level=grade_level.strip()
+                   )
+                   session_id = create_session_and_parameter_inputs(
+                       user_id=user_id_to_use,
+                       agent_id=26,  # or your correct agent_id
+                       scope_vars=scope_vars,
+                       human_topic=topic.strip(),
+                       ai_output=qotd,
+                       agent_prompt=filled_prompt
+                   )
+                   print("message_id :", session_id)
+                   cleaned_QOTD = _clean_ai_output(qotd)
+                   return JSONResponse(content={
+                       "qotd": cleaned_QOTD,
+                       "message_id": session_id
+                   }, headers={"Content-Type": "application/json"})
+           except Exception as e:
+               print(f"DB error: {e}")
+        session_id = None
 
-            # Fill the prompt template for logging
-            filled_prompt = prompt_template.template.format(
-                topic=request.topic,
-                grade_level=request.grade_level
-            )
-
-            # Create a session and get the message_id (session_id)
-            # This is where the data (quote, topic, grade, user_id) gets saved to the database.
-            session_id = create_session_and_parameter_inputs(
-                user_id=request.user_id, # Use the user_id from the request
-                agent_id=8,  # Assign a unique agent_id for the QOTD tool (e.g., 8)
-                scope_vars=scope_vars,
-                human_topic=request.topic, # The user's input topic
-                ai_output=quote, # The generated quote
-                agent_prompt=filled_prompt # The prompt used to generate the quote
-            )
-            print(f"Session created with ID: {session_id}")
-
-        # Return the quote and the message_id (session_id)
-        return {"quote": quote, "message_id": session_id}
+        cleaned_QOTD = _clean_ai_output(qotd)
+        return {"output": cleaned_QOTD, "message_id": session_id}
     except Exception as e:
-        traceback_str = traceback.format_exc()
-        print("ERROR:", traceback_str)
-        return JSONResponse(status_code=500, content={"error": str(e), "trace": traceback_str})
+        return JSONResponse(status_code=500, content={"detail": str(e), "trace": traceback.format_exc()})
+    # The following code was outside any function and caused a syntax error, so it has been removed.
 
-# --- PDF Generation Endpoint ---
-@app.post("/generate-pdf")
-async def generate_pdf(request: PdfRequest):
-    try:
-        pdf = FPDF()
-        pdf.add_page()
-        pdf.set_font("Arial", size=12)
-        # Ensure content is encoded correctly for FPDF
-        pdf.multi_cell(0, 10, request.content.encode('latin-1', 'replace').decode('latin-1'))
-
-        buffer = BytesIO()
-        pdf.output(buffer, 'S')
-        buffer.seek(0)
-
-        return StreamingResponse(buffer, media_type="application/pdf", headers={
-            "Content-Disposition": f"attachment; filename={request.filename}.pdf"
-        })
-    except Exception as e:
-        traceback_str = traceback.format_exc()
-        print("ERROR:", traceback_str)
-        return JSONResponse(status_code=500, content={"error": str(e), "trace": traceback_str})
-
-# --- Fetch User Sessions Endpoint (for Laravel controller) ---
-@app.get("/qotd-sessions/{user_id}")
-async def fetch_qotd_sessions(user_id: int):
-    """
-    Fetches user-specific sessions for the Quote of the Day tool from the database.
-    """
-    if get_session_details: # Assuming get_session_details can fetch multiple sessions for a user or there's another function
-        try:
-            # This part would need a specific function in db_utils_final
-            # to retrieve sessions based on user_id and agent_id (e.g., agent_id=8 for QOTD).
-            # For now, it will return a placeholder or raise an error if not implemented in db_utils.
-            
-            # Example if db_utils_final had a function like get_sessions_by_user_and_agent:
-            # sessions = get_sessions_by_user_and_agent(user_id, agent_id=8)
-            # formatted_sessions = []
-            # for session in sessions:
-            #     formatted_sessions.append({
-            #         "message_id": session.session_id,
-            #         "topic": session.human_topic,
-            #         "grade_level": session.scope_vars.get("grade_level"),
-            #         "timestamp": session.created_at.isoformat() # Assuming a created_at field
-            #     })
-            # return JSONResponse(content=formatted_sessions)
-
-            # Placeholder for actual DB fetching if get_session_details is only by ID:
-            raise HTTPException(status_code=501, detail="`fetch_qotd_sessions` requires specific DB utility for user-based session retrieval.")
-
-        except Exception as e:
-            traceback_str = traceback.format_exc()
-            print("ERROR fetching sessions:", traceback_str)
-            raise HTTPException(status_code=500, detail=f"Error fetching sessions: {str(e)}")
-    else:
-        raise HTTPException(status_code=501, detail="Database utilities not available for session fetching.")
-
-# --- Endpoint to retrieve a specific quote history by message_id ---
-@app.get("/qotd-history/{message_id}")
-async def get_qotd_history(message_id: str):
-    """
-    Retrieves the details of a specific QOTD session from the database using its message_id.
-    """
-    if get_session_details: # Assuming db_utils_final provides a function to get session details by ID
-        try:
-            session_details = get_session_details(message_id) # Call the assumed function
-            if session_details:
-                # Assuming session_details is an object or dict with these attributes
-                return JSONResponse(content={
-                    "quote": session_details.ai_output,
-                    "topic": session_details.human_topic,
-                    "grade_level": session_details.scope_vars.get("grade_level")
-                })
-            else:
-                raise HTTPException(status_code=404, detail="Quote history not found")
-        except Exception as e:
-            traceback_str = traceback.format_exc()
-            print("ERROR retrieving QOTD history:", traceback_str)
-            raise HTTPException(status_code=500, detail=f"Error retrieving quote history: {str(e)}")
-    else:
-        raise HTTPException(status_code=501, detail="Database utilities not available for history retrieval.")
-
-# To run the app (for local testing, typically run via `uvicorn main:app --reload`)
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=5006)
-
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)

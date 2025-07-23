@@ -19,7 +19,6 @@ class MyAgentParametersTableSeeder extends Seeder
         $agentParameters = [
             'teacherjokes' => [
                 ['parameter' => 'grade_level', 'parameter_value' => '1st Grade'],
-                ['parameter' => 'additional_customization', 'parameter_value' => 'none'],
             ],
             'tonguetwister' => [
                 ['parameter' => 'topic', 'parameter_value' => 'animals'],

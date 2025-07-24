@@ -220,11 +220,16 @@
         quizToggle.onclick = () => {
             quizSection.classList.add('open');
             quizToggle.style.display = 'none';
+            toggleButton.style.display = 'none';
+
+
         };
 
         qs('.chatbot-close-quiz').onclick = () => {
             quizSection.classList.remove('open');
             quizToggle.style.display = 'block';
+            toggleButton.style.display = 'block';
+
         };
 
         const fetchQuizCheck = () =>
@@ -240,19 +245,41 @@
             }).then(res => res.json());
 
         const displayQuiz = (quiz) => {
+            // Hide previous question blocks
             qsa('.quiz-question-block').forEach(b => b.style.display = 'none');
-            const msg = document.createElement('div');
-            msg.className = 'ai-message';
-            msg.innerHTML = marked.parse(quiz);
 
+            // Create a <pre> tag for raw text display with HTML support
+            const msg = document.createElement('pre');
+            msg.className = 'ai-message';
+            msg.style.cssText = `
+        white-space: pre-wrap;
+        font-family: monospace;
+        padding: 16px;
+        border-radius: 6px;
+        line-height: 1.5;
+        font-size: 14px;
+        margin-bottom: 20px;
+    `;
+
+            // Format: Bold any line starting with a digit followed by ". "
+            const bolded = quiz
+                .split('\n')
+                .map(line => /^\d+\.\s/.test(line) ? `<strong>${line}</strong>` : line)
+                .join('\n');
+
+            msg.innerHTML = bolded;
+
+            // Clear previous content and append the new quiz
+            quizBody.innerHTML = '';
             quizBody.appendChild(msg);
+
             quizFooter.innerHTML = `
-            <button id="restart-btn" style="flex:1; background:#2196F3; color:white; border:none; padding:10px 16px; border-radius:6px; cursor:pointer;">
-                <i class="fas fa-rotate-left"></i> Restart
-            </button>
-            <button id="download-btn" style="flex:1; background:#4CAF50; color:white; border:none; padding:10px 16px; border-radius:6px; cursor:pointer;">
-                <i class="fas fa-download"></i> Download PDF
-            </button>`;
+        <button id="restart-btn" style="flex:1; background:#2196F3; color:white; border:none; padding:10px 16px; border-radius:6px; cursor:pointer;">
+            <i class="fas fa-rotate-left"></i> Restart
+        </button>
+        <button id="download-btn" style="flex:1; background:#4CAF50; color:white; border:none; padding:10px 16px; border-radius:6px; cursor:pointer;">
+            <i class="fas fa-download"></i> Download PDF
+        </button>`;
 
             qs('#restart-btn').onclick = async () => {
                 try {

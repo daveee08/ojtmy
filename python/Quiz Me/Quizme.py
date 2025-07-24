@@ -1,125 +1,160 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel, Field
-from typing import List, Optional
-import uuid
-import logging
+from fastapi import FastAPI, HTTPException, Form
+from fastapi.responses import JSONResponse # Re-added JSONResponse
+import re, os, sys, traceback
+from fastapi.middleware.cors import CORSMiddleware
+# import json # Still not needed for parsing LLM output, but JSONResponse is used
+from typing import Optional, Dict, Any, List
 
-app = FastAPI()
+# --- LangChain & Ollama Imports ---
+from langchain_ollama import OllamaLLM
+from langchain_core.prompts import ChatPromptTemplate
 
-# Setup basic logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+# --- PATH SETUP ---
+current_script_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.join(current_script_dir, '..', '..') # Adjust as necessary if your project structure differs
+sys.path.insert(0, project_root)
 
-# In-memory store for quiz sessions (for demonstration, use a database in production)
-quiz_sessions = {}
+# Add the python/ directory to sys.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-class QuizRequest(BaseModel):
-    session_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+# Import your database utilities and chat router
+try:
+    from python.chat_router_final import chat_router
+    from python.db_utils_final import create_session_and_parameter_inputs, insert_message
+except ImportError as e:
+    print(f"Error importing local modules: {e}")
+    print("Please ensure 'python/chat_router_final.py' and 'python/db_utils_final.py' are in the correct path relative to Quizme.py.")
+    sys.exit(1) # Exit if essential modules can't be imported
+
+
+# --- FastAPI App Initialization ---
+app = FastAPI(debug=True)
+app.include_router(chat_router)
+
+# --- CORS MIDDLEWARE ---
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# --- Pydantic Models for Quiz Generation ---
+# We still need a request model for incoming form data
+from pydantic import BaseModel
+class QuizRequestForm(BaseModel):
     topic: str
     grade_level: str
-    num_questions: Optional[int] = Field(None, ge=1, le=50)
-    quiz_types: List[str] # This correctly expects a list of strings!
+    num_questions: int = 10
+    quiz_types: str
+    user_id: int
 
-# A simplified model for your generated questions
-class Question(BaseModel):
-    question: str
-    type: str # e.g., 'multiple_choice', 'fill_in_the_blanks', 'identification'
-    options: Optional[List[str]] = None # Only for multiple_choice
-    answer: str
+# NEW Pydantic Model for the response
+class QuizTextResponse(BaseModel):
+    session_id: Optional[int] = None
+    quiz_content: str # This will hold the plain text quiz from the LLM
 
-class QuizResponse(BaseModel):
-    message: str
-    session_id: str
-    questions: List[Question]
+# --- Quiz Prompt (remains the same as per your last request) ---
+quiz_prompt = """You are an expert quiz creator. Generate a quiz with the following parameters:
+- Topic: {topic}
+- Grade Level: {grade_level}
+- Number of Questions: {num_questions}
+- Quiz Types: {quiz_types}
+Generate exactly {num_questions} questions. For multiple choice questions, provide options labeled A, B, C, etc. For fill-in-the-blanks and identification questions, just provide the question. After each question, on a new line, state the correct answer clearly.
 
-@app.post("/quizme", response_model=QuizResponse)
-async def generate_quiz(request: QuizRequest):
-    logger.info(f"Received quiz generation request: {request.dict()}")
+Here is the quiz:
 
-    # Convert the list of quiz types into a human-readable string for the AI prompt
-    # THIS IS THE CRUCIAL PART TO AVOID "ARRAY TO STRING CONVERSION" IN PYTHON
-    if request.quiz_types:
-        if len(request.quiz_types) > 1:
-            quiz_types_str = ", ".join(request.quiz_types[:-1]) + " and " + request.quiz_types[-1]
-        else:
-            quiz_types_str = request.quiz_types[0]
-    else:
-        quiz_types_str = "general knowledge" # Default if somehow empty (though Laravel's 'required' handles this)
+Question 1: [Question text here]
+A) [Option 1]
+B) [Option 2]
+C) [Option 3]
+Answer: [Correct answer here]
 
-    # Construct the prompt for your AI model
-    prompt = f"Generate a quiz about '{request.topic}' for a '{request.grade_level}' student. "
-    prompt += f"The quiz should include questions of the following types: {quiz_types_str}. "
-    if request.num_questions:
-        prompt += f"Generate exactly {request.num_questions} questions."
-    else:
-        prompt += "Generate a suitable number of questions."
+Question 2: [Question text here]
+Answer: [Correct answer here]
 
-    logger.info(f"Generated AI prompt: {prompt}")
+(Continue for all {num_questions} questions in this format.)
+"""
 
-    # --- Your existing logic to call the actual AI (e.g., OpenAI, Gemini) goes here ---
-    # For demonstration, let's return dummy questions
+# --- Initialize OllamaLLM ---
+model = OllamaLLM(model="llama3")
+prompt_template = ChatPromptTemplate.from_template(quiz_prompt)
+
+@app.post("/quizme", response_model=QuizTextResponse) # Changed response_class to response_model
+async def generate_quiz(
+    topic: str = Form(...),
+    grade_level: str = Form(...),
+    num_questions: int = Form(10),
+    quiz_types: str = Form(...),
+    user_id: int = Form(...)
+):
+    session_id = None # Initialize session_id to None
     try:
-        # Replace this with your actual AI call
-        # ai_response = call_your_ai_model(prompt)
-        # generated_questions_from_ai = parse_ai_response(ai_response)
+        # Prepare prompt input for LLM
+        prompt_input = {
+            "topic": topic.strip(),
+            "grade_level": grade_level.strip(),
+            "num_questions": num_questions,
+            "quiz_types": quiz_types.strip() # Keep as string for prompt, split for scope_vars
+        }
+        
+        # Invoke LLM to get raw quiz output
+        chain = prompt_template | model
+        raw_ai_output = chain.invoke(prompt_input).strip()
+        
+        # --- REMOVED JSON EXTRACTION AND PARSING LOGIC from LLM output ---
+        # All the 'json_match', 'fallback_match', 'json.loads', 'validated_questions'
+        # logic has been removed as the LLM is now expected to return plain text.
+        # The 'raw_ai_output' is the final content to be returned in the 'quiz_content' field.
 
-        # Dummy data for testing:
-        generated_questions_from_ai = [
-            {"question": "What is the capital of France?", "type": "multiple_choice", "options": ["Berlin", "Madrid", "Paris", "Rome"], "answer": "Paris"},
-            {"question": "The chemical symbol for water is __.", "type": "fill_in_the_blanks", "answer": "H2O"},
-            {"question": "Name the largest planet in our solar system.", "type": "identification", "answer": "Jupiter"},
-        ]
-        if request.num_questions and len(generated_questions_from_ai) > request.num_questions:
-            generated_questions_from_ai = generated_questions_from_ai[:request.num_questions]
-        # End of dummy data
+        # --- Database Saving Logic ---
+        # Ensure create_session_and_parameter_inputs is called correctly
+        if create_session_and_parameter_inputs:
+            try:
+                user_id_to_use = user_id if user_id is not None else 1 # Fallback for user_id
+                
+                # These are the parameters that describe the quiz request itself
+                scope_vars = {
+                    "topic": topic.strip(),
+                    "grade_level": grade_level.strip(),
+                    "num_questions": num_questions,
+                    "quiz_types": quiz_types.strip().split(",") # Store as list in DB
+                }
+                
+                # The actual prompt sent to the LLM
+                agent_prompt_content = quiz_prompt.format(
+                    topic=topic.strip(),
+                    grade_level=grade_level.strip(),
+                    num_questions=num_questions,
+                    quiz_types=quiz_types.strip() # Pass as string for prompt formatting
+                )
 
-        # Store the generated questions in the session
-        quiz_sessions[request.session_id] = [
-            Question(**q) for q in generated_questions_from_ai
-        ]
-        logger.info(f"Quiz generated for session {request.session_id} with {len(quiz_sessions[request.session_id])} questions.")
+                session_id = create_session_and_parameter_inputs(
+                    user_id=user_id_to_use,
+                    agent_id=27, # Your specified agent ID
+                    scope_vars=scope_vars, # Dict of input parameters
+                    human_topic=topic.strip(), # What the user asked for
+                    ai_output=raw_ai_output, # The full raw output from LLM
+                    agent_prompt=agent_prompt_content # The formatted prompt sent to LLM
+                )
+                print(f"DEBUG: Database session created with ID: {session_id}")
+            except Exception as db_e:
+                print(f"DEBUG: DB error during session creation: {db_e}")
+                traceback.print_exc() # Print full traceback for DB errors
+                # Do not raise HTTPException here, allow quiz to be returned even if DB fails
+                # session_id will remain None if creation fails
+        else:
+            print("DEBUG: create_session_and_parameter_inputs not available, skipping DB save.")
 
-        return QuizResponse(
-            message="Quiz questions generated successfully.",
-            session_id=request.session_id,
-            questions=quiz_sessions[request.session_id]
-        )
+        # --- Return the raw LLM output as plain text wrapped in a JSON object with session_id ---
+        return QuizTextResponse(session_id=session_id, quiz_content=raw_ai_output)
+
+    except HTTPException as e:
+        # Re-raise HTTPException directly, these are controlled errors
+        raise e
     except Exception as e:
-        logger.error(f"Error calling AI model: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to generate quiz questions from AI: {e}")
-
-
-# Endpoint to check individual answers (as per your Laravel controller's logic)
-class AnswerCheckRequest(BaseModel):
-    session_id: str
-    question_index: int
-    user_answer: Optional[str] = None # Allow null for multiple choice where value might be empty string
-    # You might also want to send the question type and correct answer from the frontend for double-check,
-    # but for security and consistency, it's better to fetch from stored quiz_data.
-    # For now, let's assume the question_index is enough to retrieve stored correct answer.
-
-@app.post("/quizme/check-answer")
-async def check_answer(request: AnswerCheckRequest):
-    logger.info(f"Received answer check request: {request.dict()}")
-
-    quiz_data = quiz_sessions.get(request.session_id)
-    if not quiz_data or request.question_index >= len(quiz_data):
-        logger.warning(f"Invalid session ID or question index for answer check: {request.session_id}, {request.question_index}")
-        raise HTTPException(status_code=404, detail="Quiz session expired or invalid question.")
-
-    current_question = quiz_data[request.question_index]
-
-    normalized_user_answer = request.user_answer.strip().lower() if request.user_answer else ""
-    normalized_correct_answer = current_question.answer.strip().lower()
-
-    is_correct = normalized_user_answer == normalized_correct_answer
-    feedback = "Correct!" if is_correct else f"Incorrect. The correct answer was: {current_question.answer}"
-
-    # You could optionally update the stored quiz_data in the session with user's answer and correctness
-    # For now, we just return the feedback.
-
-    return {
-        "feedback": feedback,
-        "is_correct": is_correct,
-        "correct_answer": current_question.answer # Sending correct answer back for display
-    }
+        # Catch any other unexpected errors, log them, and return a 500
+        print(f"DEBUG: An unexpected error occurred in generate_quiz: {e}")
+        traceback.print_exc() # Print full traceback for unexpected errors
+        raise HTTPException(status_code=500, detail=f"An internal server error occurred: {e}")
+# --- End of Quiz Generation Endpoint ---

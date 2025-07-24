@@ -3,8 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Summarizer\SummarizeController;
 use App\Http\Controllers\Proofreader\ProofreaderController;
-use App\Http\Controllers\QuizmeController;
-use App\Http\Controllers\StepTutorController;
+use App\Http\Controllers\QuizMe\QuizmeController;
 use App\Http\Controllers\FiveQuestion\FiveQuestionsController;
 use App\Http\Controllers\EmailWriter\EmailWriterController;
 use App\Http\Controllers\ThankYouNote\ThankYouNoteController;
@@ -139,18 +138,18 @@ Route::get('/proofreader', [ProofreaderController::class, 'showForm'])->name('pr
 Route::post('/proofreader', [ProofreaderController::class, 'processForm'])->name('proofreader.process');
 
 // ✅ QuizMe Tool
-Route::get('/quizme', [QuizMe\QuizmeController::class, 'showQuizForm'])->name('quizme.showForm');
-Route::get('/quizme', [QuizmeController::class, 'showQuizForm'])->name('quizme.showForm');
-Route::post('/quizme/generate', [QuizmeController::class, 'processForm'])->name('quizme.generate'); // Or whatever name you've given it
+// Example in routes/web.php
+Route::get('/quizme', [App\Http\Controllers\QuizMe\QuizmeController::class, 'showQuizForm'])->name('quizme.form');
+Route::get('/quizme', [QuizmeController::class, 'showQuizForm'])->name('quizme.show');
+Route::post('/quizme/generate', [QuizController::class, 'generateQuiz'])->name('quizme.generate');
 Route::post('/quizme/submit-answer', [QuizmeController::class, 'submitAnswer'])->name('quizme.submitAnswer');
 Route::get('/quizme/reveal-answers', [QuizmeController::class, 'revealAnswers'])->name('quizme.revealAnswers');
-Route::post('/quizme/download/practice-plan', [QuizmeController::class, 'downloadPracticePlan'])->name('quizme.download.practicePlan');
-Route::post('/quizme/download/pdf', [QuizmeController::class, 'downloadPdf'])->name('quizme.download.pdf');
+Route::get('/quizme-sessions/{userId}', [QuizmeController::class, 'fetchUserSessions'])->name('quizme.fetchSessions');
 Route::post('/quizme/start', function() { /* Logic for starting quiz */ })->name('quizme.start');
 Route::post('/quizme/answer', function() { /* Logic for submitting answer */ })->name('quizme.answer');
-Route::post('/quizme/reveal-answers', function() { /* Logic for revealing answers */ })->name('quizme.reveal.answers');
 Route::get('/sessions/{userId}', [QuizmeController::class, 'fetchUserSessions']); 
-Route::post('/quizme/reveal-answers', [QuizmeController::class, 'revealAnswers'])->name('quizme.reveal-answers');
+Route::post('/chat/send-message', [QuizController::class, 'logQuizAnswer'])->name('chat.send_message');
+
 
 // ✅ Qoutes of the Day
 Route::get('/qotd', [QOTDController::class, 'showForm'])->name('qotd.form'); // ADDED name('qotd.form') here

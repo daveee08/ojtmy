@@ -299,15 +299,19 @@
                             <option value="11th Grade" {{ (old('grade_level', $grade_level ?? '') == '11th Grade') ? 'selected' : '' }}>11th Grade</option>
                             <option value="12th Grade" {{ (old('grade_level', $grade_level ?? '') == '12th Grade') ? 'selected' : '' }}>12th Grade</option>
                             <option value="University" {{ (old('grade_level', $grade_level ?? '') == 'University') ? 'selected' : '' }}>University</option>
-                            <option value="College" {{ (old('grade_level', $grade_level ?? '') == 'College') ? 'selected' : '' }}>College</option>
-                            <option value="Professional" {{ (old('grade_level', $grade_level ?? '') == 'Professional') ? 'selected' : '' }}>Professional</option>
+                            <option value="1st Year College" {{ (old('grade', $grade ?? '') == '1st Year College') ? 'selected' : '' }}>1st Year College</option>
+                            <option value="2nd Year College" {{ (old('grade', $grade ?? '') == '2nd Year College') ? 'selected' : '' }}>2nd Year College</option>
+                            <option value="3rd Year College" {{ (old('grade', $grade ?? '') == '3rd Year College') ? 'selected' : '' }}>3rd Year College</option>
+                            <option value="4th Year College" {{ (old('grade', $grade ?? '') == '4th Year College') ? 'selected' : '' }}>4th Year College</option>
+                            <option value="Adult" {{ (old('grade', $grade ?? '') == 'Adult') ? 'selected' : '' }}>Adult</option>
+                            <option value="Professional Staff" {{ (old('grade_level', $grade_level ?? '') == 'Professional') ? 'selected' : '' }}>Professional</option>
                         </select>
                     </div>
 
                     {{-- Re-adding the optional Number of Questions field --}}
                     <div class="mb-3">
                         <label for="num_questions" class="form-label">Number of Questions (Optional):</label>
-                        <input type="number" class="form-control" id="num_questions" name="num_questions" min="1" max="50" placeholder="e.g., 10" value="{{ old('num_questions', $num_questions ?? '') }}">
+                        <input type="number" class="form-control" id="num_questions" name="num_questions" min="1" max="300" placeholder="e.g., 10" value="{{ old('num_questions', $num_questions ?? '') }}">
                         <div class="form-text">Specify the exact number of questions, or leave blank and let the AI decide based on your topic instructions. Max 50.</div>
                     </div>
 
@@ -581,10 +585,9 @@
                     fetch(quizForm.action, {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/json',
                             'X-CSRF-TOKEN': CSRF_TOKEN
                         },
-                        body: JSON.stringify(data) // Send the 'data' object as JSON
+                        body: new FormData(quizForm) // Send the 'data' object as JSON
                     })
                     .then(response => {
                         if (!response.ok) {

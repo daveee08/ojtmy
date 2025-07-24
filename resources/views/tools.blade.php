@@ -320,7 +320,7 @@
 
         <div class="tool-grid" id="allToolsGrid">
             {{-- Text Leveler --}}
-            <a href="http://192.168.50.144:8000/leveler" target="_blank" class="tool-card-link" data-tool-id="text-leveler">
+            <a href="http://localhost:8000/leveler" target="_blank" class="tool-card-link" data-tool-id="text-leveler">
                 <div class="tool-card" data-category="reading">
                     <span class="tool-card-favorite" data-tool-id="text-leveler"><i class="fas fa-star"></i></span>
                     <div class="tool-card-content">

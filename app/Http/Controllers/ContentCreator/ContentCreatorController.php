@@ -5,6 +5,8 @@ namespace App\Http\Controllers\ContentCreator;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Auth;
+
 
 class ContentCreatorController extends Controller
 {
@@ -23,7 +25,7 @@ class ContentCreatorController extends Controller
     {
         $validated = $request->validate([
             'grade_level' => 'required|string',
-            'length' => 'required|string',
+            'length' => 'r2equired|string',
             'prompt' => 'required|string',
             'extra' => 'nullable|string',
         ]);
@@ -39,7 +41,7 @@ class ContentCreatorController extends Controller
         try {
             $response = Http::timeout(0)
             ->asMultipart()
-            ->post('http://127.0.0.1:8001/contentcreator', $multipartData);
+            ->post('http://127.0.0.1:8003/generate-contentcreator', $multipartData);
 
             if ($response->failed()) {
             logger()->error('FastAPI Leveler error', ['body' => $response->body()]);

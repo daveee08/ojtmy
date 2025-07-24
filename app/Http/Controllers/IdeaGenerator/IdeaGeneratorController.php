@@ -16,7 +16,7 @@ class IdeaGeneratorController extends Controller
     public function fetchUserSessions()
     {
         $userId = Auth::id();
-        $response = Http::get("http://localhost:5001/sessions/$userId");
+        $response = Http::get("http://localhost:8003/sessions/$userId");
         return response()->json($response->json());
     }
 
@@ -43,7 +43,7 @@ class IdeaGeneratorController extends Controller
         try {
             $response = Http::timeout(0)
             ->asMultipart()
-            ->post('http://127.0.0.1:5001/generate-idea', $multipartData);
+            ->post('http://127.0.0.1:8003/generate-idea', $multipartData);
 
             Log::info('Idea generator Response:', ['response' => $response -> body()]);
 

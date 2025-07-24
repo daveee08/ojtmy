@@ -5,9 +5,9 @@ INPUT_KEYS = ["grade_level", "learning_speed", "custom_instructions", "text_type
 
 def get_db_connection():
     return mysql.connector.connect(
-        host="127.0.0.1",
-        user="root",
-        password="",
+        host="192.168.50.20",
+        user="dev",
+        password="dev123",
         database="ck_agent"
     )
 
@@ -34,7 +34,7 @@ def insert_title(session_id: int, text: str):
         You are an expert title generator. Your job is to create a concise, relevant, and engaging title based only on the provided conversation.
 
         Guidelines:
-        - Concise: Ideally 3–7 words.
+        - Concise: Strictly 3–5 words.
         - Relevant: Reflect the main topic or goal.
         - Engaging: Make it interesting and informative.
         - Unique: Avoid generic titles like "Chat with user" or "Conversation summary".

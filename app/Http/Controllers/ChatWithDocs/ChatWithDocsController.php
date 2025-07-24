@@ -12,7 +12,7 @@ class ChatWithDocsController extends Controller
     public function fetchUserSessions()
     {
         $userId = Auth::id();
-        $response = Http::get("http://localhost:5001/sessions/$userId");
+        $response = Http::get("http://localhost:8011/sessions/$userId");
         return response()->json($response->json());
     }
 
@@ -72,7 +72,7 @@ class ChatWithDocsController extends Controller
 
         $response = Http::timeout(0)
             ->asMultipart()
-            ->post('http://localhost:5001/chatwithdocs', $multipartData);
+            ->post('http://localhost:8011/chatwithdocs', $multipartData);
 
         if ($response->failed()) {
             logger()->error('FastAPI Chat with Docs error', ['body' => $response->body()]);

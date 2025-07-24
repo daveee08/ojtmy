@@ -60,19 +60,19 @@ $$/   $$/  $$$$$$/  $$/       $$/  $$/  $$/  $$$$$$$/ $$/
             //     'path' => base_path('python/Tutor Agent'), // Directory where your Python file is
             //     'file_and_app_instance' => 'chat_router_feb:chat_router', // e.g., if you have main.py and `app = FastAPI()`
             //     'port' => 8001,
-            // // ],
+            // ],
             // [
             //     'name' => 'Tutor Agent API',
             //     'path' => base_path('python/Tutor Agent'), // Directory where your Python file is
             //     'file_and_app_instance' => 'tutor_agent:app', // e.g., if you have main.py and `app = FastAPI()`
             //     'port' => 8002
             // ],
-            // // [
-            // //     'name' => 'Summarizer API',
-            // //     'path' => base_path('python\Summarizer'), // Directory where your Python file is
-            // //     'file_and_app_instance' => 'mainkhan:app', // e.g., if you have main.py and `app = FastAPI()`
-            // //     'port' => 8003
-            // // ],
+            // [
+            //     'name' => 'Summarizer API',
+            //     'path' => base_path('python\Summarizer'), // Directory where your Python file is
+            //     'file_and_app_instance' => 'mainkhan:app', // e.g., if you have main.py and `app = FastAPI()`
+            //     'port' => 8003
+            // ],
             // [
             //     'name' => 'Khan API',
             //     'path' => base_path('python\Email Writer'), // Directory where your Python file is
@@ -111,12 +111,12 @@ $$/   $$/  $$$$$$/  $$/       $$/  $$/  $$/  $$$$$$$/ $$/
             //     'port' => 8008
             // ],
           
-            // [
-            //     'name' => 'Mav Leveler with Chat Router API',
-            //     'path' => base_path('python\Text Leveler'), // Directory where your Python file is
-            //     'file_and_app_instance' => 'leveler_agent:app', // e.g., if you have main.py and `app = FastAPI()`
-            //     'port' => 8009
-            // ],
+            [
+                'name' => 'Mav Leveler with Chat Router API',
+                'path' => base_path('python\Text Leveler'), // Directory where your Python file is
+                'file_and_app_instance' => 'leveler_agent:app', // e.g., if you have main.py and `app = FastAPI()`
+                'port' => 8009
+            ],
             // [
             //     'name' => 'Mav Informational API',
             //     'path' => base_path('python\Informational Text'), // Directory where your Python file is
@@ -171,6 +171,37 @@ $$/   $$/  $$$$$$/  $$/       $$/  $$/  $$/  $$$$$$$/ $$/
                 'file_and_app_instance' => 'explanations:app', // e.g., if you have main.py and `app = FastAPI()`
                 'port' => 8018
             ],
+            
+            // [
+            //     'name' => 'Translator API',
+            //     'path' => base_path('python/translator'), // Directory where your Python file is
+            //     'file_and_app_instance' => 'translator_agent:app', // e.g., if you have main.py and `app = FastAPI()`
+            //     'port' => 8019
+            // ],
+            // [
+            //     'name' => 'Step by Step AGent',
+            //     'path' => base_path('python'), // Directory where your Python file is
+            //     'file_and_app_instance' => 'step_tutor_agent:app', // e.g., if you have main.py and `app = FastAPI()`
+            //     'port' => 8020
+            // ],
+            // [
+            //     'name' => 'Bea Text Scaffolder API',
+            //     'path' => base_path('python\Scaffolder'), // Directory where your Python file is
+            //     'file_and_app_instance' => 'scaffolder:app', // e.g., if you have main.py and `app = FastAPI()`
+            //     'port' => 8016
+            // ],
+            // [
+            //     'name' => 'Bea Rewriter API',
+            //     'path' => base_path('python\Rewriter'), // Directory where your Python file is
+            //     'file_and_app_instance' => 'rewriter_agent:app', // e.g., if you have main.py and `app = FastAPI()`
+            //     'port' => 8017
+            // ],
+            // [
+            //     'name' => 'Bea explainer API',
+            //     'path' => base_path('python'), // Directory where your Python file is
+            //     'file_and_app_instance' => 'explanations:app', // e.g., if you have main.py and `app = FastAPI()`
+            //     'port' => 8018
+            // ],
             
             // [
             //     'name' => 'Translator API',

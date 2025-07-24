@@ -53,7 +53,7 @@ class SummarizeController extends BackendServiceController
 
             $response = Http::Timeout(0)
             ->asMultipart()
-            ->post('http://127.0.0.1:5001/summarize', $multipart);
+            ->post('http://127.0.0.1:8003/summarize', $multipart);
 
 
             Log::info('Summarizer Response:', ['response' => $response -> body()]);

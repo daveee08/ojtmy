@@ -12,7 +12,7 @@ class ExplanationsController extends Controller
     public function fetchUserSessions()
     {
         $userId = Auth::id();
-        $response = Http::get("http://localhost:5001/sessions/$userId");
+        $response = Http::get("http://192.168.50.238:8018/sessions/$userId");
         return response()->json($response->json());
     }
 
@@ -55,7 +55,7 @@ class ExplanationsController extends Controller
         // Replace with your actual backend API URL
         $response = Http::timeout(0)
             ->asMultipart()
-            ->post('http://localhost:5001/explanations', $multipartData);
+            ->post('http://192.168.50.238:8018/explanations', $multipartData);
 
         if ($response->failed()) {
             logger()->error('FastAPI Leveler error', ['body' => $response->body()]);

@@ -13,6 +13,12 @@
             --ai-bubble: #f7f7f8;
         }
 
+        [data-bs-theme="dark"] {
+            --chat-bg: #1e1e1e; /* Dark background from bootstrap.blade.php */
+            --user-bubble: #2a6d9e; /* Darker user bubble with better contrast */
+            --ai-bubble: #2c2c2c; /* Dark AI bubble matching light-grey variant */
+        }
+
         body {
             font-family: 'Inter', sans-serif;
             background-color: var(--chat-bg);
@@ -28,8 +34,8 @@
             bottom: 0;
             display: flex;
             flex-direction: column;
-            background: white;
-            border-left: 1px solid #e5e7eb;
+            /* background: var(--chat-bg); */
+            /* border-left: 1px solid #010202; */
             height: 100vh;
             transition: left 0.3s;
         }
@@ -41,7 +47,7 @@
         .chat-header {
             padding: 1rem 1.5rem;
             background-color: #1a202c;
-            color: white;
+            color: var(--dark); /* Use dark variable for consistency */
             font-size: 1.5rem;
             font-weight: 600;
             display: flex;
@@ -80,17 +86,29 @@
             border-bottom-right-radius: 4px;
         }
 
+        [data-bs-theme="dark"] .user-message {
+            color: #e0e0e0; /* Light text for dark mode */
+            background-color: var(--user-bubble);
+        }
+
         .ai-message {
-            background-color: transparent;
+            background-color: var(--ai-bubble);
             color: #2d2d2d;
-            padding: 0;
+            padding: 1rem; /* Added padding for consistency */
             margin: 0;
             font-family: 'Inter', sans-serif;
             font-size: 1rem;
             line-height: 1.6;
             max-width: 100%;
             text-align: left;
-            box-shadow: none;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+        }
+
+        [data-bs-theme="dark"] .ai-message {
+            color: #e0e0e0; /* Light text for dark mode */
+            background-color: var(--ai-bubble);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
 
         .ai-message * {
@@ -154,7 +172,6 @@
             padding-left: 0.5rem;
             margin: 0 !important;
             padding-left: 1rem !important;
-            /* keep indentation if needed */
         }
 
         .ai-message li {
@@ -181,10 +198,19 @@
             font-style: italic;
         }
 
+        [data-bs-theme="dark"] .ai-message blockquote {
+            border-left-color: #888;
+            color: #b0b0b0;
+        }
+
         .ai-message hr {
             border: none;
             border-top: 1px solid #ccc;
             margin: 1rem 0;
+        }
+
+        [data-bs-theme="dark"] .ai-message hr {
+            border-top-color: #444;
         }
 
         .ai-message table {
@@ -199,6 +225,12 @@
             border: 1px solid #ccc;
         }
 
+        [data-bs-theme="dark"] .ai-message table,
+        [data-bs-theme="dark"] .ai-message th,
+        [data-bs-theme="dark"] .ai-message td {
+            border-color: #555;
+        }
+
         .ai-message th,
         .ai-message td {
             padding: 0.5rem;
@@ -210,6 +242,11 @@
             padding: 0.2rem 0.4rem;
             border-radius: 4px;
             font-family: 'Courier New', monospace;
+        }
+
+        [data-bs-theme="dark"] .ai-message code {
+            background: #2d2d2d;
+            color: #e0e0e0;
         }
 
         .ai-message pre {
@@ -232,6 +269,11 @@
             border-top: 1px solid #d9e2ec;
         }
 
+        [data-bs-theme="dark"] .chat-footer {
+            background-color: #2c2c2c;
+            border-top-color: #444;
+        }
+
         .chat-footer textarea {
             resize: none;
             flex: 1;
@@ -240,6 +282,14 @@
             font-size: 1rem;
             border: 1px solid #cbd5e0;
             height: 50px;
+            background-color: var(--white);
+            color: var(--dark);
+        }
+
+        [data-bs-theme="dark"] .chat-footer textarea {
+            border-color: #555;
+            background-color: #2c2c2c;
+            color: #e0e0e0;
         }
 
         .chat-footer button {
@@ -251,9 +301,17 @@
             font-weight: 600;
         }
 
+        [data-bs-theme="dark"] .chat-footer button {
+            background-color: #d61f5c; /* Consistent with header and bootstrap */
+        }
+
         .chat-footer button:disabled {
             background-color: #a0aec0;
             cursor: not-allowed;
+        }
+
+        [data-bs-theme="dark"] .chat-footer button:disabled {
+            background-color: #666;
         }
 
         @media (max-width: 768px) {

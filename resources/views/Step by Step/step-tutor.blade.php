@@ -1,103 +1,94 @@
-@extends('layouts.app')
-
+@extends('layouts.bootstrap')
+@extends('layouts.historysidenav')
+@extends('layouts.header')
 @section('content')
 
-<!-- Loading Spinner -->
+<!-- Loading Overlay -->
 <div id="loading-overlay">
-  <div class="spinner-border text-primary" role="status" style="width: 2.5rem; height: 2.5rem;">
+  <div class="spinner-border text-pink" role="status" style="width: 2.8rem; height: 2.8rem;">
     <span class="visually-hidden">Loading...</span>
   </div>
-  <p class="mt-3 text-center fw-semibold" style="color:#0d6efd;">Just a moment...</p>
+  <p class="mt-3 fw-semibold" style="color:#EC298B;">Just a moment...</p>
 </div>
 
 <style>
   body {
     background-color: #f5f7fa;
-    font-family: 'Inter', 'Poppins', sans-serif;
+    font-family: 'Poppins', sans-serif;
   }
 
   .ck-card {
     background: #ffffff;
-    border-radius: 14px;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
     padding: 40px;
     border: none;
+    transition: all 0.3s ease-in-out;
   }
 
   .ck-title {
-    font-size: 1.9rem;
-    font-weight: 600;
+    font-size: 2rem;
+    font-weight: 700;
     color: #EC298B;
     text-align: center;
     margin-bottom: 30px;
   }
 
-  .chat-box {
-    max-height: 300px;
-    overflow-y: auto;
-    padding: 16px;
-    background: #f9fafc;
-    border: 1px solid #e3e6ef;
-    border-radius: 12px;
-    margin-bottom: 25px;
-  }
-
-  .message {
-    margin-bottom: 12px;
-  }
-
-  .message .fw-bold {
-    font-size: 14px;
-  }
-
-  .message-content {
-    background: #eef2f6;
-    padding: 12px 16px;
+  .form-control {
     border-radius: 10px;
     font-size: 15px;
-    line-height: 1.5;
-    white-space: pre-line;
-  }
-
-  .ck-btn {
-    background-color: #EC298B;
-    color: white;
-    border: none;
-    padding: 12px 24px;
-    font-size: 15px;
-    font-weight: 500;
-    border-radius: 8px;
-    transition: all 0.25s ease;
-  }
-
-  .ck-btn:hover {
-    background-color: #EC298B;
-  }
-
-  .form-control {
-    border-radius: 8px;
-    font-size: 15px;
+    padding: 12px 15px;
+    border: 1px solid #ced4da;
   }
 
   .form-control:focus {
     border-color: #EC298B;
-    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.2);
+    box-shadow: 0 0 0 0.2rem rgba(236, 41, 139, 0.15);
+  }
+
+  .ck-btn {
+    background-color: #EC298B;
+    color: #fff;
+    font-weight: 600;
+    font-size: 15px;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 28px;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+  }
+
+  .ck-btn:hover {
+    background-color: #d32078;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(236, 41, 139, 0.15);
+  }
+
+  .btn-outline-danger.btn-sm {
+    padding: 6px 14px;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+  }
+
+  .btn-outline-danger.btn-sm:hover {
+    background-color: #dc3545;
+    color: white;
   }
 
   #loading-overlay {
     display: none;
     position: fixed;
     inset: 0;
-    background-color: rgba(255, 255, 255, 0.8);
+    background-color: rgba(255, 255, 255, 0.85);
     z-index: 9999;
     align-items: center;
     justify-content: center;
     flex-direction: column;
   }
 
-  .btn-outline-danger.btn-sm {
-    padding: 6px 12px;
-    font-size: 14px;
+  #loading-overlay.active {
+    display: flex;
   }
 </style>
 
@@ -110,14 +101,25 @@
         <!-- Form -->
         <form id="step-tutor-form" action="{{ url('/step-tutor') }}" method="POST" enctype="multipart/form-data">
           @csrf
-            <div class="mb-3">
-              <label class="form-label">Grade Level</label>
-              <input type="text" class="form-control" name="grade_level" required>
-            </div>
-            <div class="mb-3">
-              <label class="form-label">Your Message</label>
-              <input type="text" class="form-control" name="topic" placeholder="Enter your topic or question..." required>
-            </div>
+          <div class="mb-3">
+                        <label class="form-label fw-bold">Grade level: <span class="text-danger">*</span></label>
+                        <select class="form-select" name="grade_level" required>
+                            <option disabled selected>Select a grade level</option>
+                            @foreach([
+                                'Pre-K', 'Kindergarten',
+                                'Grade 1','Grade 2','Grade 3','Grade 4','Grade 5','Grade 6',
+                                'Grade 7','Grade 8','Grade 9','Grade 10','Grade 11','Grade 12',
+                                'University','Professional Staff'
+                            ] as $level)
+                                <option value="{{ $level }}" {{ old('grade_level') == $level ? 'selected' : '' }}>{{ $level }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Your Message</label>
+            <input type="text" class="form-control" name="topic" placeholder="Enter your topic or question..." required>
+          </div>
 
           <div class="text-center mt-4">
             <button type="submit" class="ck-btn">Send</button>
@@ -141,6 +143,15 @@
   </div>
 </div>
 
-
 <script>
+    document.getElementById('step-tutor-form').addEventListener('submit', function (event) {
+        event.preventDefault();
+        const form = this;
+        const formData = new FormData(form);
+        const loadingOverlay = document.getElementById('loading-overlay');
+        loadingOverlay.style.display = 'flex';
+        form.submit();
+    });
+</script>
+
 @endsection

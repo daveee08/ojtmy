@@ -37,7 +37,7 @@ except ImportError:
  # Or a dummy function that raise
 
 chat_router = APIRouter()
-llm = Ollama(model="llama3")
+llm = Ollama(model="gemma3:1b")
 
 # -------------------------------
 # Request & Response Models
@@ -218,64 +218,6 @@ async def chat_api(request: ChatRequestForm = Depends(ChatRequestForm.as_form)):
     )
     
     return {"response": result}
-
-
-
-
-def flatten_human_history(messages: List) -> str:
-    return "\n".join([m.content for m in messages if isinstance(m, HumanMessage)])
-
-@chat_router.post("/chat-rag", response_model=ChatResponse)
-async def chat_api(request: RAGChatRequestForm = Depends(RAGChatRequestForm.as_form)):
-    session_id = f"{request.user_id}:{request.message_id}"
-
-    book_id, chapter_number = request.book_id, request.chapter_number
-    if not book_id or not chapter_number:
-        raise HTTPException(status_code=400, detail="Missing book or chapter info for RAG.")
-
-    # Step 1: Get message history and contextualize the user input
-    chat_history_messages = get_history_by_message_id(session_id).messages
-    standalone_question = get_standalone_question(chat_history_messages, request.input)
-
-    # Step 2: Retrieve context using the rewritten question
-    conn = get_db_connection()
-    cur = conn.cursor(dictionary=True)
-    book, chapter, context, error = retrieve_book_chapter_and_context(
-        cur, book_id, chapter_number, standalone_question
-    )
-    conn.close()
-
-    if error:
-        return {"response": error}
-
-    # Step 3: Build the prompt using the original user input (not the rewritten one)
-    rag_prompt = f"""You are a helpful and concise tutor.
-
-Use the following chapter context to answer the user's question. If the answer is not in the context, say "The answer is not available in the provided material."
-
----
-
-Context:
-{context}
-
----
-
-Question:
-{request.input}
-
-Answer:"""
-
-    # Step 4: Run LangChain with history
-    result = await chat_chain.ainvoke(
-        {
-            "agent_prompt": rag_prompt,
-            "input": request.input
-        },
-        config={"configurable": {"session_id": session_id}}
-    )
-
-    return {"response": result}
-
 
 
 

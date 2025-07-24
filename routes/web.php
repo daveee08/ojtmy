@@ -197,7 +197,7 @@ Route::post('/realworld', [RealWorldController::class, 'processForm'])->name('re
 // Sentence Starter Agent
 Route::get('/sentencestarter', [SentenceStarterController::class, 'showForm'])->name('sentencestarter.form');
 Route::post('/sentencestarter', [SentenceStarterController::class, 'processForm'])->name('sentencestarter.process');
-Route::post('/sentence-starter/followup', [SentenceStarterController::class, 'followupForm'])->name('sentencestarter.followup');
+// Route::post('/sentence-starter/followup', [SentenceStarterController::class, 'followupForm'])->name('sentencestarter.followup');
 
 
 // Translator Agent
@@ -252,19 +252,23 @@ Route::post('/socialstory', [SocialStoryController::class, 'generate'])->name('s
 Route::get('/characterchat', [CharacterChatController::class, 'showForm'])->name('characterchat.form');
 Route::post('/characterchat', [CharacterChatController::class, 'generate'])->name('characterchat.generate');
 
+
+Route::middleware(['auth', 'role:teacher'])->group(function () {
 Route::post('/books', [RAGController::class, 'addBook']);
+Route::post('/units', [RAGController::class, 'addUnit']);
+Route::post('/chapters', [RAGController::class, 'addChapter']);
+Route::post('/lessons', [RAGController::class, 'addLesson']);
+
+});
 Route::get('/books', [RAGController::class, 'getBooks']);
 
 // 📘 Units
-Route::post('/units', [RAGController::class, 'addUnit']);
 Route::get('/units', [RAGController::class, 'getUnits']);
 
 // 📘 Chapters
-Route::post('/chapters', [RAGController::class, 'addChapter']);
 Route::get('/chapters', [RAGController::class, 'getChapters']);
 
 // 📘 Lessons
-Route::post('/lessons', [RAGController::class, 'addLesson']);
 Route::get('/lessons', [RAGController::class, 'getLessons']);
 
 Route::get('/get-first-lesson', [RAGController::class, 'getFirstLesson']);
@@ -274,5 +278,3 @@ Route::get('/virtual-tutor-chat', [RAGController::class, 'showVirtualTutorChat']
 Route::post('/send-rag-message', [RAGController::class, 'sendRagMessage']);
 
 Route::post('/generate-quiz', [RAGController::class, 'generateQuiz']);
-
-Route::get('/check-quiz', [RAGController::class, 'getQuizIfExists']);

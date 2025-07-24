@@ -15,8 +15,8 @@
         }
 
         .hero {
-            background-color: #F5F5F5;
-            border: 1px solid #F5F5F5;
+            /* background-color: var(--light-grey);
+                                                    border: 1px solid var(--light-grey); */
             padding: 50px;
             border-radius: 12px;
             margin-bottom: 40px;
@@ -25,16 +25,16 @@
 
         .hero h1 {
             font-size: 3rem;
-            color: #e91e63;
+            color: var(--pink);
             font-weight: 700;
         }
 
-        .hero p {
-            font-size: 1rem;
-            color: #555;
-            max-width: 600px;
-            margin: 15px auto 0;
-        }
+        /* .hero p {
+                                                    font-size: 1rem;
+                                                    color: var(--dark);
+                                                    max-width: 600px;
+                                                    margin: 15px auto 0;
+                                                } */
 
         .search-wrapper {
             display: flex;
@@ -47,17 +47,19 @@
             max-width: 400px;
             padding: 10px 16px 10px 40px;
             font-size: 1rem;
-            border: 1px solid #ccc;
+
+            border: 1.5px solid var(--filter-border);
             border-radius: 30px;
             outline: none;
-            background: #fff url('data:image/svg+xml;utf8,<svg fill="gray" height="16" viewBox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C8.01 14 6 11.99 6 9.5S8.01 5 10.5 5 15 7.01 15 9.5 12.99 14 10.5 14z"/></svg>') no-repeat 12px center;
+            background: var(--white) url('data:image/svg+xml;utf8,<svg fill="gray" height="16" viewBox="0 0 24 24" width="16" xmlns="http://www.w0.org/2000/svg"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C8.01 14 6 11.99 6 9.5S8.01 5 10.5 5 15 7.01 15 9.5 12.99 14 10.5 14z"/></svg>') no-repeat 12px center;
             background-size: 18px 18px;
             transition: 0.3s;
+            color: var(--dark);
         }
 
         .search-wrapper input:focus {
-            border-color: #e91e63;
-            box-shadow: 0 0 0 0.1rem rgba(234, 114, 114, 0.1);
+            border-color: var(--pink);
+            box-shadow: 0 0 0 0.1rem rgba(233, 30, 99, 0.1);
         }
 
         .tool-grid {
@@ -74,8 +76,8 @@
         }
 
         .tool-card {
-            background-color: #ffffff;
-            border: 1px solid #e0e0e0;
+            background-color: var(--white);
+            border: 1px solid var(--filter-border, #ccc);
             border-radius: 12px;
             padding: 20px;
             transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
@@ -86,18 +88,23 @@
             position: relative;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
             width: 100%;
-            height: 120px;
+            height: 130px;
+
         }
 
         .tool-card:hover {
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
             transform: translateY(-2px);
-            border-color: #e91e63;
+            border-color: var(--pink);
+        }
+
+        [data-bs-theme="dark"] .tool-card:hover {
+        border-color: var(--pink); /* Ensure dark mode retains the pink border */
         }
 
         .tool-card h5 {
             font-size: 1.1rem;
-            color: #333333;
+            color: var(--dark);
             font-weight: 600;
             margin-top: 0;
             margin-bottom: 5px;
@@ -119,6 +126,10 @@
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
+        }
+
+        [data-bs-theme="dark"] .tool-card p {
+        color: #a0a0a0; /* Better contrast in dark mode */
         }
 
         .tool-card-content {
@@ -160,9 +171,13 @@
         .tool-card-favorite:hover {
             background-color: #f4e4ef;
         }
+        
+        [data-bs-theme="dark"] .tool-card-favorite:hover {
+        background-color: #4a1f34; /* Dark mode hover background */
+         }
 
         .tool-card-favorite.favorited {
-            color: #FFD700; /* Gold color for favorited star */
+            color: #FFD700;
         }
 
         .tool-card-favorite:hover .tooltip {
@@ -175,8 +190,8 @@
             position: absolute;
             top: 100%;
             right: 0;
-            background-color: #333;
-            color: #fff;
+            background-color: var(--dark);
+            color: var(--tooltip-color);
             padding: 8px 12px;
             border-radius: 6px;
             font-size: 0.85rem;
@@ -210,7 +225,7 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 20px;
-            margin-bottom: 40px; /* Space between favorites and main grid */
+            margin-bottom: 40px;
         }
 
         .favorites-section {
@@ -219,12 +234,11 @@
 
         .favorites-section h2 {
             font-size: 1.8rem;
-            color: #333;
+            color: var(--dark);
             margin-bottom: 20px;
             padding-bottom: 10px;
         }
 
-        /* Enhanced CSS for notification to ensure visibility */
         .notification {
             position: fixed;
             top: 20px;
@@ -232,10 +246,12 @@
             transform: translateX(-50%);
             background-color: #e91e63;
             color: #fff;
-            padding: 12px 24px; /* Slightly larger padding for better appearance */
+            padding: 12px 24px;
+            /* Slightly larger padding for better appearance */
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            z-index: 10000; /* Increased z-index to ensure it appears above all elements */
+            z-index: 10000;
+            /* Increased z-index to ensure it appears above all elements */
             opacity: 0;
             transform: translateY(-20px);
             transition: opacity 0.3s ease, transform 0.3s ease;
@@ -249,28 +265,29 @@
         }
 
         .tool-filters {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-}
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
 
-.filter-btn {
-  background: #fff;
-  border: 1px solid #ddd;
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
+        }
 
-.filter-btn.active {
-  background: #EC298B;
-  color: white;
-  border-color: #EC298B;
-}
+        .filter-btn {
+            background: var(--filter-background);
+            border: 1px solid #ccc;
+            /* Matches navigation button border */
+            padding: 6px 14px;
+            border-radius: 20px;
+            color: var(--dark);
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
 
+        .filter-btn.active {
+            background: #EC298B;
+            border-color: #EC298B;
+        }
     </style>
 @endsection
 
@@ -294,17 +311,17 @@
             <div class="favorites-grid" id="favoritesGrid">
             </div>
         </div>
-<div class="tool-filters">
-  <button class="filter-btn active" data-category="all">All</button>
-  <button class="filter-btn" data-category="reading">Reading</button>
-  <button class="filter-btn" data-category="writing">Writing</button>
-  <button class="filter-btn" data-category="study">Study</button>
-  <button class="filter-btn" data-category="creative">Creative</button>
-</div>
+        <div class="tool-filters">
+            <button class="filter-btn active" data-category="all">All</button>
+            <button class="filter-btn" data-category="reading">Reading</button>
+            <button class="filter-btn" data-category="writing">Writing</button>
+            <button class="filter-btn" data-category="study">Study</button>
+            <button class="filter-btn" data-category="creative">Creative</button>
+        </div>
 
         <div class="tool-grid" id="allToolsGrid">
             {{-- Text Leveler --}}
-            <a href="http://192.168.50.144:8000/leveler" target="_blank" class="tool-card-link" data-tool-id="text-leveler">
+            <a href="http://127.0.0.1:8000/leveler" class="tool-card-link" data-tool-id="text-leveler">
                 <div class="tool-card" data-category="reading">
                     <span class="tool-card-favorite" data-tool-id="text-leveler"><i class="fas fa-star"></i></span>
                     <div class="tool-card-content">
@@ -320,7 +337,7 @@
             </a>
 
             {{-- Text Summarizer --}}
-            <a href="http://127.0.0.1:5001/summarize" target="_blank" class="tool-card-link" data-tool-id="text-summarizer">
+            <a href="http://127.0.0.1:8000/summarize" class="tool-card-link" data-tool-id="text-summarizer">
                 <div class="tool-card" data-category="reading writing">
                     <span class="tool-card-favorite" data-tool-id="text-summarizer"><i class="fas fa-star"></i></span>
                     <div class="tool-card-content">
@@ -336,10 +353,10 @@
             </a>
 
             {{-- Conceptual Understanding --}}
-            <a href="https://tse4.mm.bing.net/th/id/OIP.eEW3EGenj4Djze7zv31PKAHaLG?rs=1&pid=ImgDetMain&o=7&rm=3"
-                target="_blank" class="tool-card-link" data-tool-id="conceptual-understanding">
+            <a href="http://127.0.0.1:8000/tutor" class="tool-card-link" data-tool-id="conceptual-understanding">
                 <div class="tool-card" data-category="reading study">
-                    <span class="tool-card-favorite" data-tool-id="conceptual-understanding"><i class="fas fa-star"></i></span>
+                    <span class="tool-card-favorite" data-tool-id="conceptual-understanding"><i
+                            class="fas fa-star"></i></span>
                     <div class="tool-card-content">
                         <div class="tool-card-icon">
                             <img src="{{ asset('icons/conceptual.png') }}" alt="Conceptual Understanding Icon">
@@ -354,8 +371,7 @@
             </a>
 
             {{-- Text Rewriter --}}
-            <a href="https://tse4.mm.bing.net/th/id/OIP.eEW3EGenj4Djze7zv31PKAHaLG?rs=1&pid=ImgDetMain&o=7&rm=3"
-                target="_blank" class="tool-card-link" data-tool-id="text-rewriter">
+            <a href="http://127.0.0.1:8000/rewriter" class="tool-card-link" data-tool-id="text-rewriter">
                 <div class="tool-card" data-category="writing">
                     <span class="tool-card-favorite" data-tool-id="text-rewriter"><i class="fas fa-star"></i></span>
                     <div class="tool-card-content">
@@ -371,7 +387,7 @@
             </a>
 
             {{-- Text Proofreader --}}
-            <a href="http://192.168.50.18:5001/proofreader" target="_blank" class="tool-card-link" data-tool-id="text-proofreader">
+            <a href="http://127.0.0.1:8000/proofreader" target="_blank" class="tool-card-link" data-tool-id="text-proofreader">
                 <div class="tool-card" data-category="writing">
                     <span class="tool-card-favorite" data-tool-id="text-proofreader"><i class="fas fa-star"></i></span>
                     <div class="tool-card-content">
@@ -387,7 +403,7 @@
             </a>
 
             {{-- Quiz Me! --}}
-            <a href="http://127.0.0.1:5001/generate-quiz" target="_blank" class="tool-card-link" data-tool-id="quiz-me">
+            <a href="http://localhost:8000/generate-quiz" class="tool-card-link" data-tool-id="quiz-me">
                 <div class="tool-card" data-category="study">
                     <span class="tool-card-favorite" data-tool-id="quiz-me"><i class="fas fa-star"></i></span>
                     <div class="tool-card-content">
@@ -403,7 +419,7 @@
             </a>
 
             {{-- Text Scaffolder --}}
-            <a href="http://192.168.50.123:5001/scaffolder" target="_blank" class="tool-card-link" data-tool-id="text-scaffolder">
+            <a href="http://127.0.0.1:8000/scaffolder" class="tool-card-link" data-tool-id="text-scaffolder">
                 <div class="tool-card" data-category="reading writing">
                     <span class="tool-card-favorite" data-tool-id="text-scaffolder"><i class="fas fa-star"></i></span>
                     <div class="tool-card-content">
@@ -419,7 +435,7 @@
             </a>
 
             {{-- Informational Text --}}
-            <a href="http://192.168.50.144:5001/informational" target="_blank" class="tool-card-link" data-tool-id="informational-text">
+            <a href="http://localhost:8000/informational" class="tool-card-link" data-tool-id="informational-text">
                 <div class="tool-card" data-category="writing creative">
                     <span class="tool-card-favorite" data-tool-id="informational-text"><i class="fas fa-star"></i></span>
                     <div class="tool-card-content">
@@ -435,7 +451,7 @@
             </a>
 
             {{-- Step by Step --}}
-            <a href="http://127.0.0.1:5001/step-tutor" target="_blank" class="tool-card-link" data-tool-id="step-by-step">
+            <a href="http://localhost:8000/step-tutor" class="tool-card-link" data-tool-id="step-by-step">
                 <div class="tool-card" data-category="study">
                     <span class="tool-card-favorite" data-tool-id="step-by-step"><i class="fas fa-star"></i></span>
                     <div class="tool-card-content">
@@ -451,7 +467,7 @@
             </a>
 
             {{-- Five Questions --}}
-            <a href="http://127.0.0.1:5001/5questions" target="_blank" class="tool-card-link" data-tool-id="five-questions">
+            <a href="http://127.0.0.1:8000/5questions" target="_blank" class="tool-card-link" data-tool-id="five-questions">
                 <div class="tool-card" data-category="study">
                     <span class="tool-card-favorite" data-tool-id="five-questions"><i class="fas fa-star"></i></span>
                     <div class="tool-card-content">
@@ -467,10 +483,11 @@
             </a>
 
             {{-- Real World Connections --}}
-            <a href="https://tse4.mm.bing.net/th/id/OIP.eEW3EGenj4Djze7zv31PKAHaLG?rs=1&pid=ImgDetMain&o=7&rm=3"
+            <a href="http://127.0.0.1:8000/realworld"
                 target="_blank" class="tool-card-link" data-tool-id="real-world-connections">
                 <div class="tool-card" data-category="reading study">
-                    <span class="tool-card-favorite" data-tool-id="real-world-connections"><i class="fas fa-star"></i></span>
+                    <span class="tool-card-favorite" data-tool-id="real-world-connections"><i
+                            class="fas fa-star"></i></span>
                     <div class="tool-card-content">
                         <div class="tool-card-icon">
                             <img src="{{ asset('icons/realworld.png') }}" alt="Real World Connections Icon">
@@ -484,7 +501,7 @@
             </a>
 
             {{-- Study Habits --}}
-            <a href="http://127.0.0.1:5001/studyhabits" target="_blank" class="tool-card-link" data-tool-id="study-habits">
+            <a href="http://127.0.0.1:8000/studyhabits" target="_blank" class="tool-card-link" data-tool-id="study-habits">
                 <div class="tool-card" data-category="study">
                     <span class="tool-card-favorite" data-tool-id="study-habits"><i class="fas fa-star"></i></span>
                     <div class="tool-card-content">
@@ -500,8 +517,7 @@
             </a>
 
             {{-- Text Translator --}}
-            <a href="https://tse4.mm.bing.net/th/id/OIP.eEW3EGenj4Djze7zv31PKAHaLG?rs=1&pid=ImgDetMain&o=7&rm=3"
-                target="_blank" class="tool-card-link" data-tool-id="text-translator">
+            <a href="http://127.0.0.1:8000/translator" class="tool-card-link" data-tool-id="text-translator">
                 <div class="tool-card" data-category="reading">
                     <span class="tool-card-favorite" data-tool-id="text-translator"><i class="fas fa-star"></i></span>
                     <div class="tool-card-content">
@@ -517,7 +533,7 @@
             </a>
 
             {{-- Sentence Starters --}}
-            <a href="https://tse4.mm.bing.net/th/id/OIP.eEW3EGenj4Djze7zv31PKAHaLG?rs=1&pid=ImgDetMain&o=7&rm=3"
+            <a href="http://127.0.0.1:8000/sentencestarter"
                 target="_blank" class="tool-card-link" data-tool-id="sentence-starters">
                 <div class="tool-card" data-category="writing">
                     <span class="tool-card-favorite" data-tool-id="sentence-starters"><i class="fas fa-star"></i></span>
@@ -534,9 +550,11 @@
             </a>
 
             {{-- Assignment Scaffolder --}}
-            <a href="http://192.168.50.123:5001/assignmentscaffolder" target="_blank" class="tool-card-link" data-tool-id="assignment-scaffolder">
+            <a href="http://127.0.0.1:8000/assignmentscaffolder" class="tool-card-link"
+                data-tool-id="assignment-scaffolder">
                 <div class="tool-card" data-category="study writing">
-                    <span class="tool-card-favorite" data-tool-id="assignment-scaffolder"><i class="fas fa-star"></i></span>
+                    <span class="tool-card-favorite" data-tool-id="assignment-scaffolder"><i
+                            class="fas fa-star"></i></span>
                     <div class="tool-card-content">
                         <div class="tool-card-icon">
                             <img src="{{ asset('icons/scaff.png') }}" alt="Assignment Scaffolder Icon">
@@ -551,9 +569,10 @@
             </a>
 
             {{-- Coach’s Sports Practice --}}
-            <a href="http://127.0.0.1:5001/5questions" target="_blank" class="tool-card-link" data-tool-id="coachs-sports-practice">
+            <a href="http://localhost:8000/5questions" class="tool-card-link" data-tool-id="coachs-sports-practice">
                 <div class="tool-card" data-category="study">
-                    <span class="tool-card-favorite" data-tool-id="coachs-sports-practice"><i class="fas fa-star"></i></span>
+                    <span class="tool-card-favorite" data-tool-id="coachs-sports-practice"><i
+                            class="fas fa-star"></i></span>
                     <div class="tool-card-content">
                         <div class="tool-card-icon">
                             <img src="{{ asset('icons/coachsports.png') }}" alt="Coach’s Sports Practice Icon">
@@ -567,7 +586,7 @@
             </a>
 
             {{-- Email Writer --}}
-            <a href="http://127.0.0.1:5001/5questions" target="_blank" class="tool-card-link" data-tool-id="email-writer">
+            <a href="http://localhost:8000/email-writer" class="tool-card-link" data-tool-id="email-writer">
                 <div class="tool-card" data-category="writing">
                     <span class="tool-card-favorite" data-tool-id="email-writer"><i class="fas fa-star"></i></span>
                     <div class="tool-card-content">
@@ -583,9 +602,11 @@
             </a>
 
             {{-- Multiple Explanations Generator --}}
-            <a href="http://192.168.50.123:5001/explanations" target="_blank" class="tool-card-link" data-tool-id="multiple-explanations-generator">
+            <a href="http://localhost:8000/explanations" class="tool-card-link"
+                data-tool-id="multiple-explanations-generator">
                 <div class="tool-card" data-category="study">
-                    <span class="tool-card-favorite" data-tool-id="multiple-explanations-generator"><i class="fas fa-star"></i></span>
+                    <span class="tool-card-favorite" data-tool-id="multiple-explanations-generator"><i
+                            class="fas fa-star"></i></span>
                     <div class="tool-card-content">
                         <div class="tool-card-icon">
                             <img src="{{ asset('icons/multiple.png') }}" alt="Multiple Explanations Icon">
@@ -599,7 +620,7 @@
             </a>
 
             {{-- Teacher Jokes --}}
-            <a href="http://127.0.0.1:5004/generate-joke" target="_blank" class="tool-card-link" data-tool-id="teacher-jokes">
+            <a href="http://localhost:8000/generate-joke" class="tool-card-link" data-tool-id="teacher-jokes">
                 <div class="tool-card" data-category="creative">
                     <span class="tool-card-favorite" data-tool-id="teacher-jokes"><i class="fas fa-star"></i></span>
                     <div class="tool-card-content">
@@ -615,7 +636,7 @@
             </a>
 
             {{-- Thank You Note --}}
-            <a href="http://127.0.0.1:8001/generate-thankyou" target="_blank" class="tool-card-link" data-tool-id="thank-you-note">
+            <a href="http://127.0.0.1:8000/thankyou-note" class="tool-card-link" data-tool-id="thank-you-note">
                 <div class="tool-card" data-category="writing creative">
                     <span class="tool-card-favorite" data-tool-id="thank-you-note"><i class="fas fa-star"></i></span>
                     <div class="tool-card-content">
@@ -631,7 +652,8 @@
             </a>
 
             {{-- Tongue Twisters --}}
-            <a href="http://127.0.0.1:5002/generate-tongue-twister" target="_blank" class="tool-card-link" data-tool-id="tongue-twisters">
+            <a href="http://localhost:8000/generate-tongue-twister" class="tool-card-link"
+                data-tool-id="tongue-twisters">
                 <div class="tool-card" data-category="reading creative">
                     <span class="tool-card-favorite" data-tool-id="tongue-twisters"><i class="fas fa-star"></i></span>
                     <div class="tool-card-content">
@@ -647,7 +669,7 @@
             </a>
 
             {{-- Quote of the Day --}}
-            <a href="http://127.0.0.1:5001/5questions" target="_blank" class="tool-card-link" data-tool-id="quote-of-the-day">
+            <a href="http://localhost:8000/5questions" class="tool-card-link" data-tool-id="quote-of-the-day">
                 <div class="tool-card" data-category="creative">
                     <span class="tool-card-favorite" data-tool-id="quote-of-the-day"><i class="fas fa-star"></i></span>
                     <div class="tool-card-content">
@@ -663,7 +685,7 @@
             </a>
 
             {{-- Email Responder --}}
-            <a href="http://192.168.50.123:5001/responder" target="_blank" class="tool-card-link" data-tool-id="email-responder">
+            <a href="http://127.0.0.1:8000/responder" class="tool-card-link" data-tool-id="email-responder">
                 <div class="tool-card" data-category="writing">
                     <span class="tool-card-favorite" data-tool-id="email-responder"><i class="fas fa-star"></i></span>
                     <div class="tool-card-content">
@@ -679,7 +701,7 @@
             </a>
 
             {{-- Make It Relevant! --}}
-            <a href="http://127.0.0.1:5001/makeitrelevant" target="_blank" class="tool-card-link" data-tool-id="make-it-relevant">
+            <a href="http://localhost:8000/makeitrelevant" class="tool-card-link" data-tool-id="make-it-relevant">
                 <div class="tool-card" data-category="writing study">
                     <span class="tool-card-favorite" data-tool-id="make-it-relevant"><i class="fas fa-star"></i></span>
                     <div class="tool-card-content">
@@ -696,7 +718,7 @@
             </a>
 
             {{-- Chat with Docs --}}
-            <a href="http://192.168.50.144:5001/chatwithdocs" target="_blank" class="tool-card-link" data-tool-id="chat-with-docs">
+            <a href="http://localhost:8000/chatwithdocs" class="tool-card-link" data-tool-id="chat-with-docs">
                 <div class="tool-card" data-category="reading study">
                     <span class="tool-card-favorite" data-tool-id="chat-with-docs"><i class="fas fa-star"></i></span>
                     <div class="tool-card-content">
@@ -712,7 +734,7 @@
             </a>
 
             {{-- Math Review --}}
-            <a href="http://127.0.0.1:5001/mathreview" target="_blank" class="tool-card-link" data-tool-id="math-review">
+            <a href="http://localhost:8000/mathreview" class="tool-card-link" data-tool-id="math-review">
                 <div class="tool-card" data-category="study">
                     <span class="tool-card-favorite" data-tool-id="math-review"><i class="fas fa-star"></i></span>
                     <div class="tool-card-content">
@@ -728,7 +750,7 @@
             </a>
 
             {{-- Character Chatbot --}}
-            <a href="http://127.0.0.1:5001/mathreview" target="_blank" class="tool-card-link" data-tool-id="character-chatbot">
+            <a href="http://localhost:8000/characterchat" class="tool-card-link" data-tool-id="character-chatbot">
                 <div class="tool-card" data-category="reading creative">
                     <span class="tool-card-favorite" data-tool-id="character-chatbot"><i class="fas fa-star"></i></span>
                     <div class="tool-card-content">
@@ -744,7 +766,7 @@
             </a>
 
             {{-- Idea Generator --}}
-            <a href="http://127.0.0.1:5001/mathreview" target="_blank" class="tool-card-link" data-tool-id="idea-generator">
+            <a href="http://localhost:8000/idea-generator" class="tool-card-link" data-tool-id="idea-generator">
                 <div class="tool-card" data-category="creative">
                     <span class="tool-card-favorite" data-tool-id="idea-generator"><i class="fas fa-star"></i></span>
                     <div class="tool-card-content">
@@ -760,8 +782,8 @@
             </a>
 
             {{-- Content Creator --}}
-            <a href="http://127.0.0.1:5001/mathreview" target="_blank" class="tool-card-link" data-tool-id="content-creator">
-               <div class="tool-card" data-category="writing creative">
+            <a href="http://localhost:8000/contentcreator" class="tool-card-link" data-tool-id="content-creator">
+                <div class="tool-card" data-category="writing creative">
                     <span class="tool-card-favorite" data-tool-id="content-creator"><i class="fas fa-star"></i></span>
                     <div class="tool-card-content">
                         <div class="tool-card-icon">
@@ -776,7 +798,7 @@
             </a>
 
             {{-- Social Stories --}}
-            <a href="http://127.0.0.1:5001/mathreview" target="_blank" class="tool-card-link" data-tool-id="social-stories">
+            <a href="http://localhost:8000/socialstory" class="tool-card-link" data-tool-id="social-stories">
                 <div class="tool-card" data-category="reading creative">
                     <span class="tool-card-favorite" data-tool-id="social-stories"><i class="fas fa-star"></i></span>
                     <div class="tool-card-content">
@@ -796,125 +818,126 @@
     </div>
 
     <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const toolSearch = document.getElementById('toolSearch');
-    const allToolsGrid = document.getElementById('allToolsGrid');
-    const favoritesGrid = document.getElementById('favoritesGrid');
-    const favoritesSection = document.getElementById('favoritesSection');
-    const toolLinks = document.querySelectorAll('.tool-card-link');
-    const favoriteButtons = document.querySelectorAll('.tool-card-favorite');
-    const notification = document.getElementById('notification');
-    const filterButtons = document.querySelectorAll('.filter-btn');
+        document.addEventListener('DOMContentLoaded', function() {
+            const toolSearch = document.getElementById('toolSearch');
+            const allToolsGrid = document.getElementById('allToolsGrid');
+            const favoritesGrid = document.getElementById('favoritesGrid');
+            const favoritesSection = document.getElementById('favoritesSection');
+            const toolLinks = document.querySelectorAll('.tool-card-link');
+            const favoriteButtons = document.querySelectorAll('.tool-card-favorite');
+            const notification = document.getElementById('notification');
+            const filterButtons = document.querySelectorAll('.filter-btn');
 
-    let favoritedTools = JSON.parse(localStorage.getItem('favoritedTools')) || [];
+            let favoritedTools = JSON.parse(localStorage.getItem('favoritedTools')) || [];
 
-    // Show notification
-    function showNotification(message) {
-        notification.textContent = message;
-        notification.classList.add('show');
-        setTimeout(() => {
-            notification.classList.remove('show');
-        }, 2000);
-    }
+            // Show notification
+            function showNotification(message) {
+                notification.textContent = message;
+                notification.classList.add('show');
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 2000);
+            }
 
-    // Render favorites
-    function renderFavorites() {
-        favoritesGrid.innerHTML = '';
-        if (favoritedTools.length > 0) {
-            favoritesSection.style.display = 'block';
-            favoritedTools.forEach(toolId => {
-                const originalCard = document.querySelector(`.tool-card-link[data-tool-id="${toolId}"]`);
-                if (originalCard) {
-                    const clonedCard = originalCard.cloneNode(true);
-                    const favoriteButton = clonedCard.querySelector('.tool-card-favorite');
-                    favoriteButton.classList.add('favorited');
-                    favoriteButton.addEventListener('click', handleFavoriteClick);
-                    favoritesGrid.appendChild(clonedCard);
-                }
-            });
-        } else {
-            favoritesSection.style.display = 'none';
-        }
-    }
-
-    // Update all stars
-    function updateAllStarIcons() {
-        favoriteButtons.forEach(button => {
-            const toolId = button.dataset.toolId;
-            button.classList.toggle('favorited', favoritedTools.includes(toolId));
-        });
-        const favoriteGridButtons = favoritesGrid.querySelectorAll('.tool-card-favorite');
-        favoriteGridButtons.forEach(button => {
-            const toolId = button.dataset.toolId;
-            button.classList.toggle('favorited', favoritedTools.includes(toolId));
-        });
-    }
-
-    // Handle favorite toggle
-    function handleFavoriteClick(event) {
-        event.preventDefault();
-        event.stopPropagation();
-        const button = event.currentTarget;
-        const toolId = button.dataset.toolId;
-        const isFavorited = favoritedTools.includes(toolId);
-        const toolCard = button.closest('.tool-card');
-        const toolName = toolCard.querySelector('h5').textContent;
-
-        if (isFavorited) {
-            favoritedTools = favoritedTools.filter(id => id !== toolId);
-            showNotification(`${toolName} removed from favorites`);
-        } else {
-            favoritedTools.unshift(toolId);
-            showNotification(`${toolName} added to favorites`);
-        }
-
-        localStorage.setItem('favoritedTools', JSON.stringify(favoritedTools));
-        renderFavorites();
-        updateAllStarIcons();
-    }
-
-    // Initialize
-    renderFavorites();
-    updateAllStarIcons();
-    favoriteButtons.forEach(button => {
-        button.addEventListener('click', handleFavoriteClick);
-    });
-
-    // Search tools
-    toolSearch.addEventListener('input', function() {
-        const query = this.value.toLowerCase();
-        toolLinks.forEach(link => {
-            const text = link.innerText.toLowerCase();
-            link.style.display = text.includes(query) ? 'block' : 'none';
-        });
-    });
-
-    // Prevent default behavior for favorite buttons
-    favoriteButtons.forEach(button => {
-        button.addEventListener('click', function(event) {
-            event.stopPropagation();
-        });
-    });
-
-    // Filter buttons
-    filterButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            filterButtons.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            const selected = btn.getAttribute('data-category');
-
-            toolLinks.forEach(link => {
-                const card = link.querySelector('.tool-card');
-                const categories = card.getAttribute('data-category').split(' ');
-                if (selected === 'all' || categories.includes(selected)) {
-                    link.style.display = 'block';
+            // Render favorites
+            function renderFavorites() {
+                favoritesGrid.innerHTML = '';
+                if (favoritedTools.length > 0) {
+                    favoritesSection.style.display = 'block';
+                    favoritedTools.forEach(toolId => {
+                        const originalCard = document.querySelector(
+                            `.tool-card-link[data-tool-id="${toolId}"]`);
+                        if (originalCard) {
+                            const clonedCard = originalCard.cloneNode(true);
+                            const favoriteButton = clonedCard.querySelector('.tool-card-favorite');
+                            favoriteButton.classList.add('favorited');
+                            favoriteButton.addEventListener('click', handleFavoriteClick);
+                            favoritesGrid.appendChild(clonedCard);
+                        }
+                    });
                 } else {
-                    link.style.display = 'none';
+                    favoritesSection.style.display = 'none';
                 }
+            }
+
+            // Update all stars
+            function updateAllStarIcons() {
+                favoriteButtons.forEach(button => {
+                    const toolId = button.dataset.toolId;
+                    button.classList.toggle('favorited', favoritedTools.includes(toolId));
+                });
+                const favoriteGridButtons = favoritesGrid.querySelectorAll('.tool-card-favorite');
+                favoriteGridButtons.forEach(button => {
+                    const toolId = button.dataset.toolId;
+                    button.classList.toggle('favorited', favoritedTools.includes(toolId));
+                });
+            }
+
+            // Handle favorite toggle
+            function handleFavoriteClick(event) {
+                event.preventDefault();
+                event.stopPropagation();
+                const button = event.currentTarget;
+                const toolId = button.dataset.toolId;
+                const isFavorited = favoritedTools.includes(toolId);
+                const toolCard = button.closest('.tool-card');
+                const toolName = toolCard.querySelector('h5').textContent;
+
+                if (isFavorited) {
+                    favoritedTools = favoritedTools.filter(id => id !== toolId);
+                    showNotification(`${toolName} removed from favorites`);
+                } else {
+                    favoritedTools.unshift(toolId);
+                    showNotification(`${toolName} added to favorites`);
+                }
+
+                localStorage.setItem('favoritedTools', JSON.stringify(favoritedTools));
+                renderFavorites();
+                updateAllStarIcons();
+            }
+
+            // Initialize
+            renderFavorites();
+            updateAllStarIcons();
+            favoriteButtons.forEach(button => {
+                button.addEventListener('click', handleFavoriteClick);
+            });
+
+            // Search tools
+            toolSearch.addEventListener('input', function() {
+                const query = this.value.toLowerCase();
+                toolLinks.forEach(link => {
+                    const text = link.innerText.toLowerCase();
+                    link.style.display = text.includes(query) ? 'block' : 'none';
+                });
+            });
+
+            // Prevent default behavior for favorite buttons
+            favoriteButtons.forEach(button => {
+                button.addEventListener('click', function(event) {
+                    event.stopPropagation();
+                });
+            });
+
+            // Filter buttons
+            filterButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    filterButtons.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    const selected = btn.getAttribute('data-category');
+
+                    toolLinks.forEach(link => {
+                        const card = link.querySelector('.tool-card');
+                        const categories = card.getAttribute('data-category').split(' ');
+                        if (selected === 'all' || categories.includes(selected)) {
+                            link.style.display = 'block';
+                        } else {
+                            link.style.display = 'none';
+                        }
+                    });
+                });
             });
         });
-    });
-});
-</script>
+    </script>
 
 @endsection

@@ -6,18 +6,12 @@ import traceback # Import traceback for detailed error logging
 INPUT_KEYS = ["grade_level", "learning_speed", "custom_instructions", "text_type", "text_length"]
 
 def get_db_connection():
-    """Establishes and returns a database connection."""
-    try:
-        return mysql.connector.connect(
-            host="127.0.0.1",
-            user="root",
-            password="",
-            database="ck_agent"
-        )
-    except mysql.connector.Error as err:
-        print(f"Error connecting to database: {err}")
-        traceback.print_exc()
-        raise
+    return mysql.connector.connect(
+        host="192.168.50.20",
+        user="dev",
+        password="dev123",
+        database="ck_agent"
+    )
 
 def insert_message(cursor, user_id, agent_id, session_id, parameter_inputs_id, sender, topic, agent_prompt_id):
     """Inserts a message (human or AI) into the messages table."""
@@ -44,12 +38,12 @@ def insert_title(session_id: int, text: str):
 
     try:
         # Title generation model and prompt
-        model = OllamaLLM(model="gemma:2b")
+        model = OllamaLLM(model="gemma3:1b")
         prompt_template = ChatPromptTemplate.from_template("""
         You are an expert title generator. Your job is to create a concise, relevant, and engaging title based only on the provided conversation.
 
         Guidelines:
-        - Concise: Ideally 3–7 words.
+        - Concise: Strictly 3–5 words.
         - Relevant: Reflect the main topic or goal.
         - Engaging: Make it interesting and informative.
         - Unique: Avoid generic titles like "Chat with user" or "Conversation summary".

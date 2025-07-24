@@ -244,7 +244,7 @@ public function getBooks(Request $request)
 
         $response = Http::timeout(0)
             ->attach('file', file_get_contents($fullPath), basename($pdfPath))
-            ->post('http://127.0.0.1:5001/upload-and-embed', [
+            ->post('http://192.168.50.20:5001/upload-and-embed', [
                 'book_id' => $bookId,
                 'unit_id' => $unitId,
                 'chapter_id' => $chapterId,
@@ -374,7 +374,7 @@ public function getBooks(Request $request)
     }
 
             // Call FastAPI
-            $response = Http::timeout(0)->post('http://127.0.0.1:5001/chat', [
+            $response = Http::timeout(0)->post('http://192.168.50.20:5001/chat', [
                 'session_id' => $sessionId,
                 'prompt' => $request->input('prompt'),
                 'book_id' => $bookId,
@@ -440,12 +440,9 @@ public function getBooks(Request $request)
                 'answer_key' => filter_var($includeAnswers, FILTER_VALIDATE_BOOLEAN)
             ];
 
-            Log::info("📤 Sending payload to FastAPI:", $payload);
-
-            $response = Http::timeout(0)->post('http://localhost:5001/make-quiz', $payload);
+            $response = Http::timeout(0)->post('http://192.168.50.20:5001/make-quiz', $payload);
 
             if ($response->failed()) {
-                Log::error("❌ FastAPI returned failure:", ['body' => $response->body()]);
                 return response()->json([
                     'status' => 'fail',
                     'error' => 'FastAPI error',
@@ -455,14 +452,11 @@ public function getBooks(Request $request)
 
             $responseData = $response->json();
 
-            Log::info("✅ FastAPI responded with:", $responseData);
-
             return response()->json([
                 'status' => 'success',
                 'quiz' => $responseData['quiz'] ?? []
             ]);
         } catch (\Exception $e) {
-            Log::error("🔥 Laravel Exception:", ['message' => $e->getMessage()]);
             return response()->json([
                 'status' => 'error',
                 'message' => 'Failed to generate quiz',
@@ -471,35 +465,4 @@ public function getBooks(Request $request)
         }
     }
 
-    public function getQuizIfExists(Request $request)
-    {
-        $bookId = $request->query('book_id');
-        $chapterId = $request->query('chapter_id');
-
-        if (!$bookId || !$chapterId) {
-            return response()->json([
-                'status' => 'fail',
-                'error' => 'Missing book_id or chapter_id'
-            ], 400);
-        }
-
-        $quiz = DB::table('generated_quiz')
-            ->where('book_id', $bookId)
-            ->where('chapter_id', $chapterId)
-            ->orderBy('created_at', 'desc')
-            ->first();
-
-        if ($quiz) {
-            return response()->json([
-                'status' => 'success',
-                'exists' => true,
-                'quiz' => json_decode($quiz->message, true)
-            ]);
-        }
-
-        return response()->json([
-            'status' => 'success',
-            'exists' => false
-        ]);
-    }
 }

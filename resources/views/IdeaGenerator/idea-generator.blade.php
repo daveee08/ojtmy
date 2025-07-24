@@ -1,9 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Idea Generator</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+@extends('layouts.bootstrap')
+@extends('layouts.historysidenav')
+@extends('layouts.header')
+
+@section('content')
+
     <style>
         body {
             background-color: #f4f7fb;
@@ -75,8 +75,7 @@
             color: #EC298B;
         }
     </style>
-</head>
-<body>
+
 
 <!-- Loading Spinner -->
 <div id="loading-overlay">
@@ -143,5 +142,4 @@
     }
 </script>
 
-</body>
-</html>
+@endsection

@@ -12,7 +12,7 @@ class LevelerController extends Controller
     public function fetchUserSessions()
     {
         $userId = Auth::id();
-        $response = Http::get("http://localhost:5001/sessions/$userId");
+        $response = Http::get("http://192.168.50.32:8009/sessions/$userId");
         return response()->json($response->json());
     }
     
@@ -53,7 +53,7 @@ class LevelerController extends Controller
     
         $response = Http::timeout(0)
             ->asMultipart()
-            ->post('http://localhost:5001/leveler', $multipartData);
+            ->post('http://192.168.50.32:8009/leveler', $multipartData);
     
         if ($response->failed()) {
             logger()->error('FastAPI Leveler error', ['body' => $response->body()]);

@@ -11,26 +11,6 @@
 
     {{------------------ Custom Style --------------}}
     <style>
-        :root {
-            --pink: #e91e63;
-            --white: #ffffff;
-            --dark: #191919;
-            --light-grey: #f5f5f5;
-        }
-
-        [data-bs-theme="dark"] {
-            --pink: #f06292;
-            --white: #333333; /* Lightened from #1e1e1e to #333333 for better visibility */
-            --dark: #d0d0d0; /* Lightened from #e0e0e0 to #d0d0d0 for contrast */
-            --light-grey: #444444; /* Adjusted to a slightly lighter gray */
-        }
-
-        body {
-            font-family: 'Poppins', sans-serif;
-            background: var(--white);
-            color: var(--dark);
-        }
-
         .text-highlight {
             color: var(--pink);
             font-weight: 700;
@@ -50,12 +30,6 @@
             background-color: #c30074;
             border-color: #c30074;
         }
-
-        .card {
-            background-color: var(--white);
-            border: 1px solid var(--light-grey);
-        }
-
         .bg-light {
             background-color: var(--light-grey) !important;
         }
@@ -91,8 +65,6 @@
             background-color: #5a6268;
             border-color: #5a6268;
         }
-
-       
     </style>
 </head>
 <body>
@@ -103,7 +75,7 @@
             <p class="text-muted text-center mb-4">Use AI to ask you 5 questions to push your thinking on any topic or idea.</p>
 
             {{-- ---------------- Form ---------------- --}}
-            <form action="{{ route('sentencestarter.process') }}" method="POST" id="starterForm" onsubmit="showLoading()">
+            <form action="{{ route('fivequestions.process') }}" method="POST" id="starterForm" onsubmit="showLoading()">
                 @csrf
 
                 <div class="mb-3">
@@ -132,9 +104,9 @@
                 </div>
             </form>
             {{-- ---------------- Output ---------------- --}}   
-            @if(isset($sentence_starters) && is_array($sentence_starters) && count($sentence_starters))
+            {{-- @if(isset($sentence_starters) && is_array($sentence_starters) && count($sentence_starters))
                 <div class="mt-5">
-                    <h5 class="text-highlight">5 Questions:</h5>
+                    <h5 class="text-highlight">5 Questions:</h5> --}}
 
                     {{-- @foreach($sentence_starters as $sentence)
                         <div class="d-flex justify-content-between align-items-start bg-light p-3 mb-3 rounded shadow-sm position-relative border border-1">
@@ -157,8 +129,8 @@
                             <button type="submit" class="btn btn-outline-primary">Ask</button>
                         </div>
                     </form> --}}
-                </div>
-            @endif
+                {{-- </div>
+            @endif --}}
 
             {{-- ---------------- Error ---------------- --}}
             @if($errors->has('error'))

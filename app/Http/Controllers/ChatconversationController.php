@@ -20,7 +20,7 @@ class ChatconversationController extends Controller
     
     public function getHistory($session_id)
     {
-        $response = Http::get("http://127.0.0.1:8009/chat/history/{$session_id}");
+        $response = Http::get("http://127.0.0.1:8003/chat/history/{$session_id}");
 
         if ($response->failed()) {
             return response()->json([
@@ -49,7 +49,7 @@ class ChatconversationController extends Controller
 
         $response = Http::asMultipart()
             ->timeout(0)
-            ->post('http://127.0.0.1:8009/chat', $formData);
+            ->post('http://127.0.0.1:8003/chat', $formData);
     
         if ($response->failed()) {
             \Log::error('FastAPI error', ['body' => $response->body()]);
@@ -67,7 +67,7 @@ class ChatconversationController extends Controller
 
         try {
             // Make the server-side request to your external session service
-            $response = Http::get("http://127.0.0.1:8009/sessions/{$userId}");
+            $response = Http::get("http://127.0.0.1:8003/sessions/{$userId}");
 
             if ($response->successful()) {
                 // Return the data directly as JSON
@@ -95,7 +95,7 @@ class ChatconversationController extends Controller
 
         try {
             // Forward DELETE request to FastAPI
-            $response = Http::delete("http://127.0.0.1:8009/sessions/{$userId}/{$session_id}");
+            $response = Http::delete("http://127.0.0.1:8003/sessions/{$userId}/{$session_id}");
 
             if ($response->successful()) {
                 return response()->json(['message' => 'Session deleted successfully.']);

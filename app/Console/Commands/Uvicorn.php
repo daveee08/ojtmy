@@ -61,24 +61,24 @@ $$/   $$/  $$$$$$/  $$/       $$/  $$/  $$/  $$$$$$$/ $$/
             //     'file_and_app_instance' => 'chat_router_feb:chat_router', // e.g., if you have main.py and `app = FastAPI()`
             //     'port' => 8001,
             // ],
-            // [
-            //     'name' => 'Tutor Agent API',
-            //     'path' => base_path('python/Tutor Agent'), // Directory where your Python file is
-            //     'file_and_app_instance' => 'tutor_agent:app', // e.g., if you have main.py and `app = FastAPI()`
-            //     'port' => 8002
-            // ],
+            [
+                'name' => 'Tutor Agent API',
+                'path' => base_path('python/Tutor Agent'), // Directory where your Python file is
+                'file_and_app_instance' => 'tutor_agent:app', // e.g., if you have main.py and `app = FastAPI()`
+                'port' => 8002
+            ],
             // [
             //     'name' => 'Summarizer API',
             //     'path' => base_path('python\Summarizer'), // Directory where your Python file is
             //     'file_and_app_instance' => 'mainkhan:app', // e.g., if you have main.py and `app = FastAPI()`
             //     'port' => 8003
             // ],
-            // [
-            //     'name' => 'Khan API',
-            //     'path' => base_path('python\Email Writer'), // Directory where your Python file is
-            //     'file_and_app_instance' => 'email-writer:app', // e.g., if you have main.py and `app = FastAPI()`
-            //     'port' => 8003
-            // ],
+            [
+                'name' => 'Khan API',
+                'path' => base_path('python\Email Writer'), // Directory where your Python file is
+                'file_and_app_instance' => 'email-writer:app', // e.g., if you have main.py and `app = FastAPI()`
+                'port' => 8003
+            ],
             //   [
             //     'name' => 'Study Habits API',
             //     'path' => base_path('python\study_habits'), // Directory where your Python file is
@@ -111,12 +111,12 @@ $$/   $$/  $$$$$$/  $$/       $$/  $$/  $$/  $$$$$$$/ $$/
             //     'port' => 8008
             // ],
           
-            [
-                'name' => 'Mav Leveler with Chat Router API',
-                'path' => base_path('python\Text Leveler'), // Directory where your Python file is
-                'file_and_app_instance' => 'leveler_agent:app', // e.g., if you have main.py and `app = FastAPI()`
-                'port' => 8009
-            ],
+            // [
+            //     'name' => 'Mav Leveler with Chat Router API',
+            //     'path' => base_path('python\Text Leveler'), // Directory where your Python file is
+            //     'file_and_app_instance' => 'leveler_agent:app', // e.g., if you have main.py and `app = FastAPI()`
+            //     'port' => 8009
+            // ],
             // [
             //     'name' => 'Mav Informational API',
             //     'path' => base_path('python\Informational Text'), // Directory where your Python file is
@@ -172,24 +172,24 @@ $$/   $$/  $$$$$$/  $$/       $$/  $$/  $$/  $$$$$$$/ $$/
             //     'port' => 8018
             // ],
             
-            // [
-            //     'name' => 'Translator API',
-            //     'path' => base_path('python/translator'), // Directory where your Python file is
-            //     'file_and_app_instance' => 'translator_agent:app', // e.g., if you have main.py and `app = FastAPI()`
-            //     'port' => 8019
-            // ],
-            // [
-            //     'name' => 'Step by Step AGent',
-            //     'path' => base_path('python'), // Directory where your Python file is
-            //     'file_and_app_instance' => 'step_tutor_agent:app', // e.g., if you have main.py and `app = FastAPI()`
-            //     'port' => 8020
-            // ],
-            // [
-            //     'name' => 'Social Stories AGent',
-            //     'path' => base_path('python\Social Stories'), // Directory where your Python file is
-            //     'file_and_app_instance' => 'social_stories_agent:app', // e.g., if you have main.py and `app = FastAPI()`
-            //     'port' => 8021
-            // ],
+            [
+                'name' => 'Translator API',
+                'path' => base_path('python/translator'), // Directory where your Python file is
+                'file_and_app_instance' => 'translator_agent:app', // e.g., if you have main.py and `app = FastAPI()`
+                'port' => 8019
+            ],
+            [
+                'name' => 'Step by Step AGent',
+                'path' => base_path('python'), // Directory where your Python file is
+                'file_and_app_instance' => 'step_tutor_agent:app', // e.g., if you have main.py and `app = FastAPI()`
+                'port' => 8020
+            ],
+            [
+                'name' => 'Social Stories AGent',
+                'path' => base_path('python\Social Stories'), // Directory where your Python file is
+                'file_and_app_instance' => 'social_stories_agent:app', // e.g., if you have main.py and `app = FastAPI()`
+                'port' => 8021
+            ],
             
 
                     
@@ -205,11 +205,11 @@ $$/   $$/  $$$$$$/  $$/       $$/  $$/  $$/  $$$$$$$/ $$/
                 // '-m',
                 'uvicorn',
                 $appConfig['file_and_app_instance'],
-                '--host',
-                '127.0.0.1', // Listen on all network interfaces
+                // '--host',
+                // '0.0.0.0', // Listen on all network interfaces
                 '--port',
                 (string) $appConfig['port'], 
-                '--reload',// Cast to string for process command
+                // '--reload',// Cast to string for process command
             ];
 
             $process = new Process($command);
@@ -266,23 +266,23 @@ $$/   $$/  $$$$$$/  $$/       $$/  $$/  $$/  $$$$$$$/ $$/
      * Called when the command is terminated (e.g., by Ctrl+C).
      * Stops all running FastAPI processes gracefully.
      */
-    // public function __destruct()
-    // {
-    //     if (!empty($this->fastApiProcesses)) {
-    //         $this->info('Attempting to stop all FastAPI services...');
-    //         foreach ($this->fastApiProcesses as $process) {
-    //             if ($process->isRunn ing()) {
-    //                 try {
-    //                     $process->stop(5); // Give the process 5 seconds to gracefully stop
-    //                     $this->info("Stopped FastAPI process (PID: {$process->getPid()})");
-    //                 } catch (\Exception $e) {
-    //                     $this->warn("Could not stop process {$process->getPid()}: " . $e->getMessage());
-    //                 }
-    //             }
-    //         }
-    //         $this->info('All FastAPI services have been instructed to stop.');
-    //     } else {
-    //         $this->info('No FastAPI processes were running to stop.');
-    //     }
-    // }
+    public function __destruct()
+    {
+        if (!empty($this->fastApiProcesses)) {
+            $this->info('Attempting to stop all FastAPI services...');
+            foreach ($this->fastApiProcesses as $process) {
+                if ($process->isRunning()) {
+                    try {
+                        $process->stop(5); // Give the process 5 seconds to gracefully stop
+                        $this->info("Stopped FastAPI process (PID: {$process->getPid()})");
+                    } catch (\Exception $e) {
+                        $this->warn("Could not stop process {$process->getPid()}: " . $e->getMessage());
+                    }
+                }
+            }
+            $this->info('All FastAPI services have been instructed to stop.');
+        } else {
+            $this->info('No FastAPI processes were running to stop.');
+        }
+    }
 }

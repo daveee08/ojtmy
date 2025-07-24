@@ -25,7 +25,7 @@ class ContentCreatorController extends Controller
     {
         $validated = $request->validate([
             'grade_level' => 'required|string',
-            'length' => 'r2equired|string',
+            'length' => 'required|string',
             'prompt' => 'required|string',
             'extra' => 'nullable|string',
         ]);

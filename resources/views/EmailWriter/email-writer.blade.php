@@ -1,7 +1,6 @@
 @extends('layouts.bootstrap')
+@extends('layouts.historysidenav')
 @extends('layouts.header')
-@extends('layouts.navbaragent')
-
 
 @section('content')
 

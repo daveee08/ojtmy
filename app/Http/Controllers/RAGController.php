@@ -244,7 +244,7 @@ public function getBooks(Request $request)
 
         $response = Http::timeout(0)
             ->attach('file', file_get_contents($fullPath), basename($pdfPath))
-            ->post('http://127.0.0.1:5001/upload-and-embed', [
+            ->post('http://192.168.50.20:5001/upload-and-embed', [
                 'book_id' => $bookId,
                 'unit_id' => $unitId,
                 'chapter_id' => $chapterId,
@@ -374,7 +374,7 @@ public function getBooks(Request $request)
     }
 
             // Call FastAPI
-            $response = Http::timeout(0)->post('http://127.0.0.1:5001/chat', [
+            $response = Http::timeout(0)->post('http://192.168.50.20:5001/chat', [
                 'session_id' => $sessionId,
                 'prompt' => $request->input('prompt'),
                 'book_id' => $bookId,
@@ -440,7 +440,7 @@ public function getBooks(Request $request)
                 'answer_key' => filter_var($includeAnswers, FILTER_VALIDATE_BOOLEAN)
             ];
 
-            $response = Http::timeout(0)->post('http://localhost:5001/make-quiz', $payload);
+            $response = Http::timeout(0)->post('http://192.168.50.20:5001/make-quiz', $payload);
 
             if ($response->failed()) {
                 return response()->json([

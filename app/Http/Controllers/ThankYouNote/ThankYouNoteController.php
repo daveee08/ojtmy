@@ -50,7 +50,7 @@ class ThankYouNoteController extends Controller
 
             $response = Http::Timeout(0)
             ->asMultipart()
-            ->post('http://192.168.50.10:8003/generate-thankyou', $multipartData);
+            ->post('http://localhost:8003/generate-thankyou', $multipartData);
 
 
             Log::info('Thank you generator response:', ['response' => $response -> body()]);

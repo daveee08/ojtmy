@@ -382,7 +382,8 @@ Only return the list of ideas using the specified format.
             agent_id=13,  # Default agent_id for step tutor
             scope_vars=scope_vars,
             human_topic=data.prompt,
-            ai_output=result
+            ai_output=result,
+            agent_prompt=full_prompt
         )
     return {"idea": result.strip(), "message_id": session_id}
 

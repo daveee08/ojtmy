@@ -35,9 +35,9 @@ OLLAMA_MODEL = "llama3:latest"
 HEADERS = {"Content-Type": "application/json"}
 
 DB_CONFIG = {
-    "host": "localhost",
-    "user": "root",
-    "password": "",
+    "host": "192.168.50.20",
+    "user": "dev",
+    "password": "dev123",
     "database": "ck_agent"
 }
 

@@ -12,7 +12,7 @@ class MathReviewController extends Controller
     public function fetchUserSessions()
     {
         $userId = Auth::id();
-        $response = Http::get("http://localhost:5001/sessions/$userId");
+        $response = Http::get("http://localhost:8012/sessions/$userId");
         return response()->json($response->json());
     }
 
@@ -42,7 +42,7 @@ class MathReviewController extends Controller
 
         $response = Http::timeout(0)
             ->asMultipart()
-            ->post('http://localhost:5001/mathreview', $multipartData);
+            ->post('http://localhost:8012/mathreview', $multipartData);
 
         if ($response->failed()) {
             logger()->error('FastAPI Math Review error', ['body' => $response->body()]);

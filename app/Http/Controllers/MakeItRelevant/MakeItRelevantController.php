@@ -14,7 +14,7 @@ class MakeItRelevantController extends Controller
     public function fetchUserSessions()
     {
         $userId = Auth::id();
-        $response = Http::get("http://localhost:8013/sessions/$userId");
+        $response = Http::get("http://192.168.50.32:8013/sessions/$userId");
         return response()->json($response->json());
     }
 
@@ -57,7 +57,7 @@ class MakeItRelevantController extends Controller
 
         $response = Http::timeout(0)
             ->asMultipart()
-            ->post('http://localhost:8013/makeitrelevant', $multipartData);
+            ->post('http://192.168.50.32:8013/makeitrelevant', $multipartData);
 
         if ($response->failed()) {
             logger()->error('FastAPI Make It Relevant error', ['body' => $response->body()]);

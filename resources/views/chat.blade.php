@@ -2,6 +2,9 @@
 @extends('layouts.historysidenav')
 @extends('layouts.header')
 
+@section('title', 'Chat')
+
+
 @section('styles')
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
     <style>

@@ -12,7 +12,7 @@ class FiveQuestionsController extends Controller
     public function fetchUserSessions()
     {
         $userId = Auth::id();
-        $response = Http::get("http://localhost:5000/sessions/$userId"); // Adjusted URL to match your FastAPI endpoint
+        $response = Http::get("http://localhost:8008/sessions/$userId"); // Adjusted URL to match your FastAPI endpoint
         return response()->json($response->json());
     }
     public function showForm()
@@ -37,7 +37,7 @@ class FiveQuestionsController extends Controller
 
         $response = Http::timeout(0)
             ->asMultipart()
-            ->post('http://localhost:5000/five_questions', $multipartData);  // Adjusted URL to match your FastAPI endpoint
+            ->post('http://localhost:8008/five_questions', $multipartData);  // Adjusted URL to match your FastAPI endpoint
 
         if ($response->failed()) {
             logger()->error('FastAPI Five Question error', ['body' => $response->body()]);

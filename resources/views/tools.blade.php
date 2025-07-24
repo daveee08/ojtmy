@@ -78,7 +78,7 @@
 
         .tool-card {
             background-color: var(--white);
-            border: 1px solid var(--filter-border);
+            border: 1px solid var(--filter-border, #ccc);
             border-radius: 12px;
             padding: 20px;
             transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
@@ -96,7 +96,11 @@
         .tool-card:hover {
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
             transform: translateY(-2px);
-            border-color: #e91e63;
+            border-color: var(--pink);
+        }
+
+        [data-bs-theme="dark"] .tool-card:hover {
+        border-color: var(--pink); /* Ensure dark mode retains the pink border */
         }
 
         .tool-card h5 {
@@ -123,6 +127,10 @@
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
+        }
+
+        [data-bs-theme="dark"] .tool-card p {
+        color: #a0a0a0; /* Better contrast in dark mode */
         }
 
         .tool-card-content {
@@ -164,6 +172,10 @@
         .tool-card-favorite:hover {
             background-color: #f4e4ef;
         }
+        
+        [data-bs-theme="dark"] .tool-card-favorite:hover {
+        background-color: #4a1f34; /* Dark mode hover background */
+         }
 
         .tool-card-favorite.favorited {
             color: #FFD700;
@@ -375,7 +387,7 @@
             </a>
 
             {{-- Text Proofreader --}}
-            <a href="http://192.168.50.18:5001/proofreader" target="_blank" class="tool-card-link" data-tool-id="text-proofreader">
+            <a href="http://127.0.0.1:8000/proofreader" target="_blank" class="tool-card-link" data-tool-id="text-proofreader">
                 <div class="tool-card" data-category="writing">
                     <span class="tool-card-favorite" data-tool-id="text-proofreader"><i class="fas fa-star"></i></span>
                     <div class="tool-card-content">
@@ -455,7 +467,7 @@
             </a>
 
             {{-- Five Questions --}}
-            <a href="http://127.0.0.1:5001/5questions" target="_blank" class="tool-card-link" data-tool-id="five-questions">
+            <a href="http://127.0.0.1:8000/5questions" target="_blank" class="tool-card-link" data-tool-id="five-questions">
                 <div class="tool-card" data-category="study">
                     <span class="tool-card-favorite" data-tool-id="five-questions"><i class="fas fa-star"></i></span>
                     <div class="tool-card-content">
@@ -471,7 +483,7 @@
             </a>
 
             {{-- Real World Connections --}}
-            <a href="https://tse4.mm.bing.net/th/id/OIP.eEW3EGenj4Djze7zv31PKAHaLG?rs=1&pid=ImgDetMain&o=7&rm=3"
+            <a href="http://127.0.0.1:8000/realworld"
                 target="_blank" class="tool-card-link" data-tool-id="real-world-connections">
                 <div class="tool-card" data-category="reading study">
                     <span class="tool-card-favorite" data-tool-id="real-world-connections"><i class="fas fa-star"></i></span>
@@ -488,7 +500,7 @@
             </a>
 
             {{-- Study Habits --}}
-            <a href="http://127.0.0.1:5001/studyhabits" target="_blank" class="tool-card-link" data-tool-id="study-habits">
+            <a href="http://127.0.0.1:8000/studyhabits" target="_blank" class="tool-card-link" data-tool-id="study-habits">
                 <div class="tool-card" data-category="study">
                     <span class="tool-card-favorite" data-tool-id="study-habits"><i class="fas fa-star"></i></span>
                     <div class="tool-card-content">
@@ -521,7 +533,7 @@
             </a>
 
             {{-- Sentence Starters --}}
-            <a href="https://tse4.mm.bing.net/th/id/OIP.eEW3EGenj4Djze7zv31PKAHaLG?rs=1&pid=ImgDetMain&o=7&rm=3"
+            <a href="http://127.0.0.1:8000/sentencestarter"
                 target="_blank" class="tool-card-link" data-tool-id="sentence-starters">
                 <div class="tool-card" data-category="writing">
                     <span class="tool-card-favorite" data-tool-id="sentence-starters"><i class="fas fa-star"></i></span>

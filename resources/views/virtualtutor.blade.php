@@ -13,20 +13,25 @@
             margin-right: auto;
             padding: 0 20px;
         }
-
+/* 
         body {
             overflow-y: scroll;
             /* Forces the vertical scrollbar to always be visible */
-        }
+         
 
         .hero {
-            background-color: #F5F5F5;
-            border: 1px solid #F5F5F5;
+            /* background-color: #F5F5F5;
+            border: 1px solid #F5F5F5; */
             padding: 50px;
             border-radius: 12px;
             margin-bottom: 40px;
             text-align: center;
         }
+
+        /* [data-bs-theme="dark"] .hero {
+            background-color: #1e1e1e;
+            border-color: #64636300;
+        } */
 
         .hero h1 {
             font-size: 3rem;
@@ -34,11 +39,15 @@
             font-weight: 700;
         }
 
-        .hero p {
+        /* .hero p {
             font-size: 1rem;
             color: #555;
             max-width: 600px;
             margin: 15px auto 0;
+        } */
+
+        [data-bs-theme="dark"] .hero p {
+            color: #a0a0a0;
         }
 
         .search-wrapper {
@@ -58,13 +67,15 @@
             box-shadow: none;
             transition: 0.3s;
             -webkit-appearance: none;
-            /* For custom dropdown arrow */
             -moz-appearance: none;
-            /* For custom dropdown arrow */
             appearance: none;
-            /* For custom dropdown arrow */
             padding-right: 35px;
-            /* Make space for an arrow icon */
+        }
+
+        [data-bs-theme="dark"] .search-wrapper select {
+            background-color: #1e1e1e;
+            color: #e0e0e0;
+            border: 1px solid #444;
         }
 
         .search-wrapper input:focus {
@@ -82,6 +93,11 @@
             margin-bottom: 20px;
             border-bottom: 2px solid #e0e0e0;
             padding-bottom: 10px;
+        }
+
+        [data-bs-theme="dark"] .grade-level-section h3 {
+            color: #e0e0e0;
+            border-bottom-color: #444;
         }
 
         .books-grid {
@@ -102,6 +118,12 @@
             position: relative;
         }
 
+        [data-bs-theme="dark"] .book-card {
+            background-color: #2c2c2c;
+            border-color: #444;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+
         .book-card.expanded {
             height: auto;
         }
@@ -119,6 +141,10 @@
             margin-top: 30;
         }
 
+        [data-bs-theme="dark"] .book-card h5 {
+            color: #e0e0e0;
+        }
+
         .book-card p {
             font-size: 0.9rem;
             color: #666;
@@ -128,6 +154,10 @@
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
+        }
+
+        [data-bs-theme="dark"] .book-card p {
+            color: #a0a0a0;
         }
 
         .book-actions {
@@ -165,6 +195,11 @@
             flex-direction: column;
         }
 
+        [data-bs-theme="dark"] .unit-item {
+            border-color: #444;
+            background-color: #1e1e1e;
+        }
+
         .unit-item strong {
             color: #e91e63;
             white-space: nowrap;
@@ -172,11 +207,8 @@
             text-overflow: ellipsis;
             margin-right: 15px;
             display: flex;
-            /* Added for icon alignment */
             align-items: center;
-            /* Added for icon alignment */
             gap: 8px;
-            /* Added space between icon and text */
         }
 
         .unit-item>.d-flex {
@@ -215,7 +247,6 @@
         .unit-item .chapter-container {
             padding-left: 30px;
             margin-top: 15px;
-            /* Adjusted margin-top for more space */
         }
 
         .chapter-item {
@@ -224,7 +255,10 @@
             padding-bottom: 10px;
             margin-bottom: 15px;
             position: relative;
-            /* Added for icon positioning */
+        }
+
+        [data-bs-theme="dark"] .chapter-item {
+            border-left-color: #444;
         }
 
         .chapter-item strong {
@@ -234,13 +268,9 @@
             text-overflow: ellipsis;
             margin-right: 15px;
             display: flex;
-            /* Changed to flex for icon alignment */
             align-items: center;
-            /* Added for icon alignment */
             gap: 8px;
-            /* Added space between icon and text */
             max-width: 200px;
-            /* Kept existing max-width */
         }
 
         .chapter-item>.d-flex {
@@ -282,11 +312,8 @@
             margin-bottom: 10px;
             font-size: 0.95rem;
             display: flex;
-            /* Added for icon alignment */
             align-items: center;
-            /* Added for icon alignment */
             gap: 8px;
-            /* Added space between icon and text */
         }
 
         .toggle-icon {
@@ -309,6 +336,11 @@
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
         }
 
+        [data-bs-theme="dark"] .modal .modal-content {
+            background-color: #2c2c2c;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+
         .modal .modal-header {
             border-bottom: none;
             padding-bottom: 0;
@@ -319,9 +351,17 @@
             font-size: 1.25rem;
         }
 
+        [data-bs-theme="dark"] .modal .modal-title {
+            color: #e0e0e0;
+        }
+
         .modal .form-label {
             font-weight: 500;
             color: #333;
+        }
+
+        [data-bs-theme="dark"] .modal .form-label {
+            color: #a0a0a0;
         }
 
         .modal .form-control,
@@ -329,6 +369,13 @@
             border-radius: 8px;
             padding: 10px 14px;
             font-size: 1rem;
+        }
+
+        [data-bs-theme="dark"] .modal .form-control,
+        [data-bs-theme="dark"] .modal .form-select {
+            background-color: #1e1e1e;
+            color: #e0e0e0;
+            border: 1px solid #444;
         }
 
         .modal .modal-footer {
@@ -386,6 +433,11 @@
             white-space: nowrap;
         }
 
+         [data-bs-theme="dark"] .btn-add-unit {
+             color: white;
+         }
+
+
         .btn-add-unit:hover {
             background-color: #0056b3;
             border-color: #0056b3;
@@ -401,6 +453,9 @@
             border-radius: 8px;
             white-space: nowrap;
         }
+          [data-bs-theme="dark"] .btn-open-tutor {
+             color: white;
+         }
 
         .btn-open-tutor:hover {
             background-color: #218838;

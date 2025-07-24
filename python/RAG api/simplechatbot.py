@@ -29,7 +29,7 @@ app.add_middleware(
 EMBED_MODEL = SentenceTransformer("all-MiniLM-L6-v2")
 TOKENIZER = AutoTokenizer.from_pretrained("bert-base-uncased")
 OLLAMA_URL = "http://localhost:11434/api/generate"
-OLLAMA_MODEL = "llama3:latest"
+OLLAMA_MODEL = "gemma3:4b"
 # OLLAMA_MODEL = "gemma3:latest"
 
 HEADERS = {"Content-Type": "application/json"}
@@ -422,6 +422,7 @@ class QuizInput(BaseModel):
 # === Make Quiz Endpoint ===
 @app.post("/make-quiz")
 def make_quiz(input: QuizInput):
+    
     try:
         index = validate_faiss_index(input.book_id, input.chapter_number)
         chunks = fetch_chunks(input.book_id, input.chapter_number, input.unit_id)

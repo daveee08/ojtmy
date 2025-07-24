@@ -20,7 +20,7 @@
             right: 80px;
             background: #E91E63;
             color: white;
-            border: none;
+            border: 1px solid rgba(255, 255, 255, 0.5);
             border-radius: 50%;
             width: 50px;
             height: 50px;
@@ -37,7 +37,7 @@
             width: 400px;
             height: calc(100vh - 70px);
             background: white;
-            border-left: 1px solid #ccc;
+            border-left: 1px solid rgba(204, 204, 204, 0.5);
             box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
             display: flex;
             flex-direction: column;
@@ -57,6 +57,7 @@
             font-weight: bold;
             text-align: center;
             position: relative;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
         }
 
         .chatbot-close-quiz {
@@ -115,6 +116,28 @@
 
         #submit-quiz-btn:hover {
             background: #d81b60;
+        }
+
+        /* Restart / Download buttons */
+        #restart-btn,
+        #download-btn {
+            width: 40px;
+            height: 40px;
+            background-color: transparent;
+            color: #333;
+            border: none;
+            border-radius: 50%;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s ease, color 0.3 ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #restart-btn:hover,
+        #download-btn:hover {
+            color: #E91E63;
         }
 
         .ai-message {
@@ -274,11 +297,11 @@
             quizBody.appendChild(msg);
 
             quizFooter.innerHTML = `
-        <button id="restart-btn" style="flex:1; background:#2196F3; color:white; border:none; padding:10px 16px; border-radius:6px; cursor:pointer;">
-            <i class="fas fa-rotate-left"></i> Restart
+        <button id="restart-btn">
+            <i class="fas fa-rotate-left"></i>
         </button>
-        <button id="download-btn" style="flex:1; background:#4CAF50; color:white; border:none; padding:10px 16px; border-radius:6px; cursor:pointer;">
-            <i class="fas fa-download"></i> Download PDF
+        <button id="download-btn">
+            <i class="fas fa-download"></i> 
         </button>`;
 
             qs('#restart-btn').onclick = async () => {

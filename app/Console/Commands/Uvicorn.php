@@ -60,25 +60,25 @@ $$/   $$/  $$$$$$/  $$/       $$/  $$/  $$/  $$$$$$$/ $$/
             //     'path' => base_path('python/Tutor Agent'), // Directory where your Python file is
             //     'file_and_app_instance' => 'chat_router_feb:chat_router', // e.g., if you have main.py and `app = FastAPI()`
             //     'port' => 8001,
-            // ],
-            [
-                'name' => 'Tutor Agent API',
-                'path' => base_path('python/Tutor Agent'), // Directory where your Python file is
-                'file_and_app_instance' => 'tutor_agent:app', // e.g., if you have main.py and `app = FastAPI()`
-                'port' => 8002
-            ],
+            // // ],
             // [
-            //     'name' => 'Summarizer API',
-            //     'path' => base_path('python\Summarizer'), // Directory where your Python file is
-            //     'file_and_app_instance' => 'mainkhan:app', // e.g., if you have main.py and `app = FastAPI()`
+            //     'name' => 'Tutor Agent API',
+            //     'path' => base_path('python/Tutor Agent'), // Directory where your Python file is
+            //     'file_and_app_instance' => 'tutor_agent:app', // e.g., if you have main.py and `app = FastAPI()`
+            //     'port' => 8002
+            // ],
+            // // [
+            // //     'name' => 'Summarizer API',
+            // //     'path' => base_path('python\Summarizer'), // Directory where your Python file is
+            // //     'file_and_app_instance' => 'mainkhan:app', // e.g., if you have main.py and `app = FastAPI()`
+            // //     'port' => 8003
+            // // ],
+            // [
+            //     'name' => 'Khan API',
+            //     'path' => base_path('python\Email Writer'), // Directory where your Python file is
+            //     'file_and_app_instance' => 'email-writer:app', // e.g., if you have main.py and `app = FastAPI()`
             //     'port' => 8003
             // ],
-            [
-                'name' => 'Khan API',
-                'path' => base_path('python\Email Writer'), // Directory where your Python file is
-                'file_and_app_instance' => 'email-writer:app', // e.g., if you have main.py and `app = FastAPI()`
-                'port' => 8003
-            ],
             //   [
             //     'name' => 'Study Habits API',
             //     'path' => base_path('python\study_habits'), // Directory where your Python file is
@@ -141,55 +141,55 @@ $$/   $$/  $$$$$$/  $$/       $$/  $$/  $$/  $$$$$$$/ $$/
             //     'file_and_app_instance' => 'makeitrelevant:app', // e.g., if you have main.py and `app = FastAPI()`
             //     'port' => 8013
             // ],
-            // [
-            //     'name' => 'Bea Ass Scaffolder API',
-            //     'path' => base_path('python\Assignment Scaffolder'), // Directory where your Python file is
-            //     'file_and_app_instance' => 'assignmentscaffolder:app', // e.g., if you have main.py and `app = FastAPI()`
-            //     'port' => 8014
-            // ],
-            // [
-            //     'name' => 'Bea Email Responder API',
-            //     'path' => base_path('python\Email Responder'), // Directory where your Python file is
-            //     'file_and_app_instance' => 'responder:app', // e.g., if you have main.py and `app = FastAPI()`
-            //     'port' => 8015
-            // ],
-            // [
-            //     'name' => 'Bea Text Scaffolder API',
-            //     'path' => base_path('python\Scaffolder'), // Directory where your Python file is
-            //     'file_and_app_instance' => 'scaffolder:app', // e.g., if you have main.py and `app = FastAPI()`
-            //     'port' => 8016
-            // ],
-            // [
-            //     'name' => 'Bea Rewriter API',
-            //     'path' => base_path('python\Rewriter'), // Directory where your Python file is
-            //     'file_and_app_instance' => 'rewriter_agent:app', // e.g., if you have main.py and `app = FastAPI()`
-            //     'port' => 8017
-            // ],
-            // [
-            //     'name' => 'Bea explainer API',
-            //     'path' => base_path('python'), // Directory where your Python file is
-            //     'file_and_app_instance' => 'explanations:app', // e.g., if you have main.py and `app = FastAPI()`
-            //     'port' => 8018
-            // ],
-            
             [
-                'name' => 'Translator API',
-                'path' => base_path('python/translator'), // Directory where your Python file is
-                'file_and_app_instance' => 'translator_agent:app', // e.g., if you have main.py and `app = FastAPI()`
-                'port' => 8019
+                'name' => 'Bea Ass Scaffolder API',
+                'path' => base_path('python\Assignment Scaffolder'), // Directory where your Python file is
+                'file_and_app_instance' => 'assignmentscaffolder:app', // e.g., if you have main.py and `app = FastAPI()`
+                'port' => 8014
             ],
             [
-                'name' => 'Step by Step AGent',
+                'name' => 'Bea Email Responder API',
+                'path' => base_path('python\Email Responder'), // Directory where your Python file is
+                'file_and_app_instance' => 'responder:app', // e.g., if you have main.py and `app = FastAPI()`
+                'port' => 8015
+            ],
+            [
+                'name' => 'Bea Text Scaffolder API',
+                'path' => base_path('python\Scaffolder'), // Directory where your Python file is
+                'file_and_app_instance' => 'scaffolder:app', // e.g., if you have main.py and `app = FastAPI()`
+                'port' => 8016
+            ],
+            [
+                'name' => 'Bea Rewriter API',
+                'path' => base_path('python\Rewriter'), // Directory where your Python file is
+                'file_and_app_instance' => 'rewriter_agent:app', // e.g., if you have main.py and `app = FastAPI()`
+                'port' => 8017
+            ],
+            [
+                'name' => 'Bea explainer API',
                 'path' => base_path('python'), // Directory where your Python file is
-                'file_and_app_instance' => 'step_tutor_agent:app', // e.g., if you have main.py and `app = FastAPI()`
-                'port' => 8020
+                'file_and_app_instance' => 'explanations:app', // e.g., if you have main.py and `app = FastAPI()`
+                'port' => 8018
             ],
-            [
-                'name' => 'Social Stories AGent',
-                'path' => base_path('python\Social Stories'), // Directory where your Python file is
-                'file_and_app_instance' => 'social_stories_agent:app', // e.g., if you have main.py and `app = FastAPI()`
-                'port' => 8021
-            ],
+            
+            // [
+            //     'name' => 'Translator API',
+            //     'path' => base_path('python/translator'), // Directory where your Python file is
+            //     'file_and_app_instance' => 'translator_agent:app', // e.g., if you have main.py and `app = FastAPI()`
+            //     'port' => 8019
+            // ],
+            // [
+            //     'name' => 'Step by Step AGent',
+            //     'path' => base_path('python'), // Directory where your Python file is
+            //     'file_and_app_instance' => 'step_tutor_agent:app', // e.g., if you have main.py and `app = FastAPI()`
+            //     'port' => 8020
+            // ],
+            // [
+            //     'name' => 'Social Stories AGent',
+            //     'path' => base_path('python\Social Stories'), // Directory where your Python file is
+            //     'file_and_app_instance' => 'social_stories_agent:app', // e.g., if you have main.py and `app = FastAPI()`
+            //     'port' => 8021
+            // ],
             
 
                     
@@ -206,10 +206,10 @@ $$/   $$/  $$$$$$/  $$/       $$/  $$/  $$/  $$$$$$$/ $$/
                 'uvicorn',
                 $appConfig['file_and_app_instance'],
                 '--host',
-                '127.0.0.1', // Listen on all network interfaces
+                '0.0.0.0', // Listen on all network interfaces
                 '--port',
                 (string) $appConfig['port'], 
-                '--reload',// Cast to string for process command
+                // '--reload',// Cast to string for process command
             ];
 
             $process = new Process($command);

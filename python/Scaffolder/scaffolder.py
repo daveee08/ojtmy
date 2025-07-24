@@ -102,7 +102,7 @@ class ScaffolderInput(BaseModel):
             message_id=message_id
         )
 
-model = Ollama(model="gemma:2b")
+model = Ollama(model="gemma3:4b")
 prompt_template = ChatPromptTemplate.from_template(prompt_template)
 
 def load_pdf_content(pdf_path: str) -> str:

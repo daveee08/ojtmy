@@ -87,7 +87,7 @@ class ResponderInput(BaseModel):
         )
 
 # LangChain setup
-model = Ollama(model="gemma:2b")
+model = Ollama(model="gemma3:4b")
 prompt_template = ChatPromptTemplate.from_template(prompt_template)
 
 # Clean output from formatting artifacts

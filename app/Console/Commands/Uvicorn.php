@@ -205,8 +205,8 @@ $$/   $$/  $$$$$$/  $$/       $$/  $$/  $$/  $$$$$$$/ $$/
                 // '-m',
                 'uvicorn',
                 $appConfig['file_and_app_instance'],
-                // '--host',
-                // '0.0.0.0', // Listen on all network interfaces
+                '--host',
+                '0.0.0.0', // Listen on all network interfaces
                 '--port',
                 (string) $appConfig['port'], 
                 // '--reload',// Cast to string for process command

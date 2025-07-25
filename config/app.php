@@ -123,6 +123,8 @@ return [
 
     'cipher' => 'AES-256-CBC',
 
+    'api_base_url' => env('API_BASE_URL', 'http://localhost:8001'),
+
     /*
     |--------------------------------------------------------------------------
     | Autoloaded Service Providers

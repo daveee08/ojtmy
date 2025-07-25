@@ -116,7 +116,7 @@ async def generate_output(
         if not topic.strip():
             raise ValueError("Text input is required.")
 
-    prompt_input = {
+    prompt_input = {    
         "topic": topic,
         "grade_level": grade_level,
         "learning_speed": learning_speed

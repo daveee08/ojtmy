@@ -46,7 +46,6 @@ class QuizRequestForm(BaseModel):
     topic: str
     grade_level: str
     num_questions: int = 10
-    quiz_types: str
     user_id: int
 
 # NEW Pydantic Model for the response
@@ -59,7 +58,6 @@ quiz_prompt = """You are an expert quiz creator. Generate a quiz with the follow
 - Topic: {topic}
 - Grade Level: {grade_level}
 - Number of Questions: {num_questions}
-- Quiz Types: {quiz_types}
 Generate exactly {num_questions} questions. For multiple choice questions, provide options labeled A, B, C, etc. For fill-in-the-blanks and identification questions, just provide the question. After each question, on a new line, state the correct answer clearly.
 
 Here is the quiz:
@@ -85,7 +83,6 @@ async def generate_quiz(
     topic: str = Form(...),
     grade_level: str = Form(...),
     num_questions: int = Form(10),
-    quiz_types: str = Form(...),
     user_id: int = Form(...)
 ):
     session_id = None # Initialize session_id to None
@@ -95,7 +92,6 @@ async def generate_quiz(
             "topic": topic.strip(),
             "grade_level": grade_level.strip(),
             "num_questions": num_questions,
-            "quiz_types": quiz_types.strip() # Keep as string for prompt, split for scope_vars
         }
         
         # Invoke LLM to get raw quiz output
@@ -118,7 +114,6 @@ async def generate_quiz(
                     "topic": topic.strip(),
                     "grade_level": grade_level.strip(),
                     "num_questions": num_questions,
-                    "quiz_types": quiz_types.strip().split(",") # Store as list in DB
                 }
                 
                 # The actual prompt sent to the LLM
@@ -126,7 +121,6 @@ async def generate_quiz(
                     topic=topic.strip(),
                     grade_level=grade_level.strip(),
                     num_questions=num_questions,
-                    quiz_types=quiz_types.strip() # Pass as string for prompt formatting
                 )
 
                 session_id = create_session_and_parameter_inputs(

@@ -312,29 +312,7 @@
                     <div class="mb-3">
                         <label for="num_questions" class="form-label">Number of Questions (Optional):</label>
                         <input type="number" class="form-control" id="num_questions" name="num_questions" min="1" max="300" placeholder="e.g., 10" value="{{ old('num_questions', $num_questions ?? '') }}">
-                        <div class="form-text">Specify the exact number of questions, or leave blank and let the AI decide based on your topic instructions. Max 50.</div>
-                    </div>
-
-
-                    {{-- Quiz Type Selection (checkboxes for multiple types) --}}
-                    <div class="mb-3">
-                        <label class="form-label">Desired Quiz Types:</label>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="quiz_types[]" value="multiple_choice" id="quizTypeMC" checked>
-                            <label class="form-check-label" for="quizTypeMC">Multiple Choice</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="quiz_types[]" value="fill_in_the_blanks" id="quizTypeFIB">
-                            <label class="form-check-label" for="quizTypeFIB">Fill-in-the-Blanks</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="quiz_types[]" value="identification" id="quizTypeID">
-                            <label class="form-check-label" for="quizTypeID">Identification</label>
-                        </div>
-                        <div class="form-text">Select one or more quiz formats. The AI will try to combine them as requested.</div>
-                    </div>
-
-
+                        <div class="form-text">Specify the exact number of questions, or leave blank and let the AI decide based on your topic instructions. Max 50.    
                     <div class="d-flex align-items-center gap-3">
                         <button type="submit" class="btn btn-pink" id="generate-btn">
                             <span class="button-content">
@@ -677,20 +655,6 @@
                     document.getElementById('quizTypeID').checked = false;
                 });
             }
-
-            // Event Listener for "Clear Inputs" button
-            if (clearInputsBtn) {
-                clearInputsBtn.addEventListener('click', () => {
-                    topicInput.value = '';
-                    gradeLevelSelect.value = '';
-                    numQuestionsInput.value = '';
-                    // Reset quiz type checkboxes (e.g., only multiple choice checked)
-                    document.getElementById('quizTypeMC').checked = true;
-                    document.getElementById('quizTypeFIB').checked = false;
-                    document.getElementById('quizTypeID').checked = false;
-                });
-            }
-
             // Event Listener for "Begin Interactive Quiz" button
             if (startInteractiveQuizBtn) {
                 startInteractiveQuizBtn.addEventListener('click', () => {

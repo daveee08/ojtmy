@@ -139,10 +139,11 @@ Route::post('/proofreader', [ProofreaderController::class, 'processForm'])->name
 
 // ✅ QuizMe Tool
 // Example in routes/web.php
-Route::get('/quizme', [App\Http\Controllers\QuizMe\QuizmeController::class, 'showQuizForm'])->name('quizme.form');
-Route::get('/quizme', [QuizmeController::class, 'showQuizForm'])->name('quizme.show');
-Route::post('/quizme/generate', [QuizController::class, 'generateQuiz'])->name('quizme.generate');
+Route::get('/quizme', [QuizmeController::class, 'showQuizForm'])->name('quizme.form');
+Route::get('/quizme/form', [QuizmeController::class, 'showQuizForm'])->name('quizme.form');
+Route::post('/quizme/generate', [QuizmeController::class, 'generateQuiz'])->name('quizme.generate');
 Route::post('/quizme/submit-answer', [QuizmeController::class, 'submitAnswer'])->name('quizme.submitAnswer');
+Route::get('/quizme/sessions', [QuizmeController::class, 'fetchUserSessions'])->name('quizme.sessions');
 Route::get('/quizme/reveal-answers', [QuizmeController::class, 'revealAnswers'])->name('quizme.revealAnswers');
 Route::get('/quizme-sessions/{userId}', [QuizmeController::class, 'fetchUserSessions'])->name('quizme.fetchSessions');
 Route::post('/quizme/start', function() { /* Logic for starting quiz */ })->name('quizme.start');

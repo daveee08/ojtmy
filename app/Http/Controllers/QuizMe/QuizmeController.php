@@ -22,10 +22,31 @@ class QuizmeController extends Controller
         $userId = Auth::id() ?? 1;
 
         // Make an HTTP GET request to your QuizMe backend's sessions endpoint.
-        $response = Http::get("http://127.0.0.1:5000/quizme-sessions/{$userId}");
+        // Note: This method targets port 5000, while your screenshot's cURL error indicated port 8003.
+        // The error you're seeing likely originates from a *different* controller/route handling '/chat/history/{id}'
+        // which might be configured to call a service on port 8003.
+        try {
+            $response = Http::get("http://127.0.0.1:5000/quizme-sessions/{$userId}");
 
-        // Return the JSON response directly from the backend.
-        return response()->json($response->json());
+            if ($response->successful()) {
+                // Return the JSON response directly from the backend.
+                return response()->json($response->json());
+            } else {
+                Log::error('Failed to fetch QuizMe sessions from FastAPI:', [
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                    'user_id' => $userId
+                ]);
+                return response()->json(['error' => 'Failed to load sessions. Please try again.'], $response->status());
+            }
+        } catch (\Exception $e) {
+            Log::error('Exception while fetching QuizMe sessions:', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'user_id' => $userId
+            ]);
+            return response()->json(['error' => 'An unexpected error occurred while loading sessions.'], 500);
+        }
     }
 
     /**
@@ -40,7 +61,6 @@ class QuizmeController extends Controller
             'topic' => '',
             'grade_level' => '',
             'num_questions' => null,
-            'quiz_types' => [] // Ensure this is an array for old() to work with checkboxes
         ]);
     }
 
@@ -63,45 +83,42 @@ class QuizmeController extends Controller
                 'topic' => 'required|string',
                 'grade_level' => 'required|string',
                 'num_questions' => 'nullable|integer|min:1|max:300',
-                'quiz_types' => 'required|array|min:1',
-                'quiz_types.*' => 'string|in:multiple_choice,fill_in_the_blanks,identification',
-                'user_id' => 'nullable|integer',
+                'user_id' => 'nullable|integer', // This field is not directly used from request, but validated if present
             ]);
 
             $topic = $validated['topic'];
             $gradeLevel = $validated['grade_level'];
             $numQuestions = $validated['num_questions'];
-            $quizTypes = $validated['quiz_types'];
-            $userId = $validated['user_id'] ?? (Auth::id() ?? 1);
+            $userId = Auth::id() ?? 1; // Always use Auth::id() if available, fallback to 1
 
             $multipartData = [
                 ['name' => 'topic', 'contents' => $topic],
                 ['name' => 'grade_level', 'contents' => $gradeLevel],
-                ['name' => 'num_questions', 'contents' => $numQuestions ?? 10],
-                ['name' => 'quiz_types', 'contents' => implode(',', $quizTypes)],
+                ['name' => 'num_questions', 'contents' => $numQuestions ?? 10], // Default to 10 if null
                 ['name' => 'user_id', 'contents' => $userId],
             ];
 
-            Log::info('Payload sent to FastAPI:', [
+            Log::info('Payload sent to FastAPI for quiz generation:', [
                 'topic' => $topic,
                 'grade_level' => $gradeLevel,
                 'num_questions' => $numQuestions,
-                'quiz_types' => $quizTypes,
                 'user_id' => $userId
             ]);
 
+            // Make the POST request to your FastAPI quiz generation service
             $response = Http::timeout(0)->asMultipart()->post('http://127.0.0.1:5000/quizme',
                 $multipartData
             );
 
             if ($response->successful()) {
                 $responseData = $response->json();
-                Log::info('FastAPI QuizMe Response:', ['response' => $responseData]);
+                Log::info('FastAPI QuizMe Response (successful):', ['response' => $responseData]);
 
                 $messageId = $responseData['session_id'] ?? null;
-                $quizQuestions = $responseData['questions'] ?? [];
+                $quizQuestions = $responseData['questions'] ?? []; // Store questions if needed for later use
 
                 if ($messageId) {
+                    // Redirect to the chat history page with the new session ID
                     return redirect()->to("/chat/history/{$messageId}");
                 } else {
                     Log::error('FastAPI QuizMe Response missing session_id:', ['response' => $responseData]);
@@ -109,7 +126,8 @@ class QuizmeController extends Controller
                 }
 
             } else {
-                Log::error('Quiz API Error:', [
+                // Log and return error if FastAPI call was not successful
+                Log::error('Quiz API Error (FastAPI returned non-successful status):', [
                     'status' => $response->status(),
                     'body' => $response->body()
                 ]);
@@ -117,19 +135,19 @@ class QuizmeController extends Controller
                 return back()->withErrors(['error' => 'Error contacting quiz generation service: ' . $errorMessage]);
             }
         } catch (\Illuminate\Validation\ValidationException $e) {
-            Log::error('Laravel Validation Error:', [
+            // Handle validation errors
+            Log::error('Laravel Validation Error during quiz generation:', [
                 'message' => $e->getMessage(),
                 'errors' => $e->errors()
             ]);
             return back()->withErrors($e->errors());
         } catch (\Exception $e) {
-            Log::error('Quiz Generation Error (Laravel side):', [
+            // Catch any other unexpected exceptions
+            Log::error('Quiz Generation Error (Laravel side - unexpected exception):', [
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
-            return back()->withErrors(['error' => 'An unexpected error occurred while generating the quiz. Please check Laravel logs.']);
+            return back()->withErrors(['error' => 'An unexpected error occurred while generating the quiz. Please check Laravel logs for details.']);
         }
-    } // This missing closing brace was the most likely cause of your syntax error.
-
-    // This closing brace is for the class QuizmeController
-}
+    } // Closing brace for generateQuiz method
+} // Closing brace for QuizmeController class

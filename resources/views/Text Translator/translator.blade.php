@@ -1,15 +1,8 @@
-
+@extends('layouts.bootstrap')
+@extends('layouts.historysidenav')
+@extends('layouts.header')
     
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>🌐 AI Text Translator</title>
-
-    {{-- Bootstrap --}}
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-
+@section('content')
     <style>
         body {
             font-family: 'Poppins', sans-serif;
@@ -39,8 +32,7 @@
             border-color: #ec008c;
         }
     </style>
-</head>
-<body> {{-- Displaying messages --}}
+
 
 
 <div class="container my-5">
@@ -155,5 +147,4 @@
         });
     });
 </script>
-</body>
-</html>
+@endsection

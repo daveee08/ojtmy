@@ -15,6 +15,7 @@ class MakeItRelevantController extends Controller
     {
         $userId = Auth::id();
         $response = Http::get("http://192.168.50.32:8013/sessions/$userId");
+        $response = Http::get("http://192.168.50.32:8013/sessions/$userId");
         return response()->json($response->json());
     }
 

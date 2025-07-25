@@ -1,6 +1,8 @@
 # CK AI Agent
 
 CK AI Agent is an AI-powered educational platform built for CK Children’s Publishing. It enables users to chat with learning materials, auto-generate quizzes, and simplify educational content using local LLMs — making it a private, offline, and intelligent assistant for students and teachers.
+
+
 ## API Reference (FastAPI)
 
 ### Leveler
@@ -39,6 +41,7 @@ POST /quiz
 | `context`     | `string` | **Required**. Text to quiz from      |
 | `quiz_type`   | `string` | "multiple choice" or "true or false" |
 
+
 ## Environment Variables
 
 To run this project, add the following to your Laravel `.env` file:
@@ -62,15 +65,18 @@ MYSQL_USER=root
 MYSQL_PASSWORD=
 MYSQL_DATABASE=ck_agent
 ```
+
+
 ## Features
 
 - 📄 Chat with specific PDF chapter content
 - 🧠 Auto-generate quizzes from textbook materials
-- 📚 "Leveler" to simplify complex learning text
+- 📚 35 agents to fit the student and teacher's needs
 - 🧵 AI remembers session history for follow-ups
 - 🗂️ Sidebar session list in Laravel UI
 - ⚙️ Built entirely on local AI (no external API needed)
 - 🔐 Designed for privacy, education, and performance
+
 
 ## Deployment
 
@@ -98,6 +104,7 @@ uvicorn app:app --host 0.0.0.0 --port 8000
 ollama run llama3
 ```
 
+
 ## Tech Stack
 
 **Client:** Laravel (Blade), Bootstrap, Axios  
@@ -118,20 +125,22 @@ ollama run llama3
 php artisan test
 ```
 
+
 ## Appendix
 
 - PDF processing uses PyMuPDF (`fitz`) for fast chapter slicing.
 - Document embeddings are stored in FAISS, with metadata in MySQL.
 - Full conversational memory is handled via LangChain `RunnableWithMessageHistory`.
+
+
 ## Acknowledgements
 
 - [LangChain](https://www.langchain.com/)  
 - [Ollama](https://ollama.com/)  
 - [FastAPI](https://fastapi.tiangolo.com/)  
 - [FAISS](https://github.com/facebookresearch/faiss)  
-- [Laravel](https://laravel.com/)# CK AI Agent
+- [Laravel](https://laravel.com/)
 
-CK AI Agent is an AI-powered educational platform built for CK Children’s Publishing. It enables users to chat with learning materials, auto-generate quizzes, and simplify educational content using local LLMs — making it a private, offline, and intelligent assistant for students and teachers.
 
 ## Used By
 

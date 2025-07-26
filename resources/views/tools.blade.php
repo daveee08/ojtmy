@@ -29,13 +29,6 @@
             font-weight: 700;
         }
 
-        /* .hero p {
-                                                                            font-size: 1rem;
-                                                                            color: var(--dark);
-                                                                            max-width: 600px;
-                                                                            margin: 15px auto 0;
-                                                                        } */
-
         .search-wrapper {
             display: flex;
             justify-content: center;
@@ -48,7 +41,7 @@
             padding: 10px 16px 10px 40px;
             font-size: 1rem;
 
-            border: 1.5px solid var(--filter-border);
+            border: 1px solid var(--filter-border, #ccc);
             border-radius: 30px;
             outline: none;
             background: var(--white) url('data:image/svg+xml;utf8,<svg fill="gray" height="16" viewBox="0 0 24 24" width="16" xmlns="http://www.w0.org/2000/svg"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C8.01 14 6 11.99 6 9.5S8.01 5 10.5 5 15 7.01 15 9.5 12.99 14 10.5 14z"/></svg>') no-repeat 12px center;

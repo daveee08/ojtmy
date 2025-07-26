@@ -142,16 +142,16 @@ $$/   $$/  $$$$$$/  $$/       $$/  $$/  $$/  $$$$$$$/ $$/
                 'port' => 8013
             ],
             // [
-            //     'name' => 'Bea Ass Scaffolder API',
-            //     'path' => base_path('python\Assignment Scaffolder'), // Directory where your Python file is
-            //     'file_and_app_instance' => 'assignmentscaffolder:app', // e.g., if you have main.py and `app = FastAPI()`
-            //     'port' => 8014
+            //     'name' => 'Translator API',
+            //     'path' => base_path('python/translator'), // Directory where your Python file is
+            //     'file_and_app_instance' => 'translator_agent:app', // e.g., if you have main.py and `app = FastAPI()`
+            //     'port' => 8019
             // ],
             // [
-            //     'name' => 'Bea Email Responder API',
-            //     'path' => base_path('python\Email Responder'), // Directory where your Python file is
-            //     'file_and_app_instance' => 'responder:app', // e.g., if you have main.py and `app = FastAPI()`
-            //     'port' => 8015
+            //     'name' => 'Step by Step AGent',
+            //     'path' => base_path('python'), // Directory where your Python file is
+            //     'file_and_app_instance' => 'step_tutor_agent:app', // e.g., if you have main.py and `app = FastAPI()`
+            //     'port' => 8020
             // ],
             // [
             //     'name' => 'Bea Text Scaffolder API',
@@ -209,7 +209,6 @@ $$/   $$/  $$$$$$/  $$/       $$/  $$/  $$/  $$$$$$$/ $$/
                 '0.0.0.0', // Listen on all network interfaces
                 '--port',
                 (string) $appConfig['port'], 
-                // '--reload',// Cast to string for process command
                 // '--reload',// Cast to string for process command
             ];
 

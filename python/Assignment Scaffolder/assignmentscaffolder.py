@@ -141,7 +141,7 @@ class AssignmentScaffolderInput(BaseModel):
         )
 
 # LangChain setup
-model = Ollama(model="gemma:2b")
+model = Ollama(model="gemma3:4b")
 scaffolder_prompt = ChatPromptTemplate.from_template(prompt_template)
 
 # Load PDF content

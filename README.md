@@ -78,7 +78,7 @@ MYSQL_DATABASE=ck_agent
 - 🔐 Designed for privacy, education, and performance
 
 
-## Deployment
+## Installment
 
 ### Laravel
 

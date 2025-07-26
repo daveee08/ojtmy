@@ -16,7 +16,7 @@
 
         .hero {
             /* background-color: var(--light-grey);
-                                                    border: 1px solid var(--light-grey); */
+                                                                            border: 1px solid var(--light-grey); */
             padding: 50px;
             border-radius: 12px;
             margin-bottom: 40px;
@@ -28,7 +28,6 @@
             color: var(--pink);
             font-weight: 700;
         }
-
 
         .search-wrapper {
             display: flex;
@@ -93,7 +92,8 @@
         }
 
         [data-bs-theme="dark"] .tool-card:hover {
-        border-color: var(--pink); /* Ensure dark mode retains the pink border */
+            border-color: var(--pink);
+            /* Ensure dark mode retains the pink border */
         }
 
         .tool-card h5 {
@@ -123,7 +123,8 @@
         }
 
         [data-bs-theme="dark"] .tool-card p {
-        color: #a0a0a0; /* Better contrast in dark mode */
+            color: #a0a0a0;
+            /* Better contrast in dark mode */
         }
 
         .tool-card-content {
@@ -165,10 +166,11 @@
         .tool-card-favorite:hover {
             background-color: #f4e4ef;
         }
-        
+
         [data-bs-theme="dark"] .tool-card-favorite:hover {
-        background-color: #4a1f34; /* Dark mode hover background */
-         }
+            background-color: #4a1f34;
+            /* Dark mode hover background */
+        }
 
         .tool-card-favorite.favorited {
             color: #FFD700;
@@ -381,7 +383,8 @@
             </a>
 
             {{-- Text Proofreader --}}
-            <a href="http://127.0.0.1:8000/proofreader" target="_blank" class="tool-card-link" data-tool-id="text-proofreader">
+            <a href="http://127.0.0.1:8000/proofreader" target="_blank" class="tool-card-link"
+                data-tool-id="text-proofreader">
                 <div class="tool-card" data-category="writing">
                     <span class="tool-card-favorite" data-tool-id="text-proofreader"><i class="fas fa-star"></i></span>
                     <div class="tool-card-content">
@@ -397,7 +400,7 @@
             </a>
 
             {{-- Quiz Me! --}}
-            <a href="http://127.0.0.1:5001/generate-quiz" class="tool-card-link" data-tool-id="quiz-me">
+            <a href="http://127.0.0.1:8000/generate-quiz" class="tool-card-link" data-tool-id="quiz-me">
                 <div class="tool-card" data-category="study">
                     <span class="tool-card-favorite" data-tool-id="quiz-me"><i class="fas fa-star"></i></span>
                     <div class="tool-card-content">
@@ -429,7 +432,7 @@
             </a>
 
             {{-- Informational Text --}}
-            <a href="http://127.0.0.1:5001/informational" class="tool-card-link" data-tool-id="informational-text">
+            <a href="http://127.0.0.1:8000/informational" class="tool-card-link" data-tool-id="informational-text">
                 <div class="tool-card" data-category="writing creative">
                     <span class="tool-card-favorite" data-tool-id="informational-text"><i class="fas fa-star"></i></span>
                     <div class="tool-card-content">
@@ -461,7 +464,8 @@
             </a>
 
             {{-- Five Questions --}}
-            <a href="http://127.0.0.1:8000/5questions" target="_blank" class="tool-card-link" data-tool-id="five-questions">
+            <a href="http://127.0.0.1:8000/5questions" target="_blank" class="tool-card-link"
+                data-tool-id="five-questions">
                 <div class="tool-card" data-category="study">
                     <span class="tool-card-favorite" data-tool-id="five-questions"><i class="fas fa-star"></i></span>
                     <div class="tool-card-content">
@@ -477,8 +481,8 @@
             </a>
 
             {{-- Real World Connections --}}
-            <a href="http://127.0.0.1:8000/realworld"
-                target="_blank" class="tool-card-link" data-tool-id="real-world-connections">
+            <a href="http://127.0.0.1:8000/realworld" target="_blank" class="tool-card-link"
+                data-tool-id="real-world-connections">
                 <div class="tool-card" data-category="reading study">
                     <span class="tool-card-favorite" data-tool-id="real-world-connections"><i
                             class="fas fa-star"></i></span>
@@ -495,7 +499,8 @@
             </a>
 
             {{-- Study Habits --}}
-            <a href="http://127.0.0.1:8000/studyhabits" target="_blank" class="tool-card-link" data-tool-id="study-habits">
+            <a href="http://127.0.0.1:8000/studyhabits" target="_blank" class="tool-card-link"
+                data-tool-id="study-habits">
                 <div class="tool-card" data-category="study">
                     <span class="tool-card-favorite" data-tool-id="study-habits"><i class="fas fa-star"></i></span>
                     <div class="tool-card-content">
@@ -527,8 +532,8 @@
             </a>
 
             {{-- Sentence Starters --}}
-            <a href="http://127.0.0.1:8000/sentencestarter"
-                target="_blank" class="tool-card-link" data-tool-id="sentence-starters">
+            <a href="http://127.0.0.1:8000/sentencestarter" target="_blank" class="tool-card-link"
+                data-tool-id="sentence-starters">
                 <div class="tool-card" data-category="writing">
                     <span class="tool-card-favorite" data-tool-id="sentence-starters"><i class="fas fa-star"></i></span>
                     <div class="tool-card-content">
@@ -563,7 +568,7 @@
             </a>
 
             {{-- Coach’s Sports Practice --}}
-            <a href="http://127.0.0.1:5001/5questions" class="tool-card-link" data-tool-id="coachs-sports-practice">
+            <a href="http://127.0.0.1:8000/5questions" class="tool-card-link" data-tool-id="coachs-sports-practice">
                 <div class="tool-card" data-category="study">
                     <span class="tool-card-favorite" data-tool-id="coachs-sports-practice"><i
                             class="fas fa-star"></i></span>
@@ -580,7 +585,7 @@
             </a>
 
             {{-- Email Writer --}}
-            <a href="http://127.0.0.1:8000/email-writer" class="tool-card-link" data-tool-id="email-writer">
+            <a href="http://localhost:8000/email-writer" class="tool-card-link" data-tool-id="email-writer">
                 <div class="tool-card" data-category="writing">
                     <span class="tool-card-favorite" data-tool-id="email-writer"><i class="fas fa-star"></i></span>
                     <div class="tool-card-content">
@@ -596,7 +601,7 @@
             </a>
 
             {{-- Multiple Explanations Generator --}}
-            <a href="http://127.0.0.1:8000/explanations" class="tool-card-link"
+            <a href="http://localhost:8000/explanations" class="tool-card-link"
                 data-tool-id="multiple-explanations-generator">
                 <div class="tool-card" data-category="study">
                     <span class="tool-card-favorite" data-tool-id="multiple-explanations-generator"><i
@@ -614,7 +619,7 @@
             </a>
 
             {{-- Teacher Jokes --}}
-            <a href="http://127.0.0.1:5004/generate-joke" class="tool-card-link" data-tool-id="teacher-jokes">
+            <a href="http://localhost:8000/generate-joke" class="tool-card-link" data-tool-id="teacher-jokes">
                 <div class="tool-card" data-category="creative">
                     <span class="tool-card-favorite" data-tool-id="teacher-jokes"><i class="fas fa-star"></i></span>
                     <div class="tool-card-content">
@@ -646,7 +651,7 @@
             </a>
 
             {{-- Tongue Twisters --}}
-            <a href="http://127.0.0.1:5002/generate-tongue-twister" class="tool-card-link"
+            <a href="http://localhost:8000/generate-tongue-twister" class="tool-card-link"
                 data-tool-id="tongue-twisters">
                 <div class="tool-card" data-category="reading creative">
                     <span class="tool-card-favorite" data-tool-id="tongue-twisters"><i class="fas fa-star"></i></span>
@@ -663,7 +668,7 @@
             </a>
 
             {{-- Quote of the Day --}}
-            <a href="http://127.0.0.1:5001/5questions" class="tool-card-link" data-tool-id="quote-of-the-day">
+            <a href="http://127.0.0.1:8000/5questions" class="tool-card-link" data-tool-id="quote-of-the-day">
                 <div class="tool-card" data-category="creative">
                     <span class="tool-card-favorite" data-tool-id="quote-of-the-day"><i class="fas fa-star"></i></span>
                     <div class="tool-card-content">
@@ -695,7 +700,7 @@
             </a>
 
             {{-- Make It Relevant! --}}
-            <a href="http://127.0.0.1:5001/makeitrelevant" class="tool-card-link" data-tool-id="make-it-relevant">
+            <a href="http://127.0.0.1:8000/makeitrelevant" class="tool-card-link" data-tool-id="make-it-relevant">
                 <div class="tool-card" data-category="writing study">
                     <span class="tool-card-favorite" data-tool-id="make-it-relevant"><i class="fas fa-star"></i></span>
                     <div class="tool-card-content">
@@ -712,7 +717,7 @@
             </a>
 
             {{-- Chat with Docs --}}
-            <a href="http://127.0.0.1:5001/chatwithdocs" class="tool-card-link" data-tool-id="chat-with-docs">
+            <a href="http://127.0.0.1:8000/chatwithdocs" class="tool-card-link" data-tool-id="chat-with-docs">
                 <div class="tool-card" data-category="reading study">
                     <span class="tool-card-favorite" data-tool-id="chat-with-docs"><i class="fas fa-star"></i></span>
                     <div class="tool-card-content">
@@ -728,7 +733,7 @@
             </a>
 
             {{-- Math Review --}}
-            <a href="http://127.0.0.1:5001/mathreview" class="tool-card-link" data-tool-id="math-review">
+            <a href="http://127.0.0.1:8000/mathreview" class="tool-card-link" data-tool-id="math-review">
                 <div class="tool-card" data-category="study">
                     <span class="tool-card-favorite" data-tool-id="math-review"><i class="fas fa-star"></i></span>
                     <div class="tool-card-content">
@@ -744,7 +749,7 @@
             </a>
 
             {{-- Character Chatbot --}}
-            <a href="http://127.0.0.1:8000/characterchat" class="tool-card-link" data-tool-id="character-chatbot">
+            <a href="http://localhost:8000/characterchat" class="tool-card-link" data-tool-id="character-chatbot">
                 <div class="tool-card" data-category="reading creative">
                     <span class="tool-card-favorite" data-tool-id="character-chatbot"><i class="fas fa-star"></i></span>
                     <div class="tool-card-content">
@@ -760,7 +765,7 @@
             </a>
 
             {{-- Idea Generator --}}
-            <a href="http://127.0.0.1:8000/idea-generator" class="tool-card-link" data-tool-id="idea-generator">
+            <a href="http://localhost:8000/idea-generator" class="tool-card-link" data-tool-id="idea-generator">
                 <div class="tool-card" data-category="creative">
                     <span class="tool-card-favorite" data-tool-id="idea-generator"><i class="fas fa-star"></i></span>
                     <div class="tool-card-content">
@@ -776,7 +781,7 @@
             </a>
 
             {{-- Content Creator --}}
-            <a href="http://127.0.0.1:8000/contentcreator" class="tool-card-link" data-tool-id="content-creator">
+            <a href="http://localhost:8000/contentcreator" class="tool-card-link" data-tool-id="content-creator">
                 <div class="tool-card" data-category="writing creative">
                     <span class="tool-card-favorite" data-tool-id="content-creator"><i class="fas fa-star"></i></span>
                     <div class="tool-card-content">
@@ -792,7 +797,7 @@
             </a>
 
             {{-- Social Stories --}}
-            <a href="http://127.0.0.1:8000/socialstory" class="tool-card-link" data-tool-id="social-stories">
+            <a href="http://localhost:8000/socialstory" class="tool-card-link" data-tool-id="social-stories">
                 <div class="tool-card" data-category="reading creative">
                     <span class="tool-card-favorite" data-tool-id="social-stories"><i class="fas fa-star"></i></span>
                     <div class="tool-card-content">

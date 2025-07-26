@@ -11,7 +11,7 @@ class ScaffolderController extends Controller
     public function fetchUserSessions()
     {
         $userId = Auth::id();
-        $response = Http::get("http://localhost:8016/sessions/$userId");
+        $response = Http::get("http://192.168.50.238:8016/sessions/$userId");
         return response()->json($response->json());
     }
 
@@ -56,7 +56,7 @@ class ScaffolderController extends Controller
 
         $response = Http::timeout(0)
             ->asMultipart()
-            ->post('http://localhost:8016/scaffolder', $multipartData);
+            ->post('http://192.168.50.238:8016/scaffolder', $multipartData);
 
         if ($response->failed()) {
             logger()->error('FastAPI Leveler error', ['body' => $response->body()]);

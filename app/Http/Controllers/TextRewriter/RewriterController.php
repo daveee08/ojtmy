@@ -12,7 +12,7 @@ class RewriterController extends Controller
     public function fetchUserSessions()
     {
         $userId = Auth::id();
-        $response = Http::get("http://localhost:8017/sessions/$userId");   # edit to your ip here
+        $response = Http::get("http://192.168.50.238:8017/sessions/$userId");   # edit to your ip here
         return response()->json($response->json());
     }
 
@@ -51,7 +51,7 @@ class RewriterController extends Controller
 
         $response = Http::timeout(0)
             ->asMultipart()
-            ->post('http://localhost:8017/rewriter', $multipartData);
+            ->post('http://192.168.50.238:8017/rewriter', $multipartData);
 
         if ($response->failed()) {
             logger()->error('FastAPI Leveler error', ['body' => $response->body()]);

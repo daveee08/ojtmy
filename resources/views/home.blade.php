@@ -1,9 +1,4 @@
-@guest
-    @extends('layouts.headerlogin')
-@else
-    @extends('layouts.header')
-    @extends('layouts.navbar')
-@endguest
+@extends('layouts.app')
 
 @section('title', 'Home')
 
@@ -16,6 +11,7 @@
         padding: 0;
         overflow-x: hidden;
         position: relative;
+        height: 1px;
     }
 
     .floating-shapes {
@@ -114,7 +110,7 @@
         border-radius: 12px;
         max-width: 500px;
         width: 100%;
-        box-shadow: 0 8px 20px rgba(17, 16, 16, 0.1);
+        box-shadow: 0 0 0 0.1rem rgba(233, 30, 99, 0.1);
     }
 
     .form-toggle {
@@ -157,6 +153,19 @@
         border: 1px solid #ddd;
         border-radius: 4px;
         font-size: 16px;
+    }
+
+    .form-group select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 16px;
+    }
+
+    .form-group input:focus {
+        border-color: var(--pink);
+        box-shadow: 0 0 0 0.1rem rgba(233, 30, 99, 0.1);
     }
 
     .btn-submit {
@@ -311,7 +320,24 @@
 
                 <div class="form-group">
                     <label for="grade_level">Grade Level</label>
-                    <input type="text" id="grade_level" name="grade_level" required>
+                    <select id="grade_level" name="grade_level" required>
+                        <option value="" disabled selected hidden></option>
+                        <option value="Kindergarten">Kindergarten</option>
+                        <option value="1st Grade">1st Grade</option>
+                        <option value="2nd Grade">2nd Grade</option>
+                        <option value="3rd Grade">3rd Grade</option>
+                        <option value="4th Grade">4th Grade</option>
+                        <option value="5th Grade">5th Grade</option>
+                        <option value="6th Grade">6th Grade</option>
+                        <option value="7th Grade">7th Grade</option>
+                        <option value="8th Grade">8th Grade</option>
+                        <option value="9th Grade">9th Grade</option>
+                        <option value="10th Grade">10th Grade</option>
+                        <option value="11th Grade">11th Grade</option>
+                        <option value="12th Grade">12th Grade</option>
+                        <option value="Undergraduate">Undergraduate</option>
+                        <option value="Graduate">Graduate</option>
+                    </select>
                 </div>
 
                 <div class="form-group">

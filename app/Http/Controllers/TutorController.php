@@ -8,11 +8,18 @@ use App\Models\{Message, ParameterInput};
 
 class TutorController extends Controller
 {
+    protected $baseUrl; // Property declaration must be before any methods
+
+    public function __construct()
+    {
+        $this->baseUrl = config('app.api_base_url');
+    }
 
     public function fetchUserSessions()
     {
         $userId = Auth::id();
-        $response = Http::get("http://localhost:8002/sessions/$userId");
+        // $response = Http::get("http://localhost:8002/sessions/$userId");
+        // $response = Http::get(this-)
         return response()->json($response->json());
     }
     public function showForm(Request $request)
@@ -47,9 +54,11 @@ class TutorController extends Controller
 
 
         try {
+
             $response = Http::timeout(0)
                 ->asMultipart()
-                ->post('http://localhost:8002/tutor', $multipartData);
+                ->post("{$this->baseUrl}/tutor", $multipartData);
+
 
             if ($response->failed()) {
                 logger()->error('Tutor API failed', ['body' => $response->body()]);

@@ -11,8 +11,8 @@ use App\Http\Controllers\Controller;
 class QuizmeController extends Controller
 {
     /**
-     * Fetches user-specific sessions for Quote of the Day.
-     * This method is generally used for displaying a list of past QOTD sessions.
+     * Fetches user-specific sessions for Quiz Me!
+     * This method is generally used for displaying a list of past Quiz Me sessions.
      *
      * @return \Illuminate\Http\JsonResponse
      */
@@ -22,9 +22,6 @@ class QuizmeController extends Controller
         $userId = Auth::id() ?? 1;
 
         // Make an HTTP GET request to your QuizMe backend's sessions endpoint.
-        // Note: This method targets port 5000, while your screenshot's cURL error indicated port 8003.
-        // The error you're seeing likely originates from a *different* controller/route handling '/chat/history/{id}'
-        // which might be configured to call a service on port 8003.
         try {
             $response = Http::get("http://127.0.0.1:5000/quizme-sessions/{$userId}");
 

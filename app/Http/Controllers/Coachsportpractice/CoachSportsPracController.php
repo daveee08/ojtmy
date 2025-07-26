@@ -13,7 +13,7 @@ class CoachSportsPracController extends Controller
     public function fetchUserSessions()
     {
         $userId = Auth::id();
-        $response = Http::get("http://localhost:5000/sessions/$userId");
+        $response = Http::get("http://localhost:8026/sessions/$userId");
         return response()->json($response->json());
     }
 
@@ -57,7 +57,7 @@ class CoachSportsPracController extends Controller
         logger('Sending to FastAPI:', $multipartData);
         $response = Http::timeout(60) // 60 seconds
             ->asMultipart()
-            ->post('http://127.0.0.1:5000/coach_sports_prac', $multipartData);
+            ->post('http://127.0.0.1:8026/coach_sports_prac', $multipartData);
 
         if ($response->failed()) {
             logger()->error('FastAPI CoachSportsPrac error', ['body' => $response->body()]);
@@ -126,7 +126,7 @@ class CoachSportsPracController extends Controller
             // Build a dynamic filename
             $response = Http::timeout(0)
                 ->asMultipart()
-                ->post('http://127.0.0.1:5000/generate-pdf', [
+                ->post('http://127.0.0.1:8026/generate-pdf', [
                     ['name' => 'content', 'contents' => $cleanContent],
                     ['name' => 'filename', 'contents' => $filename],
                 ]);
@@ -152,7 +152,7 @@ class CoachSportsPracController extends Controller
         // Send to FastAPI
         $response = Http::timeout(0)
             ->asForm()
-            ->post('http://127.0.0.1:5000/generate-pdf', [
+            ->post('http://127.0.0.1:8026/generate-pdf', [
                 'content' => $content,
             ]);
 

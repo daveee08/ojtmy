@@ -35,7 +35,7 @@ class TongueTwistController extends Controller
 
         $response = Http::timeout(0)
             ->asMultipart()
-            ->post('http://127.0.0.1:5000/tonguetwister', $multipartData);
+            ->post('http://127.0.0.1:8025/tonguetwister', $multipartData);
 
         if ($response->failed()) {
             logger()->error('FastAPI TongueTwister error', ['body' => $response->body()]);

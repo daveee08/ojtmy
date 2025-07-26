@@ -23,7 +23,7 @@ class QOTDController extends Controller
         
         // Make an HTTP GET request to your QOTD backend's sessions endpoint.
         // --- PORT CHANGED TO 5000 ---
-        $response = Http::get("http://127.0.0.1:5000/qotd-sessions/{$userId}");
+        $response = Http::get("http://127.0.0.1:8024/qotd-sessions/{$userId}");
 
         // Return the JSON response directly from the backend.
         return response()->json($response->json());
@@ -75,7 +75,7 @@ class QOTDController extends Controller
             // Make an HTTP POST request to your FastAPI service's quote generation endpoint.
             // Use timeout(0) for no timeout, allowing the FastAPI to complete its process.
             // --- PORT CHANGED TO 5000 ---
-            $response = Http::timeout(0)->asMultipart()->post('http://127.0.0.1:5000/qotd',
+            $response = Http::timeout(0)->asMultipart()->post('http://127.0.0.1:8024/qotd',
                 $multipartData 
             );
 
@@ -160,7 +160,7 @@ class QOTDController extends Controller
         } elseif ($format === 'pdf') {
             try {
                 // --- PORT CHANGED TO 5000 ---
-                $response = Http::timeout(0)->post('http://127.0.0.1:5000/generate-pdf', [
+                $response = Http::timeout(0)->post('http://127.0.0.1:8024/generate-pdf', [
                     'content' => $content,
                     'filename' => $filename,
                 ]);

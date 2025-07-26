@@ -34,6 +34,10 @@ use App\Http\Controllers\ChatconversationController;
 use App\Http\Controllers\SocialStory\SocialStoryController;
 use App\Http\Controllers\CharacterChat\CharacterChatController;
 use App\Http\Controllers\RAGController;
+use App\Http\Controllers\PasswordResetController; 
+// ...
+Route::post('/password/manual-reset', [PasswordResetController::class, 'manualReset'])->name('password.manual-reset');
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -164,9 +168,9 @@ Route::get('/tonguetwister', [TongueTwistController::class, 'showForm']);
 Route::post('/tonguetwister', [TongueTwistController::class, 'processForm']);
 
 // ✅ Teacher Jokes
-Route::get('/teacher-jokes', [TeacherJokesController::class, 'showForm'])->name('teacherjokes.show');
-Route::post('/teacher-jokes', [TeacherJokesController::class, 'generateJoke'])->name('teacherjokes.generate');
-Route::post('/teacher-jokes/download', [TeacherJokesController::class, 'downloadJoke'])->name('teacherjokes.download');
+Route::get('/teacherjokes', [TeacherJokesController::class, 'showForm'])->name('teacherjokes.index'); // Changed to showForm
+Route::post('/teacherjokes/generate', [TeacherJokesController::class, 'generateJoke'])->name('teacherjokes.generate'); // Changed to generateJoke
+// Route::post('/teacherjokes/download', [TeacherJokesController::class, 'download'])->name('teacherjokes.download');
 
 // ✅ Coach Sports Practice
 Route::get('/coachsportprac', [CoachSportsPracController::class, 'showForm']);
@@ -279,3 +283,6 @@ Route::get('/virtual-tutor-chat', [RAGController::class, 'showVirtualTutorChat']
 Route::post('/send-rag-message', [RAGController::class, 'sendRagMessage']);
 
 Route::post('/generate-quiz', [RAGController::class, 'generateQuiz']);
+
+//forgot password
+Route::post('/password/manual-reset', [PasswordResetController::class, 'manualReset'])->name('password.manual-reset');

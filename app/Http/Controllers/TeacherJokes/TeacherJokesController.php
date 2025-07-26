@@ -33,10 +33,8 @@ class TeacherJokesController extends Controller
 
         $joke = null;
         $errorMessage = null;
-
-    
-        // --- CHANGE THIS LINE: Update port from 5006 to 5000 ---
-        $response = Http::timeout(0)->post('http://127.0.0.1:5000/generate-joke', [
+        
+        $response = Http::timeout(0)->post('http://127.0.0.1:8023/generate-joke', [
             'topic' => $topic,
             'grade_level' => $grade_level,
             'user_id' => $userId,
@@ -67,41 +65,41 @@ class TeacherJokesController extends Controller
             'errorMessage' => $errorMessage
         ]);
     }
+}    
 
-    public function downloadJoke(Request $request)
-    {
-        set_time_limit(0);
+//     public function downloadJoke(Request $request)
+//     {
+//         set_time_limit(0);
 
-        // ... (validation and content extraction remain unchanged)
+//         // ... (validation and content extraction remain unchanged)
 
-        if ($format === 'txt') {
-            return response($content)
-                ->header('Content-Type', 'text/plain')
-                ->header('Content-Disposition', 'attachment; filename="' . $filename . '.txt"');
-        } elseif ($format === 'pdf') {
-            try {
-                // --- CHANGE THIS LINE: Update port from 5006 to 5000 ---
-                $response = Http::timeout(0)->post('http://127.0.0.1:5000/generate-pdf', [
-                    'content' => $content,
-                    'filename' => $filename,
-                ]);
+//         if ($format === 'txt') {
+//             return response($content)
+//                 ->header('Content-Type', 'text/plain')
+//                 ->header('Content-Disposition', 'attachment; filename="' . $filename . '.txt"');
+//         } elseif ($format === 'pdf') {
+//             try {
+//                 $response = Http::timeout(0)->post('http://127.0.0.1:8023/generate-pdf', [
+//                     'content' => $content,
+//                     'filename' => $filename,
+//                 ]);
 
-                // ... (rest of the downloadJoke method remains unchanged)
-                if ($response->successful()) {
-                    return response($response->body())
-                        ->header('Content-Type', 'application/pdf')
-                        ->header('Content-Disposition', 'attachment; filename="' . $filename . '.pdf"');
-                } else {
-                    Log::error('TeacherJokes PDF API Error:', [
-                        'status' => $response->status(),
-                        'body' => $response->body()
-                    ]);
-                    return back()->withErrors(['download' => 'Error generating PDF: ' . ($response->json()['error'] ?? 'Unknown error')]);
-                }
-            } catch (\Exception $e) {
-                Log::error('TeacherJokes PDF connection error: ' . $e->getMessage());
-                return back()->withErrors(['download' => 'Error connecting to PDF generation service: ' . $e->getMessage()]);
-            }
-        }
-    }
-}
+//                 // ... (rest of the downloadJoke method remains unchanged)
+//                 if ($response->successful()) {
+//                     return response($response->body())
+//                         ->header('Content-Type', 'application/pdf')
+//                         ->header('Content-Disposition', 'attachment; filename="' . $filename . '.pdf"');
+//                 } else {
+//                     Log::error('TeacherJokes PDF API Error:', [
+//                         'status' => $response->status(),
+//                         'body' => $response->body()
+//                     ]);
+//                     return back()->withErrors(['download' => 'Error generating PDF: ' . ($response->json()['error'] ?? 'Unknown error')]);
+//                 }
+//             } catch (\Exception $e) {
+//                 Log::error('TeacherJokes PDF connection error: ' . $e->getMessage());
+//                 return back()->withErrors(['download' => 'Error connecting to PDF generation service: ' . $e->getMessage()]);
+//             }
+//         }
+//     }
+// }

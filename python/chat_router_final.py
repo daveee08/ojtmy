@@ -24,7 +24,7 @@ if utils_path not in sys.path:
 
 
 try:
-    from python.db_utils_final import get_db_connection
+    from db_utils_final import get_db_connection
     # If the import is successful, you can now use get_db_connection
     # For example: conn = get_db_connection()
     # print("Successfully imported get_db_connection.")
